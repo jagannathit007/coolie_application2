@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
-import 'package:coolie_application/routes/route_name.dart';
+import 'package:license_sahayak/routes/route_name.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
 import '../../../services/app_storage.dart';
@@ -9,14 +9,11 @@ import '../../../services/helper.dart';
 import '../../../services/notification_service.dart';
 import '../auth_service.dart';
 
-class OtpVerifyController extends GetxController {
+class OtpVerifyCtrl extends GetxController {
   final mobile = ''.obs;
-  String deviceId = '';
-  String fcmToken = '';
   final verificationCodeController = TextEditingController();
   late final AuthService authService;
-  final isLoading = false.obs;
-  final isResendEnabled = true.obs;
+  final isLoading = false.obs, isResendEnabled = true.obs;
   final countdown = 30.obs;
   Timer? _timer;
 
@@ -24,35 +21,14 @@ class OtpVerifyController extends GetxController {
   void onInit() {
     super.onInit();
     _initializeServices();
-    _getDeviceId();
-    _getFcmToken();
     final args = Get.arguments;
     if (args != null && args["mobileNo"] != null) {
       mobile.value = args["mobileNo"];
-    } else {
-      errorToast('Mobile number not provided');
-      Get.back();
     }
     _startTimer();
   }
 
-  void _initializeServices() {
-    try {
-      authService = Get.find<AuthService>();
-    } catch (e) {
-      authService = Get.put(AuthService());
-    }
-  }
-
-  Future<void> _getDeviceId() async {
-    deviceId = await helper.getDeviceUniqueId();
-    debugPrint("Device ID: $deviceId");
-  }
-
-  Future<void> _getFcmToken() async {
-    fcmToken = (await notificationService.getToken())!;
-    debugPrint("FCM Token: $fcmToken");
-  }
+  void _initializeServices() => authService = Get.isRegistered<AuthService>() ? Get.find<AuthService>() : Get.put(AuthService());
 
   void _startTimer() {
     isResendEnabled.value = false;
@@ -73,18 +49,15 @@ class OtpVerifyController extends GetxController {
       warningToast("Please enter OTP");
       return;
     }
-
     if (verificationCodeController.text.trim().length != 4) {
       warningToast("Please enter a valid 4-digit OTP");
       return;
     }
-
-    isLoading.value = true;
     try {
+      isLoading.value = true;
+      String fcmToken = await notificationService.getToken() ?? "";
+      String deviceId = await helper.getDeviceUniqueId();
       final request = {"mobileNo": mobile.value, "otpCode": verificationCodeController.text.trim(), "fcm": fcmToken, "deviceId": deviceId};
-
-      debugPrint("OTP Verify Request: $request");
-
       final userModel = await authService.verifyOtp(request);
       final userMobile = userModel?.user.mobileNo ?? "";
       if (userModel != null) {
@@ -93,12 +66,9 @@ class OtpVerifyController extends GetxController {
         await AppStorage.write('user', json.encode(userModel.toJson()));
         successToast("OTP Verified Successfully");
         Get.offAllNamed(RouteName.home);
-      } else {
-        errorToast("Invalid OTP. Please try again.");
       }
     } catch (e) {
       errorToast("An error occurred: $e");
-      debugPrint("Verify OTP Error: $e");
     } finally {
       isLoading.value = false;
     }
@@ -113,7 +83,6 @@ class OtpVerifyController extends GetxController {
       _startTimer();
     } catch (e) {
       errorToast("Failed to resend OTP: $e");
-      debugPrint("Resend OTP Error: $e");
     } finally {
       isLoading.value = false;
     }

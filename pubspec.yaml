@@ -1,10 +1,10 @@
-name: coolie_application
+name: license_sahayak
 description: "A new Flutter project."
 publish_to: 'none'
 version: 1.0.0+1
 
 environment:
-  sdk: ^3.10.0-99.0.dev
+  sdk: ^3.9.2
 
 dependencies:
   flutter:
@@ -17,23 +17,17 @@ dependencies:
   url_launcher: ^6.3.2
   image_picker: ^1.2.0
   device_info_plus: ^12.3.0
-  google_fonts: ^6.2.1
+  google_fonts: ^8.0.2
   firebase_messaging: ^16.0.1
   firebase_core: ^4.1.0
-  firebase_auth: ^6.0.2
-  cloud_firestore: ^6.0.1
-  firebase_storage: ^13.0.1
   intl: ^0.20.2
   flutter_svg: ^2.2.0
-  image_cropper: ^11.0.0
   geolocator: ^14.0.2
   geocoding: ^4.0.0
-  flutter_launcher_icons: ^0.14.4
-  change_app_package_name: ^1.5.0
-  flutter_local_notifications: ^19.4.2
-  firebase_crashlytics: ^5.0.2
+  flutter_local_notifications: ^21.0.0
   fluttertoast: ^9.0.0
-
+  flutter_offline: ^6.0.0
+  font_awesome_flutter: ^11.0.0
 
 dev_dependencies:
   flutter_test:
@@ -49,7 +43,7 @@ flutter_launcher_icons:
 flutter:
   config:
     enable-swift-package-manager: false
-    
+
   uses-material-design: true
 
   assets:

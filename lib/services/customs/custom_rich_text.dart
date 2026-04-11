@@ -1,5 +1,3 @@
-
-
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 
@@ -46,11 +44,7 @@ class CustomRichText extends StatelessWidget {
     this.padding,
   });
 
-  TextStyle get _style => TextStyle(
-    fontSize: 13.5,
-    color: Colors.black,
-    height: 1.01,
-  );
+  TextStyle get _style => TextStyle(fontSize: 13.5, color: Colors.black, height: 1.01);
 
   TextStyle get _masterStyle => style ?? _style;
 
@@ -78,31 +72,11 @@ class CustomRichText extends StatelessWidget {
                   text: TextSpan(
                     style: _masterStyle,
                     children: <InlineSpan>[
-                      TextSpan(
-                        text: text1,
-                        style: style1 ?? _masterStyle,
-                        recognizer: TapGestureRecognizer()..onTap = onTap1,
-                      ),
-                      TextSpan(
-                        text: text2,
-                        style: style2 ?? _masterStyle,
-                        recognizer: TapGestureRecognizer()..onTap = onTap2,
-                      ),
-                      TextSpan(
-                        text: text3,
-                        style: style3 ?? _masterStyle,
-                        recognizer: TapGestureRecognizer()..onTap = onTap3,
-                      ),
-                      TextSpan(
-                        text: text4,
-                        style: style4 ?? _masterStyle,
-                        recognizer: TapGestureRecognizer()..onTap = onTap4,
-                      ),
-                      TextSpan(
-                        text: text5,
-                        style: style5 ?? _masterStyle,
-                        recognizer: TapGestureRecognizer()..onTap = onTap5,
-                      ),
+                      TextSpan(text: text1, style: style1 ?? _masterStyle, recognizer: TapGestureRecognizer()..onTap = onTap1),
+                      TextSpan(text: text2, style: style2 ?? _masterStyle, recognizer: TapGestureRecognizer()..onTap = onTap2),
+                      TextSpan(text: text3, style: style3 ?? _masterStyle, recognizer: TapGestureRecognizer()..onTap = onTap3),
+                      TextSpan(text: text4, style: style4 ?? _masterStyle, recognizer: TapGestureRecognizer()..onTap = onTap4),
+                      TextSpan(text: text5, style: style5 ?? _masterStyle, recognizer: TapGestureRecognizer()..onTap = onTap5),
                     ],
                   ),
                 ),

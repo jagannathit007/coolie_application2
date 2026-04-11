@@ -1,3 +1,3 @@
 class AppConfig {
-  static String appName = "Be On Time";
+  static String appName = "License Sahayak";
 }

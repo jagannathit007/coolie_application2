@@ -1,16 +1,16 @@
-import 'package:coolie_application/utils/app_constants.dart';
+import 'package:license_sahayak/utils/app_constants.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'booking_history_controller.dart';
+import 'booking_history_ctrl.dart';
 
 class BookingHistory extends StatelessWidget {
   const BookingHistory({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return GetBuilder<BookingHistoryController>(
-      init: BookingHistoryController(),
+    return GetBuilder<BookingHistoryCtrl>(
+      init: BookingHistoryCtrl(),
       builder: (controller) {
         return Scaffold(
           backgroundColor: Colors.grey[50],
@@ -19,14 +19,6 @@ class BookingHistory extends StatelessWidget {
             backgroundColor: Constants.instance.primary,
             foregroundColor: Colors.white,
             elevation: 0,
-            // actions: [
-            //   IconButton(
-            //     icon: const Icon(Icons.filter_list_rounded),
-            //     onPressed: () {
-
-            //     },
-            //   ),
-            // ],
           ),
           body: Column(
             children: [
@@ -36,11 +28,9 @@ class BookingHistory extends StatelessWidget {
                   if (controller.isLoading.value && controller.bookings.isEmpty) {
                     return const Center(child: CircularProgressIndicator());
                   }
-
                   if (controller.bookings.isEmpty) {
                     return _buildEmptyState();
                   }
-
                   return RefreshIndicator(
                     onRefresh: () => controller.refreshHistory(),
                     child: ListView.builder(
@@ -54,7 +44,6 @@ class BookingHistory extends StatelessWidget {
                             child: Center(child: CircularProgressIndicator()),
                           );
                         }
-
                         final booking = controller.bookings[index];
                         return _buildModernBookingCard(booking, controller, index, context);
                       },
@@ -69,7 +58,7 @@ class BookingHistory extends StatelessWidget {
     );
   }
 
-  Widget _buildHeaderSection(BookingHistoryController controller) {
+  Widget _buildHeaderSection(BookingHistoryCtrl controller) {
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
@@ -136,9 +125,8 @@ class BookingHistory extends StatelessWidget {
     );
   }
 
-  Widget _buildModernBookingCard(dynamic booking, BookingHistoryController controller, int index, BuildContext context) {
+  Widget _buildModernBookingCard(dynamic booking, BookingHistoryCtrl controller, int index, BuildContext context) {
     final statusColor = _getStatusColor(booking.status.toString());
-
     return TweenAnimationBuilder<double>(
       duration: Duration(milliseconds: 300 + (index * 50)),
       tween: Tween(begin: 0.0, end: 1.0),
@@ -160,11 +148,7 @@ class BookingHistory extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [statusColor.withOpacity(0.1), statusColor.withOpacity(0.05)],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
+                gradient: LinearGradient(colors: [statusColor.withOpacity(0.1), statusColor.withOpacity(0.05)], begin: Alignment.topLeft, end: Alignment.bottomRight),
                 borderRadius: const BorderRadius.only(topLeft: Radius.circular(20), topRight: Radius.circular(20)),
               ),
               child: Row(
@@ -185,10 +169,7 @@ class BookingHistory extends StatelessWidget {
                             "Booking #${index + 1}",
                             style: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.grey[800]),
                           ),
-                          Text(
-                            controller.formatDate(booking.timestamp!.bookedAt.toString()),
-                            style: GoogleFonts.poppins(fontSize: 11, color: Colors.grey[600]),
-                          ),
+                          Text(controller.formatDate(booking.timestamp!.bookedAt.toString()), style: GoogleFonts.poppins(fontSize: 11, color: Colors.grey[600])),
                         ],
                       ),
                     ],
@@ -204,7 +185,6 @@ class BookingHistory extends StatelessWidget {
                 ],
               ),
             ),
-
             Padding(
               padding: const EdgeInsets.all(16),
               child: Column(
@@ -231,7 +211,6 @@ class BookingHistory extends StatelessWidget {
                       ),
                     ],
                   ),
-
                   Padding(
                     padding: const EdgeInsets.only(left: 19),
                     child: Column(
@@ -246,8 +225,6 @@ class BookingHistory extends StatelessWidget {
                       ),
                     ),
                   ),
-
-                  // Destination location
                   Row(
                     children: [
                       Container(
@@ -270,11 +247,9 @@ class BookingHistory extends StatelessWidget {
                       ),
                     ],
                   ),
-
                   const SizedBox(height: 16),
                   const Divider(height: 1),
                   const SizedBox(height: 16),
-
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -333,7 +308,7 @@ class BookingHistory extends StatelessWidget {
     }
   }
 
-  void _showBookingDetailsBottomSheet(BuildContext context, booking, BookingHistoryController controller) {
+  void _showBookingDetailsBottomSheet(BuildContext context, booking, BookingHistoryCtrl controller) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -375,18 +350,12 @@ class BookingHistory extends StatelessWidget {
                   const SizedBox(height: 16),
                   _buildDetailSection("Payment Information", [
                     _buildDetailRow(Icons.currency_rupee, "Base Fare", "₹${booking.fare!.baseFare}"),
-                    _buildDetailRow(
-                      Icons.check_circle,
-                      "Status",
-                      booking.status.toString().toUpperCase(),
-                      valueColor: _getStatusColor(booking.status.toString()),
-                    ),
+                    _buildDetailRow(Icons.check_circle, "Status", booking.status.toString().toUpperCase(), valueColor: _getStatusColor(booking.status.toString())),
                   ]),
                   const SizedBox(height: 16),
                   _buildDetailSection("Time Information", [
                     _buildDetailRow(Icons.access_time, "Booked At", controller.formatDate(booking.timestamp!.bookedAt.toString())),
-                    if (booking.timestamp!.completedAt != null)
-                      _buildDetailRow(Icons.check_circle_outline, "Completed At", controller.formatDate(booking.timestamp!.completedAt.toString())),
+                    if (booking.timestamp!.completedAt != null) _buildDetailRow(Icons.check_circle_outline, "Completed At", controller.formatDate(booking.timestamp!.completedAt.toString())),
                   ]),
                   const SizedBox(height: 24),
                   ElevatedButton(

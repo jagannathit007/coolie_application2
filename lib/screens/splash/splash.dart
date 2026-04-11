@@ -2,16 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../utils/app_constants.dart';
-
-import 'splash_controller.dart';
+import 'splash_ctrl.dart';
 
 class SplashScreen extends StatelessWidget {
   const SplashScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return GetBuilder<SplashController>(
-      init: SplashController(),
+    return GetBuilder<SplashCtrl>(
+      init: SplashCtrl(),
       builder: (controller) {
         return Scaffold(
           backgroundColor: Theme.of(context).scaffoldBackgroundColor,
@@ -28,12 +27,10 @@ class SplashScreen extends StatelessWidget {
                   ),
                 ),
               ),
-              // Main content
               Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    // Animated logo
                     AnimatedBuilder(
                       animation: controller.animationController,
                       builder: (context, child) {
@@ -57,10 +54,7 @@ class SplashScreen extends StatelessWidget {
                         );
                       },
                     ),
-
                     const SizedBox(height: 20),
-
-                    // App name with animation
                     AnimatedBuilder(
                       animation: controller.animationController,
                       builder: (context, child) {
@@ -76,7 +70,6 @@ class SplashScreen extends StatelessWidget {
                         );
                       },
                     ),
-                    // Tagline with animation
                     AnimatedBuilder(
                       animation: controller.animationController,
                       builder: (context, child) {
@@ -95,8 +88,6 @@ class SplashScreen extends StatelessWidget {
                   ],
                 ),
               ),
-
-              // Animated progress indicator
               Positioned(
                 bottom: 60,
                 left: 0,

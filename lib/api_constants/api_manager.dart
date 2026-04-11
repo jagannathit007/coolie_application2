@@ -1,11 +1,9 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
-
 import '../models/response_model.dart';
 import '../services/app_storage.dart';
 import '../services/app_toasting.dart';
 import 'network_constants.dart';
-
 
 class ApiManager {
   final Dio _dio = Dio();
@@ -20,7 +18,6 @@ class ApiManager {
     _dio.interceptors.add(_AuthInterceptor());
   }
 
-  // GET request
   Future<ResponseModel> get(String path, {Map<String, dynamic>? queryParameters, Map<String, dynamic>? headers}) async {
     try {
       final response = await _dio.get(
@@ -34,7 +31,6 @@ class ApiManager {
     }
   }
 
-  // POST request
   Future<ResponseModel> post(String path, {dynamic data, Map<String, dynamic>? queryParameters, Map<String, dynamic>? headers}) async {
     try {
       final response = await _dio.post(
@@ -49,7 +45,6 @@ class ApiManager {
     }
   }
 
-  // PUT request
   Future<ResponseModel> put(String path, {dynamic data, Map<String, dynamic>? queryParameters, Map<String, dynamic>? headers}) async {
     try {
       final response = await _dio.put(
@@ -64,7 +59,6 @@ class ApiManager {
     }
   }
 
-  // PATCH request
   Future<ResponseModel> patch(String path, {dynamic data, Map<String, dynamic>? queryParameters, Map<String, dynamic>? headers}) async {
     try {
       final response = await _dio.patch(
@@ -79,7 +73,6 @@ class ApiManager {
     }
   }
 
-  // DELETE request
   Future<ResponseModel> delete(String path, {dynamic data, Map<String, dynamic>? queryParameters, Map<String, dynamic>? headers}) async {
     try {
       final response = await _dio.delete(
@@ -94,15 +87,12 @@ class ApiManager {
     }
   }
 
-  // Parse DioError into ResponseModel
   ResponseModel _parseDioError(DioException error) {
     if (error.response != null && error.response!.data != null) {
-      // Server responded with error but in our standard format
       var responseModel = ResponseModel.fromJson(error.response!.data);
-     errorToast(responseModel.message);
+      errorToast(responseModel.message);
       return responseModel;
     } else {
-      // Network or other unrecoverable error
       String message = _getErrorMessage(error);
       errorToast(message);
       return ResponseModel(message: message, data: null, status: error.response?.statusCode ?? 500);
@@ -129,12 +119,10 @@ class ApiManager {
   }
 }
 
-// Logging Interceptor
 class _LoggingInterceptor extends Interceptor {
   @override
   void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
     if (kDebugMode) {
-      // print("Auth Token ${options.au}");
       print("URI: ${options.uri}");
       print('REQUEST[${options.method}] => PATH: ${options.path}');
       print('HEADERS: ${options.headers}');
@@ -166,7 +154,6 @@ class _LoggingInterceptor extends Interceptor {
   }
 }
 
-// Auth Interceptor
 class _AuthInterceptor extends Interceptor {
   @override
   void onRequest(RequestOptions options, RequestInterceptorHandler handler) async {

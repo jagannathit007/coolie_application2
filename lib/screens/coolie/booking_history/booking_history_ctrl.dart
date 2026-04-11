@@ -1,14 +1,13 @@
-import 'package:coolie_application/repositories/authentication_repo.dart';
+import 'package:license_sahayak/repositories/authentication_repo.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import '../../../models/history_model.dart';
 
-class BookingHistoryController extends GetxController {
+class BookingHistoryCtrl extends GetxController {
   final AuthenticationRepo authenticationRepo = AuthenticationRepo();
   final bookings = <GetAllBookings>[].obs;
-  final isLoading = false.obs;
-  final hasMore = true.obs;
+  final isLoading = false.obs, hasMore = true.obs;
   final page = 1.obs;
   final limit = 10;
   final scrollController = ScrollController();
@@ -32,31 +31,19 @@ class BookingHistoryController extends GetxController {
 
   Future<void> getHistory() async {
     if (isLoading.value) return;
-
     try {
       isLoading.value = true;
-
       final res = await authenticationRepo.getHistory(page: page.value, limit: limit);
-
-      debugPrint("res Data: $res");
-
       if (res != null) {
-        debugPrint("res Data not null: $res");
-
         final Map<String, dynamic> bookingsData = res['bookings'];
         final List<dynamic> docs = bookingsData['docs'];
         final bool hasNextPage = bookingsData['hasNextPage'] ?? false;
-
         final newBookings = docs.map((e) => GetAllBookings.fromJson(e)).toList();
         bookings.addAll(newBookings);
-
         hasMore.value = hasNextPage;
         if (hasNextPage) {
           page.value++;
         }
-
-        debugPrint("Total bookings loaded: ${bookings.length}");
-        debugPrint("Has more pages: $hasNextPage");
       }
     } catch (e) {
       debugPrint("ERROR in HISTORY: $e");
@@ -83,7 +70,6 @@ class BookingHistoryController extends GetxController {
 
   String calculateTotalSpent() {
     if (bookings.isEmpty) return "0";
-
     try {
       double total = 0;
       for (var booking in bookings) {

@@ -26,7 +26,6 @@ class CoolieUserProfile {
   final String createdAt;
   final String updatedAt;
   final String v;
-
   final ImageData? image;
   final RateCard? rateCard;
 

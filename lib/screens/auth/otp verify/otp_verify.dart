@@ -1,18 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:google_fonts/google_fonts.dart';
 import '../../../services/customs/custom_rich_text.dart';
 import '../../../services/customs/otp_verification.dart';
 import '../../../utils/app_constants.dart';
-import 'otp_verify_controller.dart';
+import 'otp_verify_ctrl.dart';
 
 class OtpVerification extends StatelessWidget {
   const OtpVerification({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return GetBuilder<OtpVerifyController>(
-      init: OtpVerifyController(),
+    return GetBuilder<OtpVerifyCtrl>(
+      init: OtpVerifyCtrl(),
       builder: (controller) {
         return Scaffold(
           backgroundColor: const Color(0xffF5F5F4),

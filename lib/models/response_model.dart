@@ -9,21 +9,9 @@ class ResponseModel {
   dynamic data;
   int status;
 
-  ResponseModel({
-    required this.message,
-    required this.data,
-    required this.status,
-  });
+  ResponseModel({required this.message, required this.data, required this.status});
 
-  factory ResponseModel.fromJson(Map<String, dynamic> json) => ResponseModel(
-    message: json["message"],
-    data: json["data"],
-    status: json["status"],
-  );
+  factory ResponseModel.fromJson(Map<String, dynamic> json) => ResponseModel(message: json["message"], data: json["data"], status: json["status"]);
 
-  Map<String, dynamic> toJson() => {
-    "message": message,
-    "data": data,
-    "status": status,
-  };
+  Map<String, dynamic> toJson() => {"message": message, "data": data, "status": status};
 }

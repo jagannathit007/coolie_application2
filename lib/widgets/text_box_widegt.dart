@@ -64,9 +64,7 @@ class TextBoxWidget extends StatelessWidget {
       onChanged: onChanged,
       onTap: onTap,
       onFieldSubmitted: onSubmitted,
-      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-        color: enabled ? Colors.black87 : Colors.black54,
-      ),
+      style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: enabled ? Colors.black87 : Colors.black54),
       decoration: InputDecoration(
         labelText: labelText,
         hintText: hintText,
@@ -75,34 +73,17 @@ class TextBoxWidget extends StatelessWidget {
         filled: true,
         counterText: '',
         fillColor: fillColor ?? Colors.grey[50],
-        contentPadding: contentPadding ??
-            const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        contentPadding: contentPadding ?? const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         border: _outlineInputBorder(context),
         enabledBorder: _outlineInputBorder(context),
-        focusedBorder: _outlineInputBorder(context).copyWith(
-          borderSide: BorderSide(
-            color: Theme.of(context).primaryColor,
-            width: 1.5,
-          ),
-        ),
-        errorBorder: _outlineInputBorder(context).copyWith(
-          borderSide: const BorderSide(color: Colors.red, width: 1.0),
-        ),
-        focusedErrorBorder: _outlineInputBorder(context).copyWith(
-          borderSide: const BorderSide(color: Colors.red, width: 1.5),
-        ),
-        disabledBorder: _outlineInputBorder(context).copyWith(
-          borderSide: BorderSide(color: Colors.grey.shade300, width: 1.0),
-        ),
+        focusedBorder: _outlineInputBorder(context).copyWith(borderSide: BorderSide(color: Theme.of(context).primaryColor, width: 1.5)),
+        errorBorder: _outlineInputBorder(context).copyWith(borderSide: const BorderSide(color: Colors.red, width: 1.0)),
+        focusedErrorBorder: _outlineInputBorder(context).copyWith(borderSide: const BorderSide(color: Colors.red, width: 1.5)),
+        disabledBorder: _outlineInputBorder(context).copyWith(borderSide: BorderSide(color: Colors.grey.shade300, width: 1.0)),
         errorStyle: const TextStyle(fontSize: 12, height: 0.8),
         floatingLabelBehavior: FloatingLabelBehavior.auto,
-        labelStyle: TextStyle(
-          color: enabled ? Colors.black54 : Colors.grey,
-        ),
-        hintStyle: TextStyle(
-          color: Colors.grey[400],
-          fontSize: 14,
-        ),
+        labelStyle: TextStyle(color: enabled ? Colors.black54 : Colors.grey),
+        hintStyle: TextStyle(color: Colors.grey[400], fontSize: 14),
       ),
     );
   }
@@ -110,10 +91,7 @@ class TextBoxWidget extends StatelessWidget {
   OutlineInputBorder _outlineInputBorder(BuildContext context) {
     return OutlineInputBorder(
       borderRadius: BorderRadius.circular(8),
-      borderSide: BorderSide(
-        color: Colors.grey.shade300,
-        width: 1.0,
-      ),
+      borderSide: BorderSide(color: Colors.grey.shade300, width: 1.0),
     );
   }
 }

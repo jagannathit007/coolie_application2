@@ -1,5 +1,3 @@
-
-
 import 'dart:convert';
 
 GetAllBookings getAllBookingsFromJson(String str) => GetAllBookings.fromJson(json.decode(str));
@@ -92,26 +90,11 @@ class Fare {
   String? waitingCharges;
   String? totalFare;
 
-  Fare({
-    this.baseFare,
-    this.waitingTime,
-    this.waitingCharges,
-    this.totalFare,
-  });
+  Fare({this.baseFare, this.waitingTime, this.waitingCharges, this.totalFare});
 
-  factory Fare.fromJson(Map<String, dynamic> json) => Fare(
-    baseFare: json["baseFare"],
-    waitingTime: json["waitingTime"],
-    waitingCharges: json["waitingCharges"],
-    totalFare: json["totalFare"],
-  );
+  factory Fare.fromJson(Map<String, dynamic> json) => Fare(baseFare: json["baseFare"], waitingTime: json["waitingTime"], waitingCharges: json["waitingCharges"], totalFare: json["totalFare"]);
 
-  Map<String, dynamic> toJson() => {
-    "baseFare": baseFare,
-    "waitingTime": waitingTime,
-    "waitingCharges": waitingCharges,
-    "totalFare": totalFare,
-  };
+  Map<String, dynamic> toJson() => {"baseFare": baseFare, "waitingTime": waitingTime, "waitingCharges": waitingCharges, "totalFare": totalFare};
 }
 
 class PickupDetails {
@@ -119,23 +102,11 @@ class PickupDetails {
   String? coachNumber;
   String? description;
 
-  PickupDetails({
-    this.station,
-    this.coachNumber,
-    this.description,
-  });
+  PickupDetails({this.station, this.coachNumber, this.description});
 
-  factory PickupDetails.fromJson(Map<String, dynamic> json) => PickupDetails(
-    station: json["station"],
-    coachNumber: json["coachNumber"],
-    description: json["description"],
-  );
+  factory PickupDetails.fromJson(Map<String, dynamic> json) => PickupDetails(station: json["station"], coachNumber: json["coachNumber"], description: json["description"]);
 
-  Map<String, dynamic> toJson() => {
-    "station": station,
-    "coachNumber": coachNumber,
-    "description": description,
-  };
+  Map<String, dynamic> toJson() => {"station": station, "coachNumber": coachNumber, "description": description};
 }
 
 class Timestamp {
@@ -144,12 +115,7 @@ class Timestamp {
   DateTime? pickupTime;
   DateTime? completedAt;
 
-  Timestamp({
-    this.bookedAt,
-    this.acceptedAt,
-    this.pickupTime,
-    this.completedAt,
-  });
+  Timestamp({this.bookedAt, this.acceptedAt, this.pickupTime, this.completedAt});
 
   factory Timestamp.fromJson(Map<String, dynamic> json) => Timestamp(
     bookedAt: DateTime.parse(json["bookedAt"]),

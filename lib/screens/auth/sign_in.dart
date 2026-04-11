@@ -1,8 +1,7 @@
-import 'package:coolie_application/screens/auth/sign_controller.dart';
-import 'package:coolie_application/utils/app_constants.dart';
+import 'package:license_sahayak/screens/auth/sign_ctrl.dart';
+import 'package:license_sahayak/utils/app_constants.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-
 import '../../widgets/text_box_widegt.dart';
 
 class SignIn extends StatelessWidget {
@@ -10,7 +9,7 @@ class SignIn extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final controller = Get.put(SignController());
+    final controller = Get.put(SignCtrl());
     final theme = Theme.of(context);
 
     return Scaffold(
@@ -28,7 +27,6 @@ class SignIn extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  // Logo and heading section
                   Container(
                     padding: const EdgeInsets.all(18),
                     decoration: const BoxDecoration(

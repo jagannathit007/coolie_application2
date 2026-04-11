@@ -2,23 +2,14 @@ class UserModel {
   final User user;
   final String token;
 
-  UserModel({
-    required this.user,
-    required this.token,
-  });
+  UserModel({required this.user, required this.token});
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
-    return UserModel(
-      user: User.fromJson(json['user']),
-      token: json['token'],
-    );
+    return UserModel(user: User.fromJson(json['user']), token: json['token']);
   }
 
   Map<String, dynamic> toJson() {
-    return {
-      'user': user.toJson(),
-      'token': token,
-    };
+    return {'user': user.toJson(), 'token': token};
   }
 
   @override
@@ -30,9 +21,9 @@ class UserModel {
 class User {
   final ImageData? image;
   final RateCard rateCard;
-  final double? latitude; // Added
-  final double? longitude; // Added
-  final String? currentBookingId; // Added
+  final double? latitude;
+  final double? longitude;
+  final String? currentBookingId;
   final String id;
   final String name;
   final String mobileNo;
@@ -60,9 +51,9 @@ class User {
   User({
     this.image,
     required this.rateCard,
-    this.latitude, // Added
-    this.longitude, // Added
-    this.currentBookingId, // Added
+    this.latitude,
+    this.longitude,
+    this.currentBookingId,
     required this.id,
     required this.name,
     required this.mobileNo,
@@ -92,9 +83,9 @@ class User {
     return User(
       image: json['image'] != null ? ImageData.fromJson(json['image']) : null,
       rateCard: RateCard.fromJson(json['rateCard']),
-      latitude: json['latitude'] != null ? double.parse(json['latitude'].toString()) : null, // Added
-      longitude: json['longitude'] != null ? double.parse(json['longitude'].toString()) : null, // Added
-      currentBookingId: json['currentBookingId'], // Added
+      latitude: json['latitude'] != null ? double.parse(json['latitude'].toString()) : null,
+      longitude: json['longitude'] != null ? double.parse(json['longitude'].toString()) : null,
+      currentBookingId: json['currentBookingId'],
       id: json['_id'] ?? '',
       name: json['name'] ?? '',
       mobileNo: json['mobileNo'] ?? '',
@@ -108,9 +99,7 @@ class User {
       isApproved: json['isApproved'] ?? false,
       isActive: json['isActive'] ?? false,
       isLoggedIn: json['isLoggedIn'] ?? false,
-      lastLoginTime: json['lastLoginTime'] != null
-          ? DateTime.parse(json['lastLoginTime'])
-          : null,
+      lastLoginTime: json['lastLoginTime'] != null ? DateTime.parse(json['lastLoginTime']) : null,
       fcm: json['fcm'] ?? '',
       rating: json['rating'] ?? '0',
       totalRatings: json['totalRatings'] ?? '0',
@@ -127,9 +116,9 @@ class User {
     return {
       'image': image?.toJson(),
       'rateCard': rateCard.toJson(),
-      'latitude': latitude, // Added
-      'longitude': longitude, // Added
-      'currentBookingId': currentBookingId, // Added
+      'latitude': latitude,
+      'longitude': longitude,
+      'currentBookingId': currentBookingId,
       '_id': id,
       'name': name,
       'mobileNo': mobileNo,
@@ -161,23 +150,14 @@ class ImageData {
   final String url;
   final String s3Key;
 
-  ImageData({
-    required this.url,
-    required this.s3Key,
-  });
+  ImageData({required this.url, required this.s3Key});
 
   factory ImageData.fromJson(Map<String, dynamic> json) {
-    return ImageData(
-      url: json['url'] ?? '',
-      s3Key: json['s3Key'] ?? '',
-    );
+    return ImageData(url: json['url'] ?? '', s3Key: json['s3Key'] ?? '');
   }
 
   Map<String, dynamic> toJson() {
-    return {
-      'url': url,
-      's3Key': s3Key,
-    };
+    return {'url': url, 's3Key': s3Key};
   }
 }
 
@@ -186,25 +166,13 @@ class RateCard {
   final String baseTime;
   final String waitingRate;
 
-  RateCard({
-    required this.baseRate,
-    required this.baseTime,
-    required this.waitingRate,
-  });
+  RateCard({required this.baseRate, required this.baseTime, required this.waitingRate});
 
   factory RateCard.fromJson(Map<String, dynamic> json) {
-    return RateCard(
-      baseRate: json['baseRate'] ?? '0',
-      baseTime: json['baseTime'] ?? '0',
-      waitingRate: json['waitingRate'] ?? '0',
-    );
+    return RateCard(baseRate: json['baseRate'] ?? '0', baseTime: json['baseTime'] ?? '0', waitingRate: json['waitingRate'] ?? '0');
   }
 
   Map<String, dynamic> toJson() {
-    return {
-      'baseRate': baseRate,
-      'baseTime': baseTime,
-      'waitingRate': waitingRate,
-    };
+    return {'baseRate': baseRate, 'baseTime': baseTime, 'waitingRate': waitingRate};
   }
 }

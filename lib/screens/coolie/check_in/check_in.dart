@@ -1,6 +1,5 @@
-import 'dart:ui';
-import 'package:coolie_application/screens/coolie/check_in/check_in_controller.dart';
-import 'package:coolie_application/utils/app_constants.dart';
+import 'package:license_sahayak/screens/coolie/check_in/check_in_ctrl.dart';
+import 'package:license_sahayak/utils/app_constants.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -10,16 +9,14 @@ import '../../../widgets/text_box_widegt.dart';
 class CheckIn extends StatelessWidget {
   CheckIn({super.key});
 
-  final CheckInController controller = Get.put(CheckInController());
+  final CheckInCtrl controller = Get.put(CheckInCtrl());
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
   @override
   Widget build(BuildContext context) {
-    return GetBuilder<CheckInController>(
+    return GetBuilder<CheckInCtrl>(
       builder: (controller) {
-        // Store form key reference in controller
         controller.formKey = _formKey;
-        
         return Scaffold(
           resizeToAvoidBottomInset: false,
           backgroundColor: const Color(0xffF5F5F4),
@@ -29,7 +26,7 @@ class CheckIn extends StatelessWidget {
             backgroundColor: Colors.transparent,
             leading: IconButton(
               icon: const Icon(Icons.arrow_back, color: Colors.white),
-              onPressed: () => Get.back(),
+              onPressed: () => Get.close(1),
             ),
             centerTitle: true,
             title: Text(
@@ -42,11 +39,7 @@ class CheckIn extends StatelessWidget {
               Container(
                 height: MediaQuery.of(context).size.height * 0.35,
                 decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [Constants.instance.primary, Constants.instance.primary],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
+                  gradient: LinearGradient(colors: [Constants.instance.primary, Constants.instance.primary], begin: Alignment.topLeft, end: Alignment.bottomRight),
                 ),
               ),
               SafeArea(
@@ -62,23 +55,16 @@ class CheckIn extends StatelessWidget {
                             padding: const EdgeInsets.all(40),
                             child: Column(
                               children: [
-                                const CircularProgressIndicator(
-                                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                                ),
+                                const CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(Colors.white)),
                                 const SizedBox(height: 20),
                                 Text(
                                   'Opening Camera...',
-                                  style: GoogleFonts.poppins(
-                                    fontSize: 16,
-                                    color: Colors.white70,
-                                    fontWeight: FontWeight.w500,
-                                  ),
+                                  style: GoogleFonts.poppins(fontSize: 16, color: Colors.white70, fontWeight: FontWeight.w500),
                                 ),
                               ],
                             ),
                           );
                         }
-                        
                         if (controller.coolieImage.value != null) {
                           return Column(
                             children: [
@@ -86,81 +72,38 @@ class CheckIn extends StatelessWidget {
                                 padding: const EdgeInsets.all(6),
                                 decoration: BoxDecoration(
                                   shape: BoxShape.circle,
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Colors.black26,
-                                      blurRadius: 12,
-                                      offset: const Offset(0, 6),
-                                    ),
-                                  ],
-                                  gradient: LinearGradient(
-                                    colors: [
-                                      Colors.white.withOpacity(0.4),
-                                      Colors.white.withOpacity(0.1),
-                                    ],
-                                    begin: Alignment.topLeft,
-                                    end: Alignment.bottomRight,
-                                  ),
+                                  boxShadow: [BoxShadow(color: Colors.black26, blurRadius: 12, offset: const Offset(0, 6))],
+                                  gradient: LinearGradient(colors: [Colors.white.withOpacity(0.4), Colors.white.withOpacity(0.1)], begin: Alignment.topLeft, end: Alignment.bottomRight),
                                 ),
                                 child: CircleAvatar(
                                   radius: 70,
                                   backgroundColor: Colors.white.withOpacity(0.2),
                                   child: ClipRRect(
                                     borderRadius: BorderRadius.circular(100),
-                                    child: Image.file(
-                                      controller.coolieImage.value!,
-                                      width: 140,
-                                      height: 140,
-                                      fit: BoxFit.cover,
-                                    ),
+                                    child: Image.file(controller.coolieImage.value!, width: 140, height: 140, fit: BoxFit.cover),
                                   ),
                                 ),
                               ),
                               const SizedBox(height: 14),
-                              Text(
-                                'Processing your photo...',
-                                style: GoogleFonts.poppins(
-                                  fontSize: 14,
-                                  color: Colors.white70,
-                                ),
-                              ),
+                              Text('Processing your photo...', style: GoogleFonts.poppins(fontSize: 14, color: Colors.white70)),
                             ],
                           );
                         }
-                        
                         return Container(
                           padding: const EdgeInsets.all(6),
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black26,
-                                blurRadius: 12,
-                                offset: const Offset(0, 6),
-                              ),
-                            ],
-                            gradient: LinearGradient(
-                              colors: [
-                                Colors.white.withOpacity(0.4),
-                                Colors.white.withOpacity(0.1),
-                              ],
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                            ),
+                            boxShadow: [BoxShadow(color: Colors.black26, blurRadius: 12, offset: const Offset(0, 6))],
+                            gradient: LinearGradient(colors: [Colors.white.withOpacity(0.4), Colors.white.withOpacity(0.1)], begin: Alignment.topLeft, end: Alignment.bottomRight),
                           ),
                           child: CircleAvatar(
                             radius: 70,
                             backgroundColor: Colors.white.withOpacity(0.2),
-                            child: const Icon(
-                              Icons.camera_alt,
-                              size: 40,
-                              color: Colors.white,
-                            ),
+                            child: const Icon(Icons.camera_alt, size: 40, color: Colors.white),
                           ),
                         );
                       }),
                       const SizedBox(height: 40),
-                      // Mobile Number Field (hidden if mobile is pre-filled)
                       Form(
                         key: _formKey,
                         child: Obx(() {
@@ -189,7 +132,6 @@ class CheckIn extends StatelessWidget {
                         }),
                       ),
                       const Spacer(),
-                      // Loading Indicator
                       Obx(() {
                         if (controller.isLoading.value) {
                           return Padding(
@@ -200,29 +142,15 @@ class CheckIn extends StatelessWidget {
                               decoration: BoxDecoration(
                                 color: Colors.white,
                                 borderRadius: BorderRadius.circular(18),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black.withOpacity(0.1),
-                                    blurRadius: 10,
-                                    offset: const Offset(0, 4),
-                                  ),
-                                ],
+                                boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 10, offset: const Offset(0, 4))],
                               ),
                               child: Column(
                                 children: [
-                                  CircularProgressIndicator(
-                                    valueColor: AlwaysStoppedAnimation<Color>(
-                                      Constants.instance.primary,
-                                    ),
-                                  ),
+                                  CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(Constants.instance.primary)),
                                   const SizedBox(height: 16),
                                   Text(
                                     'Verifying your identity...',
-                                    style: GoogleFonts.poppins(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w500,
-                                      color: Colors.grey[700],
-                                    ),
+                                    style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w500, color: Colors.grey[700]),
                                   ),
                                 ],
                               ),
@@ -231,11 +159,8 @@ class CheckIn extends StatelessWidget {
                         }
                         return const SizedBox.shrink();
                       }),
-                      // Retake Photo Button (only show if image exists and not loading)
                       Obx(() {
-                        if (controller.coolieImage.value != null &&
-                            !controller.isLoading.value &&
-                            !controller.isCameraOpening.value) {
+                        if (controller.coolieImage.value != null && !controller.isLoading.value && !controller.isCameraOpening.value) {
                           return Padding(
                             padding: const EdgeInsets.only(bottom: 30),
                             child: GestureDetector(
@@ -246,35 +171,18 @@ class CheckIn extends StatelessWidget {
                                 decoration: BoxDecoration(
                                   color: Colors.white,
                                   borderRadius: BorderRadius.circular(18),
-                                  border: Border.all(
-                                    color: Constants.instance.primary,
-                                    width: 2,
-                                  ),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Colors.black.withOpacity(0.1),
-                                      blurRadius: 10,
-                                      offset: const Offset(0, 4),
-                                    ),
-                                  ],
+                                  border: Border.all(color: Constants.instance.primary, width: 2),
+                                  boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 10, offset: const Offset(0, 4))],
                                 ),
                                 child: Center(
                                   child: Row(
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
-                                      Icon(
-                                        Icons.camera_alt,
-                                        color: Constants.instance.primary,
-                                        size: 22,
-                                      ),
+                                      Icon(Icons.camera_alt, color: Constants.instance.primary, size: 22),
                                       const SizedBox(width: 10),
                                       Text(
                                         'Retake Photo',
-                                        style: GoogleFonts.poppins(
-                                          fontSize: 18,
-                                          fontWeight: FontWeight.bold,
-                                          color: Constants.instance.primary,
-                                        ),
+                                        style: GoogleFonts.poppins(fontSize: 18, fontWeight: FontWeight.bold, color: Constants.instance.primary),
                                       ),
                                     ],
                                   ),
