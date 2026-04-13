@@ -196,7 +196,7 @@ class HomeScreen extends StatelessWidget {
                 gradient: LinearGradient(
                   colors: !controller.isCheckedIn.value
                       ? [Colors.white.withOpacity(0.3), Colors.white.withOpacity(0.2)]
-                      : [Constants.instance.instagramRed, Constants.instance.instagramRed.withOpacity(0.8)],
+                      : [Constants.instance.primaryLight, Constants.instance.primaryLight.withOpacity(0.8)],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
@@ -610,13 +610,13 @@ class HomeScreen extends StatelessWidget {
                               controller.bookPassenger(controller.passengerDetails.value.booking!.id.toString(), false);
                             },
                             style: OutlinedButton.styleFrom(
-                              side: BorderSide(color: Constants.instance.instagramRed, width: 2),
+                              side: BorderSide(color: Constants.instance.primaryLight, width: 2),
                               padding: const EdgeInsets.symmetric(vertical: 16),
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                             ),
                             child: Text(
                               "Decline",
-                              style: GoogleFonts.poppins(color: Constants.instance.instagramRed, fontWeight: FontWeight.w600, fontSize: 15),
+                              style: GoogleFonts.poppins(color: Constants.instance.primaryLight, fontWeight: FontWeight.w600, fontSize: 15),
                             ),
                           ),
                         ),

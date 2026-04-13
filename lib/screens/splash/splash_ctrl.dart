@@ -1,31 +1,41 @@
+import '/services/app_storage.dart';
 import 'package:get/get.dart';
 import 'package:flutter/animation.dart';
-
 import '../../routes/route_name.dart';
-import '../../services/app_storage.dart';
 
 class SplashCtrl extends GetxController with GetSingleTickerProviderStateMixin {
   late AnimationController animationController;
-  late Animation<double> fadeAnimation, scaleAnimation;
+  late Animation<double> fadeAnimation, scaleAnimation, slideAnimation;
 
   @override
   void onInit() {
     super.onInit();
-    animationController = AnimationController(vsync: this, duration: const Duration(milliseconds: 1800));
-    fadeAnimation = Tween<double>(begin: 0, end: 1).animate(
+    animationController = AnimationController(vsync: this, duration: const Duration(milliseconds: 2000));
+    fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
         parent: animationController,
-        curve: const Interval(0, 0.8, curve: Curves.easeInOut),
+        curve: const Interval(0.0, 0.6, curve: Curves.easeOut),
       ),
     );
-    scaleAnimation = Tween<double>(begin: 0.5, end: 1).animate(CurvedAnimation(parent: animationController, curve: Curves.elasticOut));
+    scaleAnimation = Tween<double>(begin: 0.4, end: 1.0).animate(
+      CurvedAnimation(
+        parent: animationController,
+        curve: const Interval(0.0, 0.7, curve: Curves.elasticOut),
+      ),
+    );
+    slideAnimation = Tween<double>(begin: 30.0, end: 0.0).animate(
+      CurvedAnimation(
+        parent: animationController,
+        curve: const Interval(0.3, 0.8, curve: Curves.easeOut),
+      ),
+    );
     animationController.forward();
     _navigateHome();
   }
 
   void _navigateHome() async {
     await Future.delayed(const Duration(seconds: 3));
-    String token = AppStorage.read("token") ?? "";
+    final String token = AppStorage.read("token") ?? "";
     if (token.isNotEmpty) {
       Get.offAllNamed(RouteName.home);
     } else {
