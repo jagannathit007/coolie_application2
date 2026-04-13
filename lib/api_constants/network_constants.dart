@@ -1,7 +1,7 @@
 class NetworkConstants {
   //Production Urls
   static const String baseUrl = 'https://coolie.itfuturz.in/';
-  static const String imageURL = 'https://coolie.itfuturz.in/';
+  // static const String baseUrl = 'https://965rz0z3-3181.inc1.devtunnels.ms/';
 
   //   Authentications
   static const String signIn = 'api/users/signInCollie';

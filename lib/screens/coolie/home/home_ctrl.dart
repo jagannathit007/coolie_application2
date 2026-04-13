@@ -3,21 +3,18 @@ import 'dart:io';
 import 'dart:developer';
 import 'package:license_sahayak/models/coolie_user_profile.dart';
 import 'package:license_sahayak/routes/route_name.dart';
+import 'package:license_sahayak/screens/coolie/home/ui/verify_booking.dart';
 import 'package:license_sahayak/services/app_storage.dart';
 import 'package:license_sahayak/services/app_toasting.dart';
 import 'package:dio/dio.dart' as dio;
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:intl/intl.dart';
 import '../../../models/get_passenger_coolie_model.dart';
 import '../../../repositories/authentication_repo.dart';
-import '../../../services/customs/otp_verification.dart';
-import '../../../utils/app_constants.dart';
 
 class HomeCtrl extends GetxController {
-  final AuthenticationRepo _authRepo = AuthenticationRepo();
+  final AuthenticationRepo authRepo = AuthenticationRepo();
   final checkStatuss = ''.obs, bookingId = ''.obs, sessionId = ''.obs;
   final isCheckedIn = false.obs;
   Rx<GetPassengerCoolieModel> passengerDetails = GetPassengerCoolieModel().obs;
@@ -123,7 +120,7 @@ class HomeCtrl extends GetxController {
   Future<void> fetchUserProfile() async {
     isLoading.value = true;
     try {
-      final profile = await _authRepo.getUserProfile();
+      final profile = await authRepo.getUserProfile();
       if (profile != null) {
         userProfile.value = profile;
         isCheckedIn.value = userProfile.value?.isLoggedIn == true;
@@ -139,7 +136,7 @@ class HomeCtrl extends GetxController {
   Future<void> checkOut() async {
     isLoading.value = true;
     try {
-      final response = await _authRepo.getOff();
+      final response = await authRepo.getOff();
       if (response != null && response['success'] == true) {
         isCheckedIn.value = false;
         stopTimer();
@@ -159,7 +156,7 @@ class HomeCtrl extends GetxController {
   Future<void> getPassengerData() async {
     try {
       isLoading.value = true;
-      final response = await _authRepo.getPassenger();
+      final response = await authRepo.getPassenger();
       if (response != null) {
         sessionId.value = response["sessionId"].toString().isEmpty ? "" : response["sessionId"].toString();
         passengerDetails.value = GetPassengerCoolieModel.fromJson(response);
@@ -189,7 +186,7 @@ class HomeCtrl extends GetxController {
   Future<void> bookPassenger(String bookingId, bool isAccept) async {
     try {
       isLoading.value = true;
-      final response = await _authRepo.bookPassenger(bookingId, sessionId.toString(), isAccept);
+      final response = await authRepo.bookPassenger(bookingId, sessionId.toString(), isAccept);
       if (response != null) {
         if (isAccept) {
           startTimer();
@@ -210,7 +207,7 @@ class HomeCtrl extends GetxController {
     }
     try {
       isLoading.value = true;
-      final response = await _authRepo.verifyBookingOTP(bookingId, verificationCodeController.text.trim());
+      final response = await authRepo.verifyBookingOTP(bookingId, verificationCodeController.text.trim());
       if (response != null) {
         await AppStorage.write('status', response['booking']['status']);
         await initialize();
@@ -224,54 +221,12 @@ class HomeCtrl extends GetxController {
     }
   }
 
-  void otpDialog() {
-    Get.dialog(
-      barrierDismissible: false,
-      AlertDialog(
-        title: Text("Enter OTP", style: GoogleFonts.poppins(fontSize: 15)),
-        content: SizedBox(
-          height: 250,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              PinCodeTextField(
-                highlight: true,
-                maxLength: 4,
-                pinBoxWidth: 45,
-                pinBoxHeight: 45,
-                pinBoxRadius: 6,
-                pinBoxBorderWidth: 0.75,
-                wrapAlignment: WrapAlignment.center,
-                highlightPinBoxColor: Colors.white,
-                highlightColor: Constants.instance.primary,
-                defaultBorderColor: Colors.grey.shade500,
-                keyboardType: TextInputType.number,
-                pinTextStyle: TextStyle(fontSize: 14),
-                pinBoxOuterPadding: const EdgeInsets.symmetric(horizontal: 5),
-                pinBoxColor: Colors.transparent,
-                errorBorderColor: Colors.redAccent,
-                hasTextBorderColor: Colors.black,
-                controller: verificationCodeController,
-              ),
-              SizedBox(height: 20),
-              MaterialButton(
-                onPressed: () async {
-                  await bookingOPTVerify(passengerDetails.value.booking?.id);
-                  Get.close(1);
-                },
-                height: 40,
-                minWidth: double.infinity,
-                color: Constants.instance.primary,
-                shape: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: Constants.instance.primary),
-                ),
-                child: Text("Verify", style: GoogleFonts.poppins(color: Constants.instance.white)),
-              ),
-            ],
-          ),
-        ),
-      ),
+  void verifyBooking() {
+    otpDialog(
+      verificationCodeController: verificationCodeController,
+      bookedWeight: double.tryParse(passengerDetails.value.booking?.pickupDetails?.weight.toString() ?? "0.0") ?? 0.0,
+      onVerify: () async => await bookingOPTVerify(passengerDetails.value.booking?.id),
+      onRequestWeightUpdate: (newWeight) async => await requestWeightUpdate(newWeight, passengerDetails.value.booking?.id),
     );
   }
 
@@ -282,7 +237,7 @@ class HomeCtrl extends GetxController {
     }
     try {
       isLoading.value = true;
-      final response = await _authRepo.completeService(bookingId);
+      final response = await authRepo.completeService(bookingId);
       if (response != null) {
         successToast("Service Completed!");
         stopTimer();
@@ -290,8 +245,23 @@ class HomeCtrl extends GetxController {
         checkStatuss.value = '';
         this.bookingId.value = '';
         sessionId.value = '';
-        Get.close(1);
       }
+    } catch (e) {
+      errorToast('Failed to verify OTP: ${e.toString()}');
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  Future<void> requestWeightUpdate(double newWeight, String? bookingId) async {
+    if (bookingId == null) {
+      errorToast("Booking ID not found!");
+      return;
+    }
+    try {
+      isLoading.value = true;
+
+      /// Req send to customer...
     } catch (e) {
       errorToast('Failed to verify OTP: ${e.toString()}');
     } finally {
@@ -302,7 +272,7 @@ class HomeCtrl extends GetxController {
   Future<void> logOut() async {
     try {
       isLoading.value = true;
-      final response = await _authRepo.logOut();
+      final response = await authRepo.logOut();
       if (response != null) {
         Get.close(1);
         stopTimer();
@@ -319,7 +289,7 @@ class HomeCtrl extends GetxController {
   Future<void> checkStatus() async {
     try {
       isLoading.value = true;
-      final response = await _authRepo.checkStatus();
+      final response = await authRepo.checkStatus();
       if (response != null) {
         checkStatuss.value = response["currentStatus"];
         if (checkStatuss.value == 'pending') {
@@ -339,44 +309,6 @@ class HomeCtrl extends GetxController {
       errorToast('Failed to load checkOut: ${e.toString()}');
     } finally {
       isLoading.value = false;
-    }
-  }
-
-  void showLogoutDialog() {
-    Get.defaultDialog(
-      radius: 16.0,
-      title: "Logout",
-      titlePadding: const EdgeInsets.all(25.0),
-      contentPadding: const EdgeInsets.only(left: 25, right: 25, bottom: 25),
-      content: const Text('Are you sure you want to logout?'),
-      actions: [
-        TextButton(onPressed: () => Get.close(1), child: const Text('Cancel')),
-        ElevatedButton(
-          onPressed: () async {
-            Get.close(1);
-            stopTimer();
-            await AppStorage.clearAll();
-            Get.offAllNamed(RouteName.signIn);
-          },
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.red,
-            foregroundColor: Colors.white,
-            padding: const EdgeInsets.only(top: 10, bottom: 10, left: 15, right: 15),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-          ),
-          child: const Text('Logout'),
-        ),
-      ],
-    );
-  }
-
-  String formatBookingTime(String? isoTime) {
-    if (isoTime == null) return "N/A";
-    try {
-      final dt = DateTime.parse(isoTime).toLocal();
-      return DateFormat("hh:mm a, MMM dd").format(dt);
-    } catch (e) {
-      return "N/A";
     }
   }
 
@@ -410,7 +342,7 @@ class HomeCtrl extends GetxController {
       final File imageFile = File(image.path);
       final formData = dio.FormData.fromMap({"mobileNo": mobileNumber.trim()});
       formData.files.add(MapEntry('file', await dio.MultipartFile.fromFile(imageFile.path, filename: 'coolie_${DateTime.now().millisecondsSinceEpoch}.jpg')));
-      final result = await _authRepo.faceDetection(formData);
+      final result = await authRepo.faceDetection(formData);
       if (result != null && result['success'] == true) {
         isCheckedIn.value = true;
         await fetchUserProfile();

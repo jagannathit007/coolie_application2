@@ -1,3 +1,4 @@
+import 'package:google_fonts/google_fonts.dart';
 import 'package:license_sahayak/api_constants/network_constants.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -14,125 +15,249 @@ class Profile extends StatelessWidget {
       init: HomeCtrl(),
       builder: (controller) {
         return Scaffold(
-          appBar: AppBar(
-            backgroundColor: Constants.instance.primary,
-            leading: BackButton(color: Colors.white),
-          ),
-          body: SingleChildScrollView(
-            padding: EdgeInsets.symmetric(vertical: 20, horizontal: 16),
-            child: Column(
-              children: [
-                Center(
-                  child: Obx(() {
-                    final profile = controller.userProfile.value;
-                    return CircleAvatar(
-                      radius: 55,
-                      backgroundColor: Colors.grey.shade200,
-                      backgroundImage: profile != null && profile.image!.url.isNotEmpty ? NetworkImage("${NetworkConstants.imageURL}${profile.image!.url}") : null,
-                      child: profile == null || profile.image!.url.isEmpty ? Icon(Icons.person, size: 40, color: Constants.instance.grey100) : null,
-                    );
-                  }),
-                ),
-                SizedBox(height: 20),
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(20),
-                  child: Container(
-                    width: double.infinity,
-                    decoration: BoxDecoration(
-                      color: Constants.instance.grey100,
-                      borderRadius: BorderRadius.circular(20),
-                      boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 12, offset: const Offset(0, 6))],
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Obx(() {
+          backgroundColor: const Color(0xFFF5F6FA),
+          body: CustomScrollView(
+            slivers: [
+              _buildSliverAppBar(context, controller),
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 24, 20, 32),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildSectionLabel('Personal Information'),
+                      const SizedBox(height: 12),
+                      Obx(() {
                         final profile = controller.userProfile.value;
                         if (profile == null) {
-                          return Center(child: CircularProgressIndicator());
+                          return const Center(
+                            child: Padding(padding: EdgeInsets.all(40), child: CircularProgressIndicator()),
+                          );
                         }
-                        return Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            _buildDetailTile(Icons.person, "Name", toTitleCase(profile.name)),
-                            _divider(),
-                            _buildDetailTile(Icons.alternate_email, "Email", profile.emailId),
-                            _divider(),
-                            _buildDetailTile(Icons.call, "Mobile No.", profile.mobileNo),
-                            _divider(),
-                            _buildDetailTile(Icons.date_range, "Age", profile.age),
-                            _divider(),
-                            _buildDetailTile(Icons.star, "Buckle No.", profile.buckleNumber),
+                        return _ProfileCard(
+                          items: [
+                            _ProfileItem(icon: Icons.person_outline_rounded, label: 'Full Name', value: toTitleCase(profile.name)),
+                            _ProfileItem(icon: Icons.alternate_email_rounded, label: 'Email Address', value: profile.emailId),
+                            _ProfileItem(icon: Icons.phone_outlined, label: 'Mobile Number', value: profile.mobileNo),
+                            _ProfileItem(icon: Icons.cake_outlined, label: 'Age', value: profile.age),
+                            _ProfileItem(icon: Icons.badge_outlined, label: 'Buckle Number', value: profile.buckleNumber, isLast: true),
                           ],
                         );
                       }),
-                    ),
+                      const SizedBox(height: 28),
+                      _buildSectionLabel('Account Actions'),
+                      const SizedBox(height: 12),
+                      _DeleteAccountTile(controller: controller),
+                    ],
                   ),
                 ),
-                SizedBox(height: 30),
-                _buildLogoutButton(context, controller),
-              ],
-            ),
+              ),
+            ],
           ),
         );
       },
     );
   }
+
+  Widget _buildSliverAppBar(BuildContext context, HomeCtrl controller) {
+    return SliverAppBar(
+      expandedHeight: 240,
+      pinned: true,
+      backgroundColor: Constants.instance.primary,
+      iconTheme: const IconThemeData(color: Colors.white),
+      flexibleSpace: FlexibleSpaceBar(background: _ProfileHeader(controller: controller)),
+    );
+  }
+
+  Widget _buildSectionLabel(String text) {
+    return Text(
+      text.toUpperCase(),
+      style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Colors.grey.shade500, letterSpacing: 1.2),
+    );
+  }
 }
 
-Widget _buildDetailTile(IconData icon, String title, String value) {
-  return Row(
-    children: [
-      CircleAvatar(
-        radius: 20,
-        backgroundColor: Constants.instance.primary.withOpacity(0.1),
-        child: Icon(icon, color: Constants.instance.primary),
+class _ProfileHeader extends StatelessWidget {
+  final HomeCtrl controller;
+
+  const _ProfileHeader({required this.controller});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: [Constants.instance.primary, Constants.instance.primary.withOpacity(0.75)]),
       ),
-      const SizedBox(width: 16),
-      Expanded(
+      child: SafeArea(
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text(title, style: const TextStyle(fontSize: 13, color: Colors.grey)),
-            const SizedBox(height: 2),
-            Text(value, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+            const SizedBox(height: 36),
+            Obx(() {
+              final profile = controller.userProfile.value;
+              return Container(
+                width: 90,
+                height: 90,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.white,
+                  border: Border.all(color: Colors.white, width: 3),
+                  boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.15), blurRadius: 20, offset: const Offset(0, 8))],
+                  image: profile != null && profile.image!.url.isNotEmpty ? DecorationImage(image: NetworkImage(NetworkConstants.baseUrl + profile.image!.url), fit: BoxFit.cover) : null,
+                ),
+                child: profile == null || profile.image!.url.isEmpty
+                    ? Center(
+                        child: Text(
+                          profile != null && profile.name.isNotEmpty ? profile.name[0].toUpperCase() : 'U',
+                          style: GoogleFonts.poppins(fontSize: 32, fontWeight: FontWeight.w700, color: Constants.instance.primary),
+                        ),
+                      )
+                    : null,
+              );
+            }),
+            const SizedBox(height: 14),
+            Obx(() {
+              final profile = controller.userProfile.value;
+              return Column(
+                children: [
+                  Text(
+                    profile != null ? toTitleCase(profile.name) : '—',
+                    style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w700, letterSpacing: 0.3),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(profile?.emailId ?? '', style: TextStyle(color: Colors.white.withOpacity(0.7), fontSize: 13)),
+                ],
+              );
+            }),
+            const SizedBox(height: 16),
           ],
         ),
       ),
-    ],
-  );
+    );
+  }
+}
+
+class _ProfileCard extends StatelessWidget {
+  final List<_ProfileItem> items;
+
+  const _ProfileCard({required this.items});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.06), blurRadius: 20, offset: const Offset(0, 6))],
+      ),
+      child: Column(children: items.map((item) => _buildTile(context, item)).toList()),
+    );
+  }
+
+  Widget _buildTile(BuildContext context, _ProfileItem item) {
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+          child: Row(
+            children: [
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(color: Constants.instance.primary.withOpacity(0.08), borderRadius: BorderRadius.circular(12)),
+                child: Icon(item.icon, color: Constants.instance.primary, size: 20),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      item.label,
+                      style: TextStyle(fontSize: 11, color: Colors.grey.shade500, fontWeight: FontWeight.w500, letterSpacing: 0.3),
+                    ),
+                    const SizedBox(height: 3),
+                    Text(
+                      item.value,
+                      style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: Color(0xFF1A1A2E)),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+        if (!item.isLast) Divider(height: 1, thickness: 1, indent: 76, endIndent: 20, color: Colors.grey.shade100),
+      ],
+    );
+  }
+}
+
+class _ProfileItem {
+  final IconData icon;
+  final String label;
+  final String value;
+  final bool isLast;
+
+  const _ProfileItem({required this.icon, required this.label, required this.value, this.isLast = false});
+}
+
+class _DeleteAccountTile extends StatelessWidget {
+  final HomeCtrl controller;
+
+  const _DeleteAccountTile({required this.controller});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 16, offset: const Offset(0, 4))],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(20),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(20),
+          onTap: () => deleteAccount(context),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+            child: Row(
+              children: [
+                Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(color: Theme.of(context).colorScheme.error.withOpacity(0.08), borderRadius: BorderRadius.circular(12)),
+                  child: Icon(Icons.delete_outline_rounded, color: Theme.of(context).colorScheme.error, size: 20),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Delete Account',
+                        style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: Theme.of(context).colorScheme.error),
+                      ),
+                      const SizedBox(height: 2),
+                      Text('Permanently remove your account', style: TextStyle(fontSize: 12, color: Colors.grey.shade500)),
+                    ],
+                  ),
+                ),
+                Icon(Icons.chevron_right_rounded, color: Theme.of(context).colorScheme.error.withOpacity(0.5)),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 }
 
 String toTitleCase(String text) {
   if (text.isEmpty) return text;
   return text.toLowerCase().split(' ').map((word) => word.isNotEmpty ? word[0].toUpperCase() + word.substring(1) : word).join(' ');
-}
-
-Widget _divider() => Divider(color: Colors.grey.shade300, height: 24);
-
-Widget _buildLogoutButton(BuildContext context, HomeCtrl controller) {
-  return Container(
-    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-    child: InkWell(
-      borderRadius: BorderRadius.circular(12),
-      onTap: () {
-        deleteAccount(context);
-      },
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        decoration: BoxDecoration(borderRadius: BorderRadius.circular(12), color: Theme.of(context).colorScheme.error.withOpacity(0.1)),
-        child: Row(
-          children: [
-            Icon(Icons.delete, color: Theme.of(context).colorScheme.error, size: 24),
-            const SizedBox(width: 16),
-            Text(
-              'Delete Account',
-              style: Theme.of(context).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w600, color: Theme.of(context).colorScheme.error),
-            ),
-          ],
-        ),
-      ),
-    ),
-  );
 }
 
 Future<void> deleteAccount(BuildContext context) async {
@@ -144,10 +269,17 @@ Future<void> deleteAccount(BuildContext context) async {
         title: const Text('Delete Account'),
         content: const Text('Are you sure you want to delete your account? This action is permanent and cannot be undone.'),
         actions: [
-          TextButton(onPressed: () => Navigator.of(context).pop(false), child: const Text('Cancel')),
           TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Cancel', style: TextStyle(color: Colors.black)),
+          ),
+          FilledButton(
+            style: FilledButton.styleFrom(
+              backgroundColor: Colors.red,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
             onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Delete', style: TextStyle(color: Colors.red)),
+            child: const Text('Delete'),
           ),
         ],
       );

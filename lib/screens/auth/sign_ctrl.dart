@@ -9,7 +9,6 @@ import 'auth_service.dart';
 class SignCtrl extends GetxController {
   final isLoading = false.obs;
   final mobileController = TextEditingController();
-  final formKey = GlobalKey<FormState>();
   late final AuthService authService;
 
   @override
@@ -22,7 +21,10 @@ class SignCtrl extends GetxController {
   void _initializeServices() => authService = Get.isRegistered<AuthService>() ? Get.find<AuthService>() : Get.put(AuthService());
 
   Future<void> signIn() async {
-    if (!formKey.currentState!.validate()) return;
+    if (mobileController.text.isEmpty) {
+      warningToast("Please Enter the mobile number");
+      return;
+    }
     isLoading.value = true;
     try {
       String fcmToken = await notificationService.getToken() ?? "";

@@ -1,19 +1,33 @@
+import 'package:flutter/material.dart';
+import 'package:license_sahayak/screens/coolie/home/ui/profile.dart';
 import '../screens/coolie/booking_history/booking_history.dart';
 import '/routes/route_name.dart';
 import 'package:get/get.dart';
-import '../screens/coolie/check_in/check_in.dart';
 import '../screens/coolie/home/home.dart';
 import '../screens/auth/otp verify/otp_verify.dart';
 import '../screens/auth/sign_in.dart';
 import '../screens/splash/splash.dart';
 
 class RoutePages {
+  static GetPage<dynamic> getPage({required String name, required GetPageBuilder page, List<GetMiddleware>? middlewares}) {
+    return GetPage(
+      name: name,
+      page: page,
+      transition: Transition.rightToLeft,
+      transitionDuration: Duration(milliseconds: 220),
+      curve: Curves.easeInOut,
+      preventDuplicates: true,
+      showCupertinoParallax: false,
+      middlewares: middlewares ?? [],
+    );
+  }
+
   static final List<GetPage> pages = [
-    GetPage(name: RouteName.splash, page: () => SplashScreen()),
-    GetPage(name: RouteName.home, page: () => HomeScreen()),
-    GetPage(name: RouteName.bookingHistory, page: () => BookingHistory()),
-    GetPage(name: RouteName.signIn, page: () => SignIn()),
-    GetPage(name: RouteName.checkIn, page: () => CheckIn()),
-    GetPage(name: RouteName.otpVerification, page: () => OtpVerification()),
+    getPage(name: RouteName.splash, page: () => SplashScreen()),
+    getPage(name: RouteName.signIn, page: () => SignIn()),
+    getPage(name: RouteName.otpVerification, page: () => OtpVerification()),
+    getPage(name: RouteName.home, page: () => HomeScreen()),
+    getPage(name: RouteName.profile, page: () => Profile()),
+    getPage(name: RouteName.bookingHistory, page: () => BookingHistory()),
   ];
 }
