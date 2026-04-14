@@ -4,15 +4,18 @@ import 'package:license_sahayak/api_constants/api_manager.dart';
 import 'package:license_sahayak/api_constants/network_constants.dart';
 import '../../models/sign_in_response_model.dart';
 import '../../models/user_model.dart';
-import '../../routes/route_name.dart';
-import '../../services/app_storage.dart';
 import '../../services/app_toasting.dart';
 
 class AuthService extends GetxService {
-  Future<SignInResponseModel?> signIn({required String mobileNo, required String deviceId, required String fcm}) async {
+  Future<SignInResponseModel?> signIn({required String mobileNo, required String deviceId, required String fcm, required bool isMukadam}) async {
     try {
-      final result = await apiManager.post(NetworkConstants.signInCollie, data: {"mobileNo": mobileNo, "deviceId": deviceId, "fcm": fcm});
+      String url = isMukadam ? NetworkConstants.signInMukadam : NetworkConstants.signInCollie;
+      final result = await apiManager.post(url, data: {"mobileNo": mobileNo, "deviceId": deviceId, "fcm": fcm});
       if (result.data is Map<String, dynamic>) {
+        if (isMukadam) {
+          final request = {"mobileNo": mobileNo};
+          await reSendOtp(request, isMukadam: isMukadam);
+        }
         return SignInResponseModel.fromJson(result.data);
       } else {
         errorToast(result.message);
@@ -24,15 +27,47 @@ class AuthService extends GetxService {
     }
   }
 
-  Future<UserModel?> verifyOtp(Map<String, dynamic> request) async {
+  Future<UserModel?> verifyOtp(Map<String, dynamic> request, {required bool isMukadam}) async {
     try {
-      final result = await apiManager.post(NetworkConstants.otpVerificationCollie, data: request);
-      final responseData = result.data is String ? json.decode(result.data) : result.data;
-      if (responseData['user'] == null || responseData['token'] == null) {
+      String url = isMukadam ? NetworkConstants.verifyMukadamOTP : NetworkConstants.otpVerificationCollie;
+      final result = await apiManager.post(url, data: request);
+      if (result.data == null) {
         errorToast(result.message);
         return null;
       }
-      final userModel = UserModel.fromJson({"user": responseData['user'], "token": responseData['token']});
+      final responseData = result.data is String ? json.decode(result.data) : result.data;
+      if (responseData == null || responseData['token'] == null) {
+        errorToast(result.message);
+        return null;
+      }
+      final data = isMukadam ? responseData['mukadam'] : responseData['user'];
+      if (data == null || responseData['token'] == null) {
+        errorToast(result.message);
+        return null;
+      }
+      UserModel userModel;
+      if (isMukadam) {
+        User user = User(
+          rateCard: RateCard(baseRate: "", baseTime: "", waitingRate: ""),
+          id: data['_id'],
+          name: data['name'],
+          mobileNo: data['mobileNo'],
+          age: data['age'],
+          deviceType: 'mobile',
+          emailId: data['email'],
+          gender: data['gender'],
+          buckleNumber: '',
+          address: data['stationId']?['address'] ?? '',
+          image: ImageData(url: data['image']?['url']),
+          isLoggedIn: data['isLoggedIn'] ?? false,
+          isCheckedIn: data['isCheckedIn'] ?? false,
+          isApprovalRequested: data['isApprovalRequested'] ?? false,
+          v: '',
+        );
+        userModel = UserModel(user: user, token: responseData['token']);
+      } else {
+        userModel = UserModel.fromJson({"user": data, "token": responseData['token']});
+      }
       return userModel;
     } catch (e) {
       errorToast("Network error occurred");
@@ -40,9 +75,10 @@ class AuthService extends GetxService {
     }
   }
 
-  Future<void> reSendOtp(dynamic request) async {
+  Future<void> reSendOtp(dynamic request, {required bool isMukadam}) async {
     try {
-      final response = await apiManager.post(NetworkConstants.otpVerificationCollie, data: request);
+      String url = isMukadam ? NetworkConstants.resendMukadamOTP : NetworkConstants.resendOTP;
+      final response = await apiManager.post(url, data: request);
       if (response.data == null) {
         errorToast(response.message);
         return;
@@ -51,15 +87,7 @@ class AuthService extends GetxService {
         warningToast(response.message);
         return;
       }
-      final verifyData = response.data is String ? json.decode(response.data) : response.data;
-      if (verifyData["token"] == null || verifyData["user"] == null) {
-        errorToast("Authentication token or user data not received");
-        return;
-      }
-      await AppStorage.write("token", verifyData["token"]);
-      await AppStorage.write("passengerID", verifyData["user"]["_id"]);
-      await AppStorage.write("user", json.encode(verifyData["user"]));
-      Get.toNamed(RouteName.home);
+      return;
     } catch (err) {
       errorToast("Failed to resend OTP: $err");
     }

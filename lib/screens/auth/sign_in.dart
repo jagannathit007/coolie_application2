@@ -148,9 +148,13 @@ class SignIn extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              'Welcome back!',
-              style: GoogleFonts.poppins(fontSize: 20, fontWeight: FontWeight.w700, color: const Color(0xFF1E293B)),
+            _buildRoleToggle(controller),
+            const SizedBox(height: 20),
+            Obx(
+              () => Text(
+                controller.isMukadam ? 'Welcome, Mukadam!' : 'Welcome back!',
+                style: GoogleFonts.poppins(fontSize: 20, fontWeight: FontWeight.w700, color: const Color(0xFF1E293B)),
+              ),
             ),
             const SizedBox(height: 4),
             Text(
@@ -170,6 +174,7 @@ class SignIn extends StatelessWidget {
               hintText: 'Enter your 10-digit number',
               keyboardType: TextInputType.phone,
               borderEnabled: true,
+              inputFormatters: [FilteringTextInputFormatter.deny(RegExp(r'\+91')), FilteringTextInputFormatter.allow(RegExp(r'[0-9]'))],
               prefix: Container(
                 margin: const EdgeInsets.all(10),
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
@@ -180,8 +185,12 @@ class SignIn extends StatelessWidget {
                 ),
               ),
               validator: (value) {
-                if (value == null || value.isEmpty) return 'Please enter your mobile number';
-                if (!value.isPhoneNumber) return 'Enter a valid 10-digit number';
+                if (value == null || value.isEmpty) {
+                  return 'Please enter your mobile number';
+                }
+                if (!value.isPhoneNumber) {
+                  return 'Enter a valid 10-digit number';
+                }
                 return null;
               },
             ),
@@ -226,6 +235,51 @@ class SignIn extends StatelessWidget {
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildRoleToggle(SignCtrl controller) {
+    return Obx(() {
+      final isMukadam = controller.isMukadam;
+      return Container(
+        height: 44,
+        decoration: BoxDecoration(color: const Color(0xFFF1F5F9), borderRadius: BorderRadius.circular(12)),
+        child: Row(
+          children: [
+            _roleTab(label: 'Coolie', icon: Icons.luggage_rounded, selected: !isMukadam, onTap: () => controller.switchRole(UserRole.coolie)),
+            _roleTab(label: 'Mukadam', icon: Icons.manage_accounts_rounded, selected: isMukadam, onTap: () => controller.switchRole(UserRole.mukadam)),
+          ],
+        ),
+      );
+    });
+  }
+
+  Widget _roleTab({required String label, required IconData icon, required bool selected, required VoidCallback onTap}) {
+    return Expanded(
+      child: GestureDetector(
+        onTap: onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          margin: const EdgeInsets.all(4),
+          height: 44,
+          decoration: BoxDecoration(
+            color: selected ? Constants.instance.primary : Colors.transparent,
+            borderRadius: BorderRadius.circular(9),
+            boxShadow: selected ? [BoxShadow(color: Constants.instance.primary.withOpacity(0.25), blurRadius: 8, offset: const Offset(0, 3))] : [],
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(icon, size: 16, color: selected ? Colors.white : const Color(0xFF94A3B8)),
+              const SizedBox(width: 6),
+              Text(
+                label,
+                style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w600, color: selected ? Colors.white : const Color(0xFF94A3B8)),
+              ),
+            ],
+          ),
         ),
       ),
     );

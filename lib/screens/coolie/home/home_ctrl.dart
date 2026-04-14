@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 import 'dart:developer';
-import 'package:license_sahayak/models/coolie_user_profile.dart';
+import 'package:license_sahayak/models/user_model.dart';
 import 'package:license_sahayak/routes/route_name.dart';
 import 'package:license_sahayak/screens/coolie/home/ui/verify_booking.dart';
 import 'package:license_sahayak/services/app_storage.dart';
@@ -16,10 +16,10 @@ import '../../../repositories/authentication_repo.dart';
 class HomeCtrl extends GetxController {
   final AuthenticationRepo authRepo = AuthenticationRepo();
   final checkStatuss = ''.obs, bookingId = ''.obs, sessionId = ''.obs;
-  final isCheckedIn = false.obs;
+  final isCheckedIn = false.obs, isMukadam = false.obs;
   Rx<GetPassengerCoolieModel> passengerDetails = GetPassengerCoolieModel().obs;
   final verificationCodeController = TextEditingController();
-  var userProfile = Rxn<CoolieUserProfile>();
+  var userProfile = Rxn<User>();
   var isLoading = false.obs, isCheckInLoading = false.obs;
   final ImagePicker _imagePicker = ImagePicker();
   final checkInStatusMessage = ''.obs, countdownTime = '00:20'.obs;
@@ -44,6 +44,7 @@ class HomeCtrl extends GetxController {
   }
 
   Future<void> initialize() async {
+    isMukadam.value = AppStorage.read("isMukadam") ?? false;
     await fetchUserProfile();
     await getPassengerData();
     await checkStatus();
@@ -102,25 +103,31 @@ class HomeCtrl extends GetxController {
   }
 
   Future<void> fetchUserProfile() async {
-    isLoading.value = true;
     try {
-      final profile = await authRepo.getUserProfile();
+      isLoading.value = true;
+      final profile = await authRepo.getUserProfile(isMukadam: isMukadam.value);
       if (profile != null) {
         userProfile.value = profile;
-        isCheckedIn.value = userProfile.value?.isLoggedIn == true;
+        isCheckedIn.value = userProfile.value?.isCheckedIn == true;
       } else {
         isCheckedIn.value = false;
       }
     } catch (e) {
       isCheckedIn.value = false;
+    } finally {
+      isLoading.value = false;
     }
-    isLoading.value = false;
   }
 
   Future<void> checkOut() async {
-    isLoading.value = true;
     try {
-      final response = await authRepo.getOff();
+      final status = checkStatuss.value.toLowerCase();
+      if (status == 'pending' || status == 'accepted' || status == 'in-progress') {
+        warningToast("Action not allowed. Current booking status is $status.");
+        return;
+      }
+      isLoading.value = true;
+      final response = await authRepo.getOff(isMukadam: isMukadam.value);
       if (response != null && response['success'] == true) {
         isCheckedIn.value = false;
         stopTimer();
@@ -199,6 +206,7 @@ class HomeCtrl extends GetxController {
   }
 
   void verifyBooking() {
+    verificationCodeController.clear();
     otpDialog(
       verificationCodeController: verificationCodeController,
       bookedWeight: double.tryParse(passengerDetails.value.booking?.pickupDetails?.weight.toString() ?? "0.0") ?? 0.0,
@@ -248,12 +256,10 @@ class HomeCtrl extends GetxController {
   Future<void> logOut() async {
     try {
       isLoading.value = true;
-      final response = await authRepo.logOut();
-      if (response != null) {
-        stopTimer();
-        AppStorage.clearAll();
-        Get.offAllNamed(RouteName.signIn);
-      }
+      await authRepo.logOut(isMukadam: isMukadam.value);
+      stopTimer();
+      AppStorage.clearAll();
+      await Get.offAllNamed(RouteName.signIn);
     } catch (e) {
       errorToast('Failed to load LogOut: ${e.toString()}');
     } finally {
@@ -287,22 +293,14 @@ class HomeCtrl extends GetxController {
     try {
       isCheckInLoading.value = true;
       checkInStatusMessage.value = 'Opening camera...';
-      String mobileNumber = '';
-      try {
-        final userMobile = AppStorage.read("userMobile");
-        if (userMobile != null) {
-          mobileNumber = userMobile.toString();
-        }
-      } catch (e) {
-        log("Error loading mobile number: $e");
-      }
+      String mobileNumber = userProfile.value?.mobileNo ?? "";
       if (mobileNumber.isEmpty || mobileNumber.length != 10) {
         isCheckInLoading.value = false;
         errorToast('Please ensure your mobile number is set correctly');
         return;
       }
       checkInStatusMessage.value = 'Capturing photo...';
-      final XFile? image = await _imagePicker.pickImage(source: ImageSource.camera, maxWidth: 800, maxHeight: 800, imageQuality: 90);
+      final XFile? image = await _imagePicker.pickImage(source: ImageSource.camera, maxWidth: 800, maxHeight: 800, imageQuality: 90, preferredCameraDevice: CameraDevice.front);
       if (image == null) {
         isCheckInLoading.value = false;
         checkInStatusMessage.value = '';
@@ -313,7 +311,7 @@ class HomeCtrl extends GetxController {
       final File imageFile = File(image.path);
       final formData = dio.FormData.fromMap({"mobileNo": mobileNumber.trim()});
       formData.files.add(MapEntry('file', await dio.MultipartFile.fromFile(imageFile.path, filename: 'coolie_${DateTime.now().millisecondsSinceEpoch}.jpg')));
-      final result = await authRepo.faceDetection(formData);
+      final result = await authRepo.faceDetection(formData, isMukadam: isMukadam.value);
       if (result != null && result['success'] == true) {
         isCheckedIn.value = true;
         await fetchUserProfile();

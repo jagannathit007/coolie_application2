@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:license_sahayak/screens/coolie/attendance/attendance.dart';
 import 'package:license_sahayak/screens/coolie/home/ui/profile.dart';
 import '../screens/coolie/booking_history/booking_history.dart';
 import '/routes/route_name.dart';
 import 'package:get/get.dart';
 import '../screens/coolie/home/home.dart';
-import '../screens/auth/otp verify/otp_verify.dart';
+import '../screens/auth/otp_verify/otp_verify.dart';
 import '../screens/auth/sign_in.dart';
 import '../screens/splash/splash.dart';
 
@@ -29,5 +30,6 @@ class RoutePages {
     getPage(name: RouteName.home, page: () => HomeScreen()),
     getPage(name: RouteName.profile, page: () => Profile()),
     getPage(name: RouteName.bookingHistory, page: () => BookingHistory()),
+    getPage(name: RouteName.attendance, page: () => Attendance()),
   ];
 }

@@ -53,7 +53,14 @@ void terminatedNotification() async {
 
 void _handleNotificationClick(RemoteMessage message) async {
   String? bookingId = message.data["bookingId"];
-  if (bookingId != null) {
+  bool isLogin = message.data["action"] == "login_approved" || message.data["action"] == "login_rejected";
+  if (isLogin == true) {
+    await Future.delayed(const Duration(milliseconds: 500));
+    if (Get.isRegistered<HomeCtrl>()) {
+      final homeCtrl = Get.find<HomeCtrl>();
+      homeCtrl.fetchUserProfile();
+    }
+  } else if (bookingId != null) {
     await Future.delayed(const Duration(milliseconds: 500));
     if (Get.isRegistered<HomeCtrl>()) {
       final homeCtrl = Get.find<HomeCtrl>();

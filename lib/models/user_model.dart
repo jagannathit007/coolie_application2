@@ -33,19 +33,9 @@ class User {
   final String gender;
   final String buckleNumber;
   final String address;
-  final String faceId;
-  final bool isApproved;
-  final bool isActive;
   final bool isLoggedIn;
-  final DateTime? lastLoginTime;
-  final String fcm;
-  final String rating;
-  final String totalRatings;
-  final String completedBookings;
-  final String rejectedBookings;
-  final bool isDeleted;
-  final DateTime createdAt;
-  final DateTime updatedAt;
+  final bool isCheckedIn;
+  final bool? isApprovalRequested;
   final String v;
 
   User({
@@ -63,19 +53,9 @@ class User {
     required this.gender,
     required this.buckleNumber,
     required this.address,
-    required this.faceId,
-    required this.isApproved,
-    required this.isActive,
     required this.isLoggedIn,
-    this.lastLoginTime,
-    required this.fcm,
-    required this.rating,
-    required this.totalRatings,
-    required this.completedBookings,
-    required this.rejectedBookings,
-    required this.isDeleted,
-    required this.createdAt,
-    required this.updatedAt,
+    required this.isCheckedIn,
+    this.isApprovalRequested,
     required this.v,
   });
 
@@ -95,19 +75,9 @@ class User {
       gender: json['gender'] ?? '',
       buckleNumber: json['buckleNumber'] ?? '',
       address: json['address'] ?? '',
-      faceId: json['faceId'] ?? '',
-      isApproved: json['isApproved'] ?? false,
-      isActive: json['isActive'] ?? false,
       isLoggedIn: json['isLoggedIn'] ?? false,
-      lastLoginTime: json['lastLoginTime'] != null ? DateTime.parse(json['lastLoginTime']) : null,
-      fcm: json['fcm'] ?? '',
-      rating: json['rating'] ?? '0',
-      totalRatings: json['totalRatings'] ?? '0',
-      completedBookings: json['completedBookings'] ?? '0',
-      rejectedBookings: json['rejectedBookings'] ?? '0',
-      isDeleted: json['isDeleted'] ?? false,
-      createdAt: DateTime.parse(json['createdAt']),
-      updatedAt: DateTime.parse(json['updatedAt']),
+      isCheckedIn: json['isCheckedIn'] ?? false,
+      isApprovalRequested: json['isApprovalRequested'] ?? false,
       v: json['__v'] ?? '0',
     );
   }
@@ -128,19 +98,9 @@ class User {
       'gender': gender,
       'buckleNumber': buckleNumber,
       'address': address,
-      'faceId': faceId,
-      'isApproved': isApproved,
-      'isActive': isActive,
       'isLoggedIn': isLoggedIn,
-      'lastLoginTime': lastLoginTime?.toIso8601String(),
-      'fcm': fcm,
-      'rating': rating,
-      'totalRatings': totalRatings,
-      'completedBookings': completedBookings,
-      'rejectedBookings': rejectedBookings,
-      'isDeleted': isDeleted,
-      'createdAt': createdAt.toIso8601String(),
-      'updatedAt': updatedAt.toIso8601String(),
+      'isCheckedIn': isCheckedIn,
+      'isApprovalRequested': isApprovalRequested,
       '__v': v,
     };
   }
@@ -148,17 +108,12 @@ class User {
 
 class ImageData {
   final String url;
-  final String s3Key;
 
-  ImageData({required this.url, required this.s3Key});
+  ImageData({required this.url});
 
-  factory ImageData.fromJson(Map<String, dynamic> json) {
-    return ImageData(url: json['url'] ?? '', s3Key: json['s3Key'] ?? '');
-  }
+  factory ImageData.fromJson(Map<String, dynamic> json) => ImageData(url: json['url'] ?? '');
 
-  Map<String, dynamic> toJson() {
-    return {'url': url, 's3Key': s3Key};
-  }
+  Map<String, dynamic> toJson() => {'url': url};
 }
 
 class RateCard {

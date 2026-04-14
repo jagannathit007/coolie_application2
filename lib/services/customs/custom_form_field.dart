@@ -32,6 +32,7 @@ class CustomFormField extends StatefulWidget {
   final bool isPasswordField;
   final bool isDateField;
   final bool? borderEnabled;
+  final Iterable<String>? autofillHints;
   final TextCapitalization textCapitalization;
 
   const CustomFormField({
@@ -67,6 +68,7 @@ class CustomFormField extends StatefulWidget {
     this.isPasswordField = false,
     this.isDateField = false,
     this.borderEnabled = false,
+    this.autofillHints,
     this.textCapitalization = TextCapitalization.none,
   });
 
@@ -134,6 +136,7 @@ class CustomFormFieldState extends State<CustomFormField> {
           textAlign: widget.textAlign,
           keyboardType: widget.isDateField ? TextInputType.none : widget.keyboardType,
           inputFormatters: widget.inputFormatters,
+          autofillHints: widget.autofillHints,
           textInputAction: widget.textInputAction ?? TextInputAction.next,
           readOnly: widget.isDateField ? true : widget.readOnly,
           onTap: widget.isDateField ? () => _selectDate(context) : widget.onTap,

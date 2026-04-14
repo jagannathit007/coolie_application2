@@ -1,25 +1,40 @@
 import 'package:license_sahayak/api_constants/api_manager.dart';
 import 'package:license_sahayak/api_constants/network_constants.dart';
-import '../models/coolie_user_profile.dart';
+import 'package:license_sahayak/models/user_model.dart';
 import '../services/app_toasting.dart';
 
 class AuthenticationRepo {
   Future<AuthenticationRepo> init() async => this;
 
-  Future<CoolieUserProfile?> getUserProfile() async {
+  Future<User?> getUserProfile({required bool isMukadam}) async {
     try {
-      final result = await apiManager.post(NetworkConstants.getCoolieProfile);
+      String url = isMukadam ? NetworkConstants.getMukadamProfile : NetworkConstants.getCoolieProfile;
+      final result = await apiManager.post(url);
       if (result.data is Map<String, dynamic>) {
         final responseData = result.data as Map<String, dynamic>;
-        Map<String, dynamic> userData;
-        if (responseData['user'] != null) {
-          userData = responseData['user'];
+        User? userModel;
+        if (isMukadam && responseData['mukadam'] != null) {
+          userModel = User(
+            rateCard: RateCard(baseRate: "", baseTime: "", waitingRate: ""),
+            id: responseData['mukadam']?['_id'] ?? "",
+            name: responseData['mukadam']?['name'] ?? "No mention",
+            mobileNo: responseData['mukadam']?['mobileNo'] ?? "No mention",
+            age: responseData['mukadam']?['age'] ?? "No mention",
+            deviceType: 'mobile',
+            emailId: responseData['mukadam']?['email'] ?? "No mention",
+            gender: responseData['mukadam']?['gender'] ?? "No mention",
+            buckleNumber: '---',
+            address: responseData['mukadam']?['stationId']?['address'] ?? 'No mention',
+            image: ImageData(url: responseData['mukadam']?['image']?['url']),
+            isLoggedIn: responseData['mukadam']?['isLoggedIn'] ?? false,
+            isCheckedIn: responseData['mukadam']?['isCheckedIn'] ?? false,
+            isApprovalRequested: responseData['mukadam']?['isApprovalRequested'] ?? false,
+            v: '',
+          );
         } else if (responseData['user'] != null) {
-          userData = responseData['user'];
-        } else {
-          return null;
+          userModel = User.fromJson(responseData['user']);
         }
-        return CoolieUserProfile.fromJson(userData);
+        return userModel;
       } else {
         return null;
       }
@@ -29,15 +44,20 @@ class AuthenticationRepo {
     }
   }
 
-  Future<Map<String, dynamic>?> faceDetection(dynamic data) async {
+  Future<Map<String, dynamic>?> faceDetection(dynamic data, {required bool isMukadam}) async {
     try {
-      final result = await apiManager.post(NetworkConstants.faceDetect, data: data);
+      String url = isMukadam ? NetworkConstants.mukadamFaceLogin : NetworkConstants.faceDetect;
+      final result = await apiManager.post(url, data: data);
       if (result.status == 200) {
         final message = result.message.toString().toLowerCase();
         final hasFailureKeywords = message.contains('failed') || message.contains('error') || message.contains('below threshold') || message.contains('not match') || message.contains('unable');
         bool successByScore = true;
         if (result.data != null && result.data is Map<String, dynamic>) {
           final dataMap = result.data as Map<String, dynamic>;
+          if (isMukadam) {
+            dataMap['similarityScore'] = dataMap['verification']?['similarityScore'];
+            dataMap['threshold'] = dataMap['verification']?['threshold'];
+          }
           if (dataMap.containsKey('similarityScore') && dataMap.containsKey('threshold')) {
             double similarityScore = 0.0;
             final similarityValue = dataMap['similarityScore'];
@@ -80,9 +100,10 @@ class AuthenticationRepo {
     }
   }
 
-  Future<dynamic> getOff() async {
+  Future<dynamic> getOff({required bool isMukadam}) async {
     try {
-      final response = await apiManager.post(NetworkConstants.jobOffCollie, data: {});
+      String url = isMukadam ? NetworkConstants.mukadamJobOff : NetworkConstants.jobOffCollie;
+      final response = await apiManager.post(url, data: {});
       if (response.status != 200) {
         return {'success': false, 'message': response.message, 'data': null};
       }
@@ -134,11 +155,11 @@ class AuthenticationRepo {
     }
   }
 
-  Future<dynamic> logOut() async {
+  Future<dynamic> logOut({required bool isMukadam}) async {
     try {
-      final response = await apiManager.post(NetworkConstants.logoutCollie, data: {});
+      String url = isMukadam ? NetworkConstants.mukadamLogout : NetworkConstants.logoutCollie;
+      final response = await apiManager.post(url, data: {});
       if (response.status != 200) {
-        warningToast(response.data?.message ?? 'Failed to fetch OTP');
         return null;
       }
       return true;
@@ -167,20 +188,6 @@ class AuthenticationRepo {
       final response = await apiManager.post(NetworkConstants.allCompletedBookings, data: {"page": page, "limit": limit});
       if (response.status != 200) {
         warningToast(response.data?.message ?? 'Failed to fetch history');
-        return null;
-      }
-      return response.data;
-    } catch (err) {
-      errorToast('Error fetching History: ${err.toString()}');
-      return null;
-    }
-  }
-
-  Future<dynamic> registerCoolie(dynamic data) async {
-    try {
-      final response = await apiManager.post(NetworkConstants.registerCollie, data: data);
-      if (response.status != 200) {
-        warningToast(response.data?.message ?? 'Failed to fetch profile');
         return null;
       }
       return response.data;

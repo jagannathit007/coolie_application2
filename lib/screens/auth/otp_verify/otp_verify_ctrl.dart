@@ -13,7 +13,7 @@ class OtpVerifyCtrl extends GetxController {
   final mobile = ''.obs;
   final verificationCodeController = TextEditingController();
   late final AuthService authService;
-  final isLoading = false.obs, isResendEnabled = true.obs;
+  final isLoading = false.obs, isResendEnabled = true.obs, isMukadam = false.obs;
   final countdown = 30.obs;
   Timer? _timer;
 
@@ -22,8 +22,9 @@ class OtpVerifyCtrl extends GetxController {
     super.onInit();
     _initializeServices();
     final args = Get.arguments;
-    if (args != null && args["mobileNo"] != null) {
-      mobile.value = args["mobileNo"];
+    if (args != null) {
+      if (args["mobileNo"] != null) mobile.value = args["mobileNo"];
+      if (args["isMukadam"] != null) isMukadam.value = args["isMukadam"];
     }
     _startTimer();
   }
@@ -57,13 +58,17 @@ class OtpVerifyCtrl extends GetxController {
       isLoading.value = true;
       String fcmToken = await notificationService.getToken() ?? "";
       String deviceId = await helper.getDeviceUniqueId();
-      final request = {"mobileNo": mobile.value, "otpCode": verificationCodeController.text.trim(), "fcm": fcmToken, "deviceId": deviceId};
-      final userModel = await authService.verifyOtp(request);
-      final userMobile = userModel?.user.mobileNo ?? "";
+      final request = {"mobileNo": mobile.value, "fcm": fcmToken, "deviceId": deviceId};
+      if (isMukadam.value) {
+        request["otp"] = verificationCodeController.text.trim();
+      } else {
+        request["otpCode"] = verificationCodeController.text.trim();
+      }
+      final userModel = await authService.verifyOtp(request, isMukadam: isMukadam.value);
       if (userModel != null) {
         await AppStorage.write('token', userModel.token);
-        await AppStorage.write('userMobile', userMobile);
         await AppStorage.write('user', json.encode(userModel.toJson()));
+        await AppStorage.write("isMukadam", isMukadam.value);
         successToast("OTP Verified Successfully");
         Get.offAllNamed(RouteName.home);
       }
@@ -75,16 +80,13 @@ class OtpVerifyCtrl extends GetxController {
   }
 
   Future<void> resendOtp() async {
-    isLoading.value = true;
     try {
       final request = {"mobileNo": mobile.value};
-      await authService.reSendOtp(request);
+      await authService.reSendOtp(request, isMukadam: isMukadam.value);
       successToast("OTP resent successfully");
       _startTimer();
     } catch (e) {
       errorToast("Failed to resend OTP: $e");
-    } finally {
-      isLoading.value = false;
     }
   }
 

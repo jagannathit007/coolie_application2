@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -448,7 +450,7 @@ class _ActionButtons extends StatelessWidget {
   }
 }
 
-class _ActiveJobCard extends StatelessWidget {
+class _ActiveJobCard extends StatefulWidget {
   final HomeCtrl controller;
   final Booking booking;
   final Color primary;
@@ -456,10 +458,53 @@ class _ActiveJobCard extends StatelessWidget {
   const _ActiveJobCard({required this.controller, required this.booking, required this.primary});
 
   @override
+  State<_ActiveJobCard> createState() => _ActiveJobCardState();
+}
+
+class _ActiveJobCardState extends State<_ActiveJobCard> {
+  Timer? _timer;
+  Duration _elapsed = Duration.zero;
+
+  @override
+  void initState() {
+    super.initState();
+    _startTimer();
+  }
+
+  void _startTimer() {
+    final pickupTimeRaw = widget.booking.timestamp?.pickupTime?.toString() ?? '';
+    if (pickupTimeRaw.isNotEmpty) {
+      try {
+        final pickupTime = DateTime.parse(pickupTimeRaw).toLocal();
+        _elapsed = DateTime.now().difference(pickupTime);
+        if (_elapsed.isNegative) _elapsed = Duration.zero;
+      } catch (_) {
+        _elapsed = Duration.zero;
+      }
+    }
+    _timer = Timer.periodic(const Duration(seconds: 1), (_) {
+      if (mounted) setState(() => _elapsed += const Duration(seconds: 1));
+    });
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  String get _formattedTime {
+    final h = _elapsed.inHours;
+    final m = _elapsed.inMinutes.remainder(60).toString().padLeft(2, '0');
+    final s = _elapsed.inSeconds.remainder(60).toString().padLeft(2, '0');
+    return h > 0 ? '$h:$m:$s' : '$m:$s';
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Obx(() {
-      final isInProgress = controller.checkStatuss.value.toLowerCase() == 'in-progress';
-      final headerColor = isInProgress ? _kSuccess : primary;
+      final isInProgress = widget.controller.checkStatuss.value.toLowerCase() == 'in-progress';
+      final headerColor = isInProgress ? _kSuccess : widget.primary;
       return Container(
         decoration: BoxDecoration(
           color: _kWhite,
@@ -468,9 +513,9 @@ class _ActiveJobCard extends StatelessWidget {
         ),
         child: Column(
           children: [
-            _ActiveHeader(isInProgress: isInProgress, headerColor: headerColor),
-            _ActiveDetailGrid(booking: booking, primary: primary),
-            _ActiveCTAButton(controller: controller, booking: booking, isInProgress: isInProgress, primary: primary),
+            _ActiveHeader(isInProgress: isInProgress, headerColor: headerColor, formattedTime: isInProgress ? _formattedTime : null),
+            _ActiveDetailGrid(booking: widget.booking, primary: widget.primary),
+            _ActiveCTAButton(controller: widget.controller, booking: widget.booking, isInProgress: isInProgress, primary: widget.primary),
           ],
         ),
       );
@@ -481,8 +526,9 @@ class _ActiveJobCard extends StatelessWidget {
 class _ActiveHeader extends StatelessWidget {
   final bool isInProgress;
   final Color headerColor;
+  final String? formattedTime;
 
-  const _ActiveHeader({required this.isInProgress, required this.headerColor});
+  const _ActiveHeader({required this.isInProgress, required this.headerColor, this.formattedTime});
 
   @override
   Widget build(BuildContext context) {
@@ -502,17 +548,84 @@ class _ActiveHeader extends StatelessWidget {
             child: Icon(isInProgress ? Icons.directions_walk_rounded : Icons.check_circle_rounded, color: _kWhite, size: 20),
           ),
           const SizedBox(width: 12),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                isInProgress ? 'Job In Progress' : 'Job Accepted',
-                style: GoogleFonts.poppins(color: _kWhite, fontSize: 14, fontWeight: FontWeight.w700),
-              ),
-              Text(isInProgress ? 'Time elapsed since start' : 'Verify OTP to begin the job', style: GoogleFonts.poppins(color: _kWhite.withOpacity(0.72), fontSize: 11)),
-            ],
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  isInProgress ? 'Job In Progress' : 'Job Accepted',
+                  style: GoogleFonts.poppins(color: _kWhite, fontSize: 14, fontWeight: FontWeight.w700),
+                ),
+                Text(isInProgress ? 'Live time elapsed' : 'Verify OTP to begin the job', style: GoogleFonts.poppins(color: _kWhite.withOpacity(0.72), fontSize: 11)),
+              ],
+            ),
+          ),
+          if (isInProgress && formattedTime != null) _LiveTimerBadge(time: formattedTime!),
+        ],
+      ),
+    );
+  }
+}
+
+class _LiveTimerBadge extends StatelessWidget {
+  final String time;
+
+  const _LiveTimerBadge({required this.time});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: _kWhite,
+        borderRadius: BorderRadius.circular(14),
+        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.12), blurRadius: 8, offset: const Offset(0, 2))],
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _PulsingDot(),
+          const SizedBox(width: 6),
+          Text(
+            time,
+            style: GoogleFonts.poppins(color: _kSuccess, fontSize: 15, fontWeight: FontWeight.w800, letterSpacing: 1),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _PulsingDot extends StatefulWidget {
+  @override
+  State<_PulsingDot> createState() => _PulsingDotState();
+}
+
+class _PulsingDotState extends State<_PulsingDot> with SingleTickerProviderStateMixin {
+  late final AnimationController _ctrl;
+  late final Animation<double> _anim;
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrl = AnimationController(vsync: this, duration: const Duration(milliseconds: 800))..repeat(reverse: true);
+    _anim = Tween<double>(begin: 0.3, end: 1.0).animate(_ctrl);
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _anim,
+      builder: (_, _) => Container(
+        width: 8,
+        height: 8,
+        decoration: BoxDecoration(shape: BoxShape.circle, color: _kSuccess.withOpacity(_anim.value)),
       ),
     );
   }

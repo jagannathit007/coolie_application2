@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:license_sahayak/routes/route_name.dart';
 import 'package:license_sahayak/screens/coolie/home/home_ctrl.dart';
 import 'package:license_sahayak/screens/coolie/home/ui/booking_req_ui.dart';
 import 'package:license_sahayak/screens/coolie/home/ui/home_header_ui.dart';
@@ -94,6 +95,18 @@ class HomeScreen extends StatelessWidget {
                 ),
               ],
             ),
+            floatingActionButton: Obx(() {
+              if (!controller.isMukadam.value) return const SizedBox.shrink();
+              return FloatingActionButton.extended(
+                onPressed: () => Get.toNamed(RouteName.attendance),
+                backgroundColor: Constants.instance.primary,
+                icon: const Icon(Icons.fact_check_rounded, color: Colors.white),
+                label: Text(
+                  'Attendance',
+                  style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 14),
+                ),
+              );
+            }),
           );
         },
       ),

@@ -184,7 +184,7 @@ class _ProfileCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 3),
                     Text(
-                      item.value,
+                      item.value.isEmpty ? "---" : item.value,
                       style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: Color(0xFF1A1A2E)),
                     ),
                   ],

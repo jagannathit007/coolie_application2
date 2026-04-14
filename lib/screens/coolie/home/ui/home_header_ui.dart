@@ -267,13 +267,14 @@ class _StatsRow extends StatelessWidget {
   Widget build(BuildContext context) {
     return Obx(() {
       final isCheckedIn = controller.isCheckedIn.value;
+      final isApprovalRequested = controller.userProfile.value?.isApprovalRequested ?? false;
       final isCheckInLoading = controller.isCheckInLoading.value;
       return Row(
         children: [
           Expanded(
             flex: 3,
             child: GestureDetector(
-              onTap: isCheckInLoading
+              onTap: isCheckInLoading || isApprovalRequested
                   ? null
                   : () async {
                       if (isCheckedIn) {
@@ -286,7 +287,11 @@ class _StatsRow extends StatelessWidget {
                 duration: const Duration(milliseconds: 250),
                 height: 48,
                 decoration: BoxDecoration(
-                  color: isCheckedIn ? Colors.white.withOpacity(0.12) : Colors.white,
+                  color: isApprovalRequested
+                      ? Colors.grey.shade100
+                      : isCheckedIn
+                      ? Colors.white.withOpacity(0.12)
+                      : Colors.white,
                   borderRadius: BorderRadius.circular(14),
                   border: Border.all(color: Colors.white.withOpacity(isCheckedIn ? 0.25 : 1.0), width: 1.5),
                 ),
@@ -307,11 +312,31 @@ class _StatsRow extends StatelessWidget {
                     : Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(isCheckedIn ? Icons.logout_rounded : Icons.fingerprint_rounded, size: 18, color: isCheckedIn ? Colors.white : Constants.instance.primary),
+                          Icon(
+                            isCheckedIn ? Icons.logout_rounded : Icons.fingerprint_rounded,
+                            size: 18,
+                            color: isApprovalRequested
+                                ? Colors.grey
+                                : isCheckedIn
+                                ? Colors.white
+                                : Constants.instance.primary,
+                          ),
                           const SizedBox(width: 8),
                           Text(
-                            isCheckedIn ? 'Check Out' : 'Check In',
-                            style: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.w600, color: isCheckedIn ? Colors.white : Constants.instance.primary),
+                            isApprovalRequested
+                                ? "Wating for Approval..."
+                                : isCheckedIn
+                                ? 'Check Out'
+                                : 'Check In',
+                            style: GoogleFonts.poppins(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: isApprovalRequested
+                                  ? Colors.grey
+                                  : isCheckedIn
+                                  ? Colors.white
+                                  : Constants.instance.primary,
+                            ),
                           ),
                         ],
                       ),
@@ -337,7 +362,7 @@ class _StatsRow extends StatelessWidget {
                   ),
                   const SizedBox(height: 1),
                   Text(
-                    controller.passengerDetails.value.booking != null ? '—' : '0',
+                    controller.passengerDetails.value.booking != null ? '1' : '0',
                     style: GoogleFonts.poppins(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w700),
                   ),
                 ],
