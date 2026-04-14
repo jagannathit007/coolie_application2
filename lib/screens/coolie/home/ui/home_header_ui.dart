@@ -89,13 +89,7 @@ class HomeHeaderUI extends StatelessWidget {
                   ],
                 ),
                 const SizedBox(height: 18),
-                Row(
-                  children: [
-                    _StatusChip(isCheckedIn: checkedIn, status: status),
-                    const SizedBox(width: 10),
-                    if (status == 'accepted' || status == 'in-progress') _LiveTimerChip(controller: controller),
-                  ],
-                ),
+                _StatusChip(isCheckedIn: checkedIn, status: status),
                 const SizedBox(height: 14),
                 _StatsRow(controller: controller),
               ],
@@ -259,37 +253,6 @@ class _StatusChip extends StatelessWidget {
             style: GoogleFonts.poppins(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w500),
           ),
         ],
-      ),
-    );
-  }
-}
-
-class _LiveTimerChip extends StatelessWidget {
-  final HomeCtrl controller;
-
-  const _LiveTimerChip({required this.controller});
-
-  @override
-  Widget build(BuildContext context) {
-    return Obx(
-      () => Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
-        decoration: BoxDecoration(
-          color: const Color(0xFF22C55E).withOpacity(0.20),
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: const Color(0xFF22C55E).withOpacity(0.35)),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(Icons.timer_rounded, color: Color(0xFF22C55E), size: 14),
-            const SizedBox(width: 5),
-            Text(
-              controller.elapsedTime.value,
-              style: GoogleFonts.poppins(color: const Color(0xFF22C55E), fontSize: 12, fontWeight: FontWeight.w700, letterSpacing: 0.5),
-            ),
-          ],
-        ),
       ),
     );
   }

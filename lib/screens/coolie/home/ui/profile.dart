@@ -103,16 +103,22 @@ class _ProfileHeader extends StatelessWidget {
                   color: Colors.white,
                   border: Border.all(color: Colors.white, width: 3),
                   boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.15), blurRadius: 20, offset: const Offset(0, 8))],
-                  image: profile != null && profile.image!.url.isNotEmpty ? DecorationImage(image: NetworkImage(NetworkConstants.baseUrl + profile.image!.url), fit: BoxFit.cover) : null,
                 ),
-                child: profile == null || profile.image!.url.isEmpty
-                    ? Center(
-                        child: Text(
-                          profile != null && profile.name.isNotEmpty ? profile.name[0].toUpperCase() : 'U',
-                          style: GoogleFonts.poppins(fontSize: 32, fontWeight: FontWeight.w700, color: Constants.instance.primary),
+                child: ClipOval(
+                  child: profile != null && profile.image!.url.isNotEmpty
+                      ? Image.network(
+                          NetworkConstants.baseUrl + profile.image!.url,
+                          fit: BoxFit.cover,
+                          loadingBuilder: (_, child, progress) => progress == null ? child : _AvatarFallback(),
+                          errorBuilder: (_, _, _) => _AvatarFallback(),
+                        )
+                      : Center(
+                          child: Text(
+                            profile != null && profile.name.isNotEmpty ? profile.name[0].toUpperCase() : 'U',
+                            style: GoogleFonts.poppins(fontSize: 32, fontWeight: FontWeight.w700, color: Constants.instance.primary),
+                          ),
                         ),
-                      )
-                    : null,
+                ),
               );
             }),
             const SizedBox(height: 14),
@@ -287,5 +293,15 @@ Future<void> deleteAccount(BuildContext context) async {
   );
   if (confirmDelete == true) {
     await helper.launchURL(url);
+  }
+}
+
+class _AvatarFallback extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      color: const Color(0xFFC60000),
+      child: const Icon(Icons.person_rounded, color: Colors.white, size: 42),
+    );
   }
 }

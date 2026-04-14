@@ -468,7 +468,7 @@ class _WeightUpdateStep extends StatelessWidget {
                     const SizedBox(width: 6),
                     Text(
                       'Booked: ${bookedWeight.toStringAsFixed(0)} kg',
-                      style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w600, color: _kRed),
+                      style: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.w600, color: _kRed),
                     ),
                   ],
                 ),
@@ -485,7 +485,7 @@ class _WeightUpdateStep extends StatelessWidget {
                 ),
                 child: Text(
                   'Actual weight',
-                  style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w600, color: _kGreen),
+                  style: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.w600, color: _kGreen),
                 ),
               ),
             ],

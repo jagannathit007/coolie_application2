@@ -5,15 +5,15 @@ import 'package:license_sahayak/models/get_passenger_coolie_model.dart';
 import 'package:license_sahayak/screens/coolie/home/home_ctrl.dart';
 import 'package:license_sahayak/utils/app_constants.dart';
 
-const _kBlue = Color(0xFF3B82F6);
-const _kGreen = Color(0xFF22C55E);
-const _kOrange = Color(0xFFF97316);
+const _kWhite = Colors.white;
 const _kSlate50 = Color(0xFFF8FAFC);
 const _kSlate100 = Color(0xFFF1F5F9);
 const _kSlate200 = Color(0xFFE2E8F0);
 const _kSlate400 = Color(0xFF94A3B8);
 const _kSlate600 = Color(0xFF475569);
+const _kSlate800 = Color(0xFF1E293B);
 const _kSlate900 = Color(0xFF0F172A);
+const _kSuccess = Color(0xFF16A34A);
 
 class BookingReqUI extends StatelessWidget {
   final HomeCtrl controller;
@@ -22,21 +22,22 @@ class BookingReqUI extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final primary = Constants.instance.primary;
     return Obx(() {
       final booking = controller.passengerDetails.value.booking;
       final status = controller.checkStatuss.value.toLowerCase();
       final checkedIn = controller.isCheckedIn.value;
       if (!checkedIn) {
-        return _InfoBanner(icon: Icons.fingerprint_rounded, title: 'Check In to Start', subtitle: 'Tap "Check In" above to go on duty and receive passenger requests.', color: _kBlue);
+        return _InfoBanner(icon: Icons.fingerprint_rounded, title: 'Check In to Start', subtitle: 'Tap "Check In" above to go on duty and receive passenger requests.', primary: primary);
       }
       if (booking == null) {
-        return _InfoBanner(icon: Icons.radar_rounded, title: 'Waiting for Requests', subtitle: 'You\'re on duty. New booking requests will appear here automatically.', color: _kGreen);
+        return _InfoBanner(icon: Icons.radar_rounded, title: 'Waiting for Requests', subtitle: 'You\'re on duty. New booking requests will appear here automatically.', primary: primary);
       }
       if (status == 'pending') {
-        return _PendingRequestCard(controller: controller, booking: booking);
+        return _PendingRequestCard(controller: controller, booking: booking, primary: primary);
       }
       if (status == 'accepted' || status == 'in-progress') {
-        return _ActiveJobCard(controller: controller, booking: booking);
+        return _ActiveJobCard(controller: controller, booking: booking, primary: primary);
       }
       return const SizedBox.shrink();
     });
@@ -47,27 +48,27 @@ class _InfoBanner extends StatelessWidget {
   final IconData icon;
   final String title;
   final String subtitle;
-  final Color color;
+  final Color primary;
 
-  const _InfoBanner({required this.icon, required this.title, required this.subtitle, required this.color});
+  const _InfoBanner({required this.icon, required this.title, required this.subtitle, required this.primary});
 
   @override
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: _kWhite,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: color.withOpacity(0.15)),
-        boxShadow: [BoxShadow(color: color.withOpacity(0.08), blurRadius: 20, offset: const Offset(0, 6))],
+        border: Border.all(color: primary.withOpacity(0.12)),
+        boxShadow: [BoxShadow(color: primary.withOpacity(0.07), blurRadius: 20, offset: const Offset(0, 6))],
       ),
       child: Row(
         children: [
           Container(
             width: 56,
             height: 56,
-            decoration: BoxDecoration(color: color.withOpacity(0.10), borderRadius: BorderRadius.circular(16)),
-            child: Icon(icon, color: color, size: 28),
+            decoration: BoxDecoration(color: primary.withOpacity(0.08), borderRadius: BorderRadius.circular(16)),
+            child: Icon(icon, color: primary, size: 28),
           ),
           const SizedBox(width: 16),
           Expanded(
@@ -92,23 +93,24 @@ class _InfoBanner extends StatelessWidget {
 class _PendingRequestCard extends StatelessWidget {
   final HomeCtrl controller;
   final Booking booking;
+  final Color primary;
 
-  const _PendingRequestCard({required this.controller, required this.booking});
+  const _PendingRequestCard({required this.controller, required this.booking, required this.primary});
 
   @override
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: _kWhite,
         borderRadius: BorderRadius.circular(24),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.08), blurRadius: 24, offset: const Offset(0, 8))],
+        boxShadow: [BoxShadow(color: primary.withOpacity(0.10), blurRadius: 24, offset: const Offset(0, 8))],
       ),
       child: Column(
         children: [
-          _PendingHeader(controller: controller),
-          _PassengerHighlight(booking: booking),
-          _TripDetailGrid(booking: booking),
-          _ActionButtons(controller: controller, booking: booking),
+          _PendingHeader(controller: controller, primary: primary),
+          _PassengerHighlight(booking: booking, primary: primary),
+          _TripDetailGrid(booking: booking, primary: primary),
+          _ActionButtons(controller: controller, booking: booking, primary: primary),
         ],
       ),
     );
@@ -117,8 +119,9 @@ class _PendingRequestCard extends StatelessWidget {
 
 class _PendingHeader extends StatelessWidget {
   final HomeCtrl controller;
+  final Color primary;
 
-  const _PendingHeader({required this.controller});
+  const _PendingHeader({required this.controller, required this.primary});
 
   @override
   Widget build(BuildContext context) {
@@ -126,7 +129,7 @@ class _PendingHeader extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.fromLTRB(20, 16, 16, 16),
       decoration: BoxDecoration(
-        color: _kOrange,
+        color: primary,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
       ),
       child: Row(
@@ -134,8 +137,8 @@ class _PendingHeader extends StatelessWidget {
           Container(
             width: 36,
             height: 36,
-            decoration: BoxDecoration(color: Colors.white.withOpacity(0.20), borderRadius: BorderRadius.circular(10)),
-            child: const Icon(Icons.notifications_active_rounded, color: Colors.white, size: 20),
+            decoration: BoxDecoration(color: _kWhite.withOpacity(0.18), borderRadius: BorderRadius.circular(10)),
+            child: const Icon(Icons.notifications_active_rounded, color: _kWhite, size: 20),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -144,13 +147,13 @@ class _PendingHeader extends StatelessWidget {
               children: [
                 Text(
                   'New Booking Request!',
-                  style: GoogleFonts.poppins(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w700),
+                  style: GoogleFonts.poppins(color: _kWhite, fontSize: 14, fontWeight: FontWeight.w700),
                 ),
-                Text('Respond before time runs out', style: GoogleFonts.poppins(color: Colors.white.withOpacity(0.75), fontSize: 11)),
+                Text('Respond before time runs out', style: GoogleFonts.poppins(color: _kWhite.withOpacity(0.72), fontSize: 11)),
               ],
             ),
           ),
-          Obx(() => _CountdownBadge(time: controller.countdownTime.value)),
+          Obx(() => _CountdownBadge(time: controller.countdownTime.value, primary: primary)),
         ],
       ),
     );
@@ -159,8 +162,9 @@ class _PendingHeader extends StatelessWidget {
 
 class _CountdownBadge extends StatelessWidget {
   final String time;
+  final Color primary;
 
-  const _CountdownBadge({required this.time});
+  const _CountdownBadge({required this.time, required this.primary});
 
   @override
   Widget build(BuildContext context) {
@@ -174,18 +178,18 @@ class _CountdownBadge extends StatelessWidget {
       duration: const Duration(milliseconds: 300),
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
       decoration: BoxDecoration(
-        color: isUrgent ? Colors.red.shade700 : Colors.white,
+        color: isUrgent ? _kSlate900 : _kWhite,
         borderRadius: BorderRadius.circular(14),
-        boxShadow: [BoxShadow(color: isUrgent ? Colors.red.withOpacity(0.4) : Colors.black.withOpacity(0.1), blurRadius: 8, offset: const Offset(0, 2))],
+        boxShadow: [BoxShadow(color: (isUrgent ? _kSlate900 : _kWhite).withOpacity(0.25), blurRadius: 8, offset: const Offset(0, 2))],
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.timer_rounded, color: isUrgent ? Colors.white : _kOrange, size: 16),
+          Icon(Icons.timer_rounded, color: isUrgent ? _kWhite : primary, size: 16),
           const SizedBox(width: 5),
           Text(
             time,
-            style: GoogleFonts.poppins(color: isUrgent ? Colors.white : _kOrange, fontSize: 16, fontWeight: FontWeight.w800, letterSpacing: 1),
+            style: GoogleFonts.poppins(color: isUrgent ? _kWhite : primary, fontSize: 16, fontWeight: FontWeight.w800, letterSpacing: 1),
           ),
         ],
       ),
@@ -195,8 +199,9 @@ class _CountdownBadge extends StatelessWidget {
 
 class _PassengerHighlight extends StatelessWidget {
   final Booking booking;
+  final Color primary;
 
-  const _PassengerHighlight({required this.booking});
+  const _PassengerHighlight({required this.booking, required this.primary});
 
   @override
   Widget build(BuildContext context) {
@@ -213,10 +218,10 @@ class _PassengerHighlight extends StatelessWidget {
         children: [
           CircleAvatar(
             radius: 22,
-            backgroundColor: _kBlue.withOpacity(0.12),
+            backgroundColor: primary.withOpacity(0.10),
             child: Text(
               name.isNotEmpty ? name[0].toUpperCase() : '?',
-              style: GoogleFonts.poppins(fontSize: 18, fontWeight: FontWeight.w700, color: _kBlue),
+              style: GoogleFonts.poppins(fontSize: 18, fontWeight: FontWeight.w700, color: primary),
             ),
           ),
           const SizedBox(width: 12),
@@ -238,8 +243,9 @@ class _PassengerHighlight extends StatelessWidget {
 
 class _TripDetailGrid extends StatelessWidget {
   final Booking booking;
+  final Color primary;
 
-  const _TripDetailGrid({required this.booking});
+  const _TripDetailGrid({required this.booking, required this.primary});
 
   @override
   Widget build(BuildContext context) {
@@ -250,11 +256,11 @@ class _TripDetailGrid extends StatelessWidget {
           Row(
             children: [
               Expanded(
-                child: _GridTile(icon: Icons.train_rounded, label: 'Station', value: booking.pickupDetails?.station?.toString() ?? 'N/A'),
+                child: _GridTile(icon: Icons.train_rounded, label: 'Station', value: booking.pickupDetails?.station?.toString() ?? 'N/A', primary: primary),
               ),
               const SizedBox(width: 10),
               Expanded(
-                child: _GridTile(icon: Icons.event_seat_rounded, label: 'Coach', value: booking.pickupDetails?.coachNumber?.toString() ?? 'N/A'),
+                child: _GridTile(icon: Icons.event_seat_rounded, label: 'Coach', value: booking.pickupDetails?.coachNumber?.toString() ?? 'N/A', primary: primary),
               ),
             ],
           ),
@@ -262,18 +268,26 @@ class _TripDetailGrid extends StatelessWidget {
           Row(
             children: [
               Expanded(
-                child: _GridTile(icon: Icons.flag_rounded, label: 'Drop', value: booking.destination?.toString() ?? 'N/A'),
+                child: _GridTile(icon: Icons.flag_rounded, label: 'Drop', value: booking.destination?.toString() ?? 'N/A', primary: primary),
               ),
               const SizedBox(width: 10),
               Expanded(
-                child: _GridTile(icon: Icons.scale_rounded, label: 'Weight', value: '${booking.pickupDetails?.weight ?? "?"}kg'),
+                child: _GridTile(icon: Icons.scale_rounded, label: 'Weight', value: '${booking.pickupDetails?.weight ?? "?"}kg', primary: primary),
               ),
             ],
           ),
-          if ((booking.pickupDetails?.description?.toString() ?? '').isNotEmpty && booking.pickupDetails?.description?.toString() != 'N/A') ...[
-            const SizedBox(height: 10),
-            _NoteRow(note: booking.pickupDetails?.description?.toString() ?? ''),
-          ],
+          Builder(
+            builder: (_) {
+              final desc = booking.pickupDetails?.description?.toString() ?? '';
+              if (desc.isEmpty || desc == 'N/A') return const SizedBox.shrink();
+              return Column(
+                children: [
+                  const SizedBox(height: 10),
+                  _NoteRow(note: desc, primary: primary),
+                ],
+              );
+            },
+          ),
         ],
       ),
     );
@@ -284,8 +298,9 @@ class _GridTile extends StatelessWidget {
   final IconData icon;
   final String label;
   final String value;
+  final Color primary;
 
-  const _GridTile({required this.icon, required this.label, required this.value});
+  const _GridTile({required this.icon, required this.label, required this.value, required this.primary});
 
   @override
   Widget build(BuildContext context) {
@@ -301,8 +316,8 @@ class _GridTile extends StatelessWidget {
           Container(
             width: 30,
             height: 30,
-            decoration: BoxDecoration(color: Constants.instance.primary.withOpacity(0.10), borderRadius: BorderRadius.circular(8)),
-            child: Icon(icon, size: 15, color: Constants.instance.primary),
+            decoration: BoxDecoration(color: primary.withOpacity(0.08), borderRadius: BorderRadius.circular(8)),
+            child: Icon(icon, size: 15, color: primary),
           ),
           const SizedBox(width: 8),
           Expanded(
@@ -326,8 +341,9 @@ class _GridTile extends StatelessWidget {
 
 class _NoteRow extends StatelessWidget {
   final String note;
+  final Color primary;
 
-  const _NoteRow({required this.note});
+  const _NoteRow({required this.note, required this.primary});
 
   @override
   Widget build(BuildContext context) {
@@ -335,18 +351,18 @@ class _NoteRow extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
       decoration: BoxDecoration(
-        color: const Color(0xFFFFFBEB),
+        color: primary.withOpacity(0.04),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFFFDE68A)),
+        border: Border.all(color: primary.withOpacity(0.15)),
       ),
       child: Row(
         children: [
-          const Icon(Icons.notes_rounded, size: 16, color: Color(0xFFD97706)),
+          Icon(Icons.notes_rounded, size: 16, color: primary.withOpacity(0.70)),
           const SizedBox(width: 8),
           Expanded(
             child: Text(
               note,
-              style: GoogleFonts.poppins(fontSize: 12, color: const Color(0xFF92400E), fontWeight: FontWeight.w500),
+              style: GoogleFonts.poppins(fontSize: 12, color: _kSlate800, fontWeight: FontWeight.w500),
             ),
           ),
         ],
@@ -358,8 +374,9 @@ class _NoteRow extends StatelessWidget {
 class _ActionButtons extends StatelessWidget {
   final HomeCtrl controller;
   final Booking booking;
+  final Color primary;
 
-  const _ActionButtons({required this.controller, required this.booking});
+  const _ActionButtons({required this.controller, required this.booking, required this.primary});
 
   @override
   Widget build(BuildContext context) {
@@ -402,22 +419,22 @@ class _ActionButtons extends StatelessWidget {
                   duration: const Duration(milliseconds: 200),
                   height: 54,
                   decoration: BoxDecoration(
-                    color: _kGreen,
+                    color: primary,
                     borderRadius: BorderRadius.circular(16),
-                    boxShadow: [BoxShadow(color: _kGreen.withOpacity(0.40), blurRadius: 14, offset: const Offset(0, 5))],
+                    boxShadow: [BoxShadow(color: primary.withOpacity(0.38), blurRadius: 14, offset: const Offset(0, 5))],
                   ),
                   child: controller.isLoading.value
                       ? const Center(
-                          child: SizedBox(width: 22, height: 22, child: CircularProgressIndicator(strokeWidth: 2.5, color: Colors.white)),
+                          child: SizedBox(width: 22, height: 22, child: CircularProgressIndicator(strokeWidth: 2.5, color: _kWhite)),
                         )
                       : Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            const Icon(Icons.check_circle_rounded, size: 20, color: Colors.white),
+                            const Icon(Icons.check_circle_rounded, size: 20, color: _kWhite),
                             const SizedBox(width: 8),
                             Text(
                               'Accept Job',
-                              style: GoogleFonts.poppins(fontSize: 15, fontWeight: FontWeight.w700, color: Colors.white),
+                              style: GoogleFonts.poppins(fontSize: 15, fontWeight: FontWeight.w700, color: _kWhite),
                             ),
                           ],
                         ),
@@ -434,27 +451,26 @@ class _ActionButtons extends StatelessWidget {
 class _ActiveJobCard extends StatelessWidget {
   final HomeCtrl controller;
   final Booking booking;
+  final Color primary;
 
-  const _ActiveJobCard({required this.controller, required this.booking});
+  const _ActiveJobCard({required this.controller, required this.booking, required this.primary});
 
   @override
   Widget build(BuildContext context) {
     return Obx(() {
-      final status = controller.checkStatuss.value.toLowerCase();
-      final isInProgress = status == 'in-progress';
-      final headerColor = isInProgress ? _kBlue : _kGreen;
-
+      final isInProgress = controller.checkStatuss.value.toLowerCase() == 'in-progress';
+      final headerColor = isInProgress ? _kSuccess : primary;
       return Container(
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: _kWhite,
           borderRadius: BorderRadius.circular(24),
-          boxShadow: [BoxShadow(color: headerColor.withOpacity(0.12), blurRadius: 24, offset: const Offset(0, 8))],
+          boxShadow: [BoxShadow(color: headerColor.withOpacity(0.10), blurRadius: 24, offset: const Offset(0, 8))],
         ),
         child: Column(
           children: [
-            _ActiveHeader(controller: controller, isInProgress: isInProgress, headerColor: headerColor),
-            _ActiveDetailGrid(booking: booking, isInProgress: isInProgress),
-            _ActiveCTAButton(controller: controller, booking: booking, isInProgress: isInProgress),
+            _ActiveHeader(isInProgress: isInProgress, headerColor: headerColor),
+            _ActiveDetailGrid(booking: booking, primary: primary),
+            _ActiveCTAButton(controller: controller, booking: booking, isInProgress: isInProgress, primary: primary),
           ],
         ),
       );
@@ -463,11 +479,10 @@ class _ActiveJobCard extends StatelessWidget {
 }
 
 class _ActiveHeader extends StatelessWidget {
-  final HomeCtrl controller;
   final bool isInProgress;
   final Color headerColor;
 
-  const _ActiveHeader({required this.controller, required this.isInProgress, required this.headerColor});
+  const _ActiveHeader({required this.isInProgress, required this.headerColor});
 
   @override
   Widget build(BuildContext context) {
@@ -483,51 +498,19 @@ class _ActiveHeader extends StatelessWidget {
           Container(
             width: 36,
             height: 36,
-            decoration: BoxDecoration(color: Colors.white.withOpacity(0.20), borderRadius: BorderRadius.circular(10)),
-            child: Icon(isInProgress ? Icons.directions_walk_rounded : Icons.check_circle_rounded, color: Colors.white, size: 20),
+            decoration: BoxDecoration(color: _kWhite.withOpacity(0.18), borderRadius: BorderRadius.circular(10)),
+            child: Icon(isInProgress ? Icons.directions_walk_rounded : Icons.check_circle_rounded, color: _kWhite, size: 20),
           ),
           const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  isInProgress ? 'Job In Progress' : 'Job Accepted',
-                  style: GoogleFonts.poppins(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w700),
-                ),
-                Text(isInProgress ? 'Time elapsed since start' : 'Verify OTP to begin the job', style: GoogleFonts.poppins(color: Colors.white.withOpacity(0.75), fontSize: 11)),
-              ],
-            ),
-          ),
-          Obx(() => _ElapsedBadge(time: controller.elapsedTime.value)),
-        ],
-      ),
-    );
-  }
-}
-
-class _ElapsedBadge extends StatelessWidget {
-  final String time;
-
-  const _ElapsedBadge({required this.time});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(14),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.10), blurRadius: 6, offset: const Offset(0, 2))],
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const Icon(Icons.timer_rounded, color: _kBlue, size: 16),
-          const SizedBox(width: 5),
-          Text(
-            time,
-            style: GoogleFonts.poppins(color: _kBlue, fontSize: 16, fontWeight: FontWeight.w800, letterSpacing: 1),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                isInProgress ? 'Job In Progress' : 'Job Accepted',
+                style: GoogleFonts.poppins(color: _kWhite, fontSize: 14, fontWeight: FontWeight.w700),
+              ),
+              Text(isInProgress ? 'Time elapsed since start' : 'Verify OTP to begin the job', style: GoogleFonts.poppins(color: _kWhite.withOpacity(0.72), fontSize: 11)),
+            ],
           ),
         ],
       ),
@@ -537,9 +520,9 @@ class _ElapsedBadge extends StatelessWidget {
 
 class _ActiveDetailGrid extends StatelessWidget {
   final Booking booking;
-  final bool isInProgress;
+  final Color primary;
 
-  const _ActiveDetailGrid({required this.booking, required this.isInProgress});
+  const _ActiveDetailGrid({required this.booking, required this.primary});
 
   @override
   Widget build(BuildContext context) {
@@ -550,11 +533,11 @@ class _ActiveDetailGrid extends StatelessWidget {
           Row(
             children: [
               Expanded(
-                child: _GridTile(icon: Icons.train_rounded, label: 'Station', value: booking.pickupDetails?.station?.toString() ?? 'N/A'),
+                child: _GridTile(icon: Icons.train_rounded, label: 'Station', value: booking.pickupDetails?.station?.toString() ?? 'N/A', primary: primary),
               ),
               const SizedBox(width: 10),
               Expanded(
-                child: _GridTile(icon: Icons.event_seat_rounded, label: 'Coach', value: booking.pickupDetails?.coachNumber?.toString() ?? 'N/A'),
+                child: _GridTile(icon: Icons.event_seat_rounded, label: 'Coach', value: booking.pickupDetails?.coachNumber?.toString() ?? 'N/A', primary: primary),
               ),
             ],
           ),
@@ -562,18 +545,26 @@ class _ActiveDetailGrid extends StatelessWidget {
           Row(
             children: [
               Expanded(
-                child: _GridTile(icon: Icons.flag_rounded, label: 'Drop', value: booking.destination?.toString() ?? 'N/A'),
+                child: _GridTile(icon: Icons.flag_rounded, label: 'Drop', value: booking.destination?.toString() ?? 'N/A', primary: primary),
               ),
               const SizedBox(width: 10),
               Expanded(
-                child: _GridTile(icon: Icons.scale_rounded, label: 'Weight', value: '${booking.pickupDetails?.weight ?? "?"}kg'),
+                child: _GridTile(icon: Icons.scale_rounded, label: 'Weight', value: '${booking.pickupDetails?.weight ?? "?"}kg', primary: primary),
               ),
             ],
           ),
-          if ((booking.pickupDetails?.description?.toString() ?? '').isNotEmpty && booking.pickupDetails?.description?.toString() != 'N/A') ...[
-            const SizedBox(height: 10),
-            _NoteRow(note: booking.pickupDetails?.description?.toString() ?? ''),
-          ],
+          Builder(
+            builder: (_) {
+              final desc = booking.pickupDetails?.description?.toString() ?? '';
+              if (desc.isEmpty || desc == 'N/A') return const SizedBox.shrink();
+              return Column(
+                children: [
+                  const SizedBox(height: 10),
+                  _NoteRow(note: desc, primary: primary),
+                ],
+              );
+            },
+          ),
         ],
       ),
     );
@@ -584,11 +575,13 @@ class _ActiveCTAButton extends StatelessWidget {
   final HomeCtrl controller;
   final Booking booking;
   final bool isInProgress;
+  final Color primary;
 
-  const _ActiveCTAButton({required this.controller, required this.booking, required this.isInProgress});
+  const _ActiveCTAButton({required this.controller, required this.booking, required this.isInProgress, required this.primary});
 
   @override
   Widget build(BuildContext context) {
+    final btnColor = isInProgress ? _kSuccess : primary;
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 20),
       child: Obx(
@@ -603,13 +596,13 @@ class _ActiveCTAButton extends StatelessWidget {
             height: 58,
             width: double.infinity,
             decoration: BoxDecoration(
-              color: isInProgress ? _kGreen : Constants.instance.primary,
+              color: btnColor,
               borderRadius: BorderRadius.circular(18),
-              boxShadow: [BoxShadow(color: (isInProgress ? _kGreen : Constants.instance.primary).withOpacity(0.38), blurRadius: 16, offset: const Offset(0, 6))],
+              boxShadow: [BoxShadow(color: btnColor.withOpacity(0.35), blurRadius: 16, offset: const Offset(0, 6))],
             ),
             child: controller.isLoading.value
                 ? const Center(
-                    child: SizedBox(width: 24, height: 24, child: CircularProgressIndicator(strokeWidth: 2.5, color: Colors.white)),
+                    child: SizedBox(width: 24, height: 24, child: CircularProgressIndicator(strokeWidth: 2.5, color: _kWhite)),
                   )
                 : Row(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -617,8 +610,8 @@ class _ActiveCTAButton extends StatelessWidget {
                       Container(
                         width: 34,
                         height: 34,
-                        decoration: BoxDecoration(color: Colors.white.withOpacity(0.20), borderRadius: BorderRadius.circular(10)),
-                        child: Icon(isInProgress ? Icons.task_alt_rounded : Icons.lock_open_rounded, size: 20, color: Colors.white),
+                        decoration: BoxDecoration(color: _kWhite.withOpacity(0.18), borderRadius: BorderRadius.circular(10)),
+                        child: Icon(isInProgress ? Icons.task_alt_rounded : Icons.lock_open_rounded, size: 20, color: _kWhite),
                       ),
                       const SizedBox(width: 12),
                       Column(
@@ -627,9 +620,9 @@ class _ActiveCTAButton extends StatelessWidget {
                         children: [
                           Text(
                             isInProgress ? 'Complete Service' : 'Verify OTP to Start',
-                            style: GoogleFonts.poppins(fontSize: 15, fontWeight: FontWeight.w700, color: Colors.white),
+                            style: GoogleFonts.poppins(fontSize: 15, fontWeight: FontWeight.w700, color: _kWhite),
                           ),
-                          Text(isInProgress ? 'Mark this job as done' : 'Enter OTP shared by passenger', style: GoogleFonts.poppins(fontSize: 11, color: Colors.white.withOpacity(0.75))),
+                          Text(isInProgress ? 'Mark this job as done' : 'Enter OTP shared by passenger', style: GoogleFonts.poppins(fontSize: 11, color: _kWhite.withOpacity(0.72))),
                         ],
                       ),
                     ],

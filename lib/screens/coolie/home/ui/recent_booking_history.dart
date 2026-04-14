@@ -4,12 +4,6 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:license_sahayak/screens/coolie/booking_history/booking_history.dart';
 import 'package:license_sahayak/screens/coolie/home/home_ctrl.dart';
-import 'package:license_sahayak/utils/app_constants.dart';
-
-const _kSlate100 = Color(0xFFF1F5F9);
-const _kSlate200 = Color(0xFFE2E8F0);
-const _kSlate400 = Color(0xFF94A3B8);
-const _kSlate900 = Color(0xFF0F172A);
 
 class RecentBookingHistory extends StatefulWidget {
   final HomeCtrl controller;
@@ -22,7 +16,6 @@ class RecentBookingHistory extends StatefulWidget {
 
 class _RecentBookingHistoryState extends State<RecentBookingHistory> {
   bool _isLoading = false;
-
   List<dynamic> _recent = [];
 
   @override
@@ -50,44 +43,51 @@ class _RecentBookingHistoryState extends State<RecentBookingHistory> {
       children: [
         Text(
           'Recent Activity',
-          style: GoogleFonts.poppins(fontSize: 15, fontWeight: FontWeight.w700, color: _kSlate900),
+          style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w600, color: const Color(0xFF64748B), letterSpacing: 0.6),
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: 10),
         if (_isLoading)
-          _HistoryShimmer()
+          const _HistoryShimmer()
         else if (_recent.isEmpty)
-          _EmptyHistory()
+          const _EmptyHistory()
         else
           Column(
             children: [
               ..._recent.asMap().entries.map((e) => _RecentHistoryTile(booking: e.value, index: e.key)),
               const SizedBox(height: 4),
-              GestureDetector(
-                onTap: () => Get.to(() => const BookingHistory()),
-                child: Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: _kSlate200),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.history_rounded, size: 16, color: Constants.instance.primary),
-                      const SizedBox(width: 8),
-                      Text(
-                        'View Full History',
-                        style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w600, color: Constants.instance.primary),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
+              _ViewAllButton(),
             ],
           ),
       ],
+    );
+  }
+}
+
+class _ViewAllButton extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: () => Get.to(() => const BookingHistory()),
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(vertical: 13),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: const Color(0xFFE2E8F0), width: 0.8),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(Icons.access_time_rounded, size: 14, color: Color(0xFF94A3B8)),
+            const SizedBox(width: 7),
+            Text(
+              'View full history',
+              style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w500, color: const Color(0xFF64748B)),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
@@ -98,33 +98,18 @@ class _RecentHistoryTile extends StatelessWidget {
 
   const _RecentHistoryTile({required this.booking, required this.index});
 
-  Color _statusColor(String status) {
+  _StatusStyle _style(String status) {
     switch (status.toLowerCase()) {
       case 'completed':
-        return const Color(0xFF22C55E);
+        return _StatusStyle(icon: Icons.check_circle_outline_rounded, fg: const Color(0xFF16A34A), bg: const Color(0xFFEAFFF1), label: 'Completed');
       case 'accepted':
-        return const Color(0xFF3B82F6);
+        return _StatusStyle(icon: Icons.thumb_up_alt_outlined, fg: const Color(0xFF2563EB), bg: const Color(0xFFEFF6FF), label: 'Accepted');
       case 'pending':
-        return const Color(0xFFF97316);
+        return _StatusStyle(icon: Icons.hourglass_top_rounded, fg: const Color(0xFFEA580C), bg: const Color(0xFFFFF7ED), label: 'Pending');
       case 'cancelled':
-        return const Color(0xFFEF4444);
+        return _StatusStyle(icon: Icons.cancel_outlined, fg: const Color(0xFFDC2626), bg: const Color(0xFFFFF1F1), label: 'Cancelled');
       default:
-        return _kSlate400;
-    }
-  }
-
-  IconData _statusIcon(String status) {
-    switch (status.toLowerCase()) {
-      case 'completed':
-        return Icons.task_alt_rounded;
-      case 'accepted':
-        return Icons.check_circle_outline_rounded;
-      case 'pending':
-        return Icons.hourglass_top_rounded;
-      case 'cancelled':
-        return Icons.cancel_outlined;
-      default:
-        return Icons.circle_outlined;
+        return _StatusStyle(icon: Icons.circle_outlined, fg: const Color(0xFF94A3B8), bg: const Color(0xFFF1F5F9), label: status);
     }
   }
 
@@ -140,107 +125,153 @@ class _RecentHistoryTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final status = booking['status']?.toString() ?? '';
-    final color = _statusColor(status);
+    final s = _style(status);
     final station = booking['pickupDetails']?['station']?.toString() ?? 'N/A';
+    final coachNo = booking['pickupDetails']?['coachNumber']?.toString() ?? 'N/A';
+    final weight = booking['pickupDetails']?['weight']?.toString();
     final dest = booking['destination']?.toString() ?? 'N/A';
     final fare = booking['fare']?['baseFare']?.toString() ?? '—';
     final bookedAt = _formatDate(booking['timestamp']?['bookedAt']?.toString());
     return TweenAnimationBuilder<double>(
-      duration: Duration(milliseconds: 200 + index * 60),
+      duration: Duration(milliseconds: 180 + index * 50),
       tween: Tween(begin: 0.0, end: 1.0),
       builder: (ctx, v, child) => Opacity(
         opacity: v,
-        child: Transform.translate(offset: Offset(0, 10 * (1 - v)), child: child),
+        child: Transform.translate(offset: Offset(0, 8 * (1 - v)), child: child),
       ),
       child: Container(
         margin: const EdgeInsets.only(bottom: 10),
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 12, offset: const Offset(0, 3))],
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: const Color(0xFFE2E8F0), width: 0.8),
         ),
-        child: Padding(
-          padding: const EdgeInsets.all(14),
-          child: Row(
-            children: [
-              Container(
-                width: 44,
-                height: 44,
-                decoration: BoxDecoration(color: color.withOpacity(0.10), borderRadius: BorderRadius.circular(13)),
-                child: Icon(_statusIcon(status), color: color, size: 20),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            "PICKUP $station",
-                            style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w700, color: _kSlate900),
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                        const SizedBox(width: 6),
-                        const Icon(Icons.arrow_forward_rounded, size: 12, color: _kSlate400),
-                        const SizedBox(width: 6),
-                        Expanded(
-                          child: Text(
-                            "DROP $dest",
-                            style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w700, color: _kSlate900),
-                            overflow: TextOverflow.ellipsis,
-                            textAlign: TextAlign.right,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 4),
-                    Row(
-                      children: [
-                        const Icon(Icons.access_time_rounded, size: 11, color: _kSlate400),
-                        const SizedBox(width: 4),
-                        Text(bookedAt, style: GoogleFonts.poppins(fontSize: 11, color: _kSlate400)),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 12),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(12, 12, 12, 10),
+              child: Row(
                 children: [
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Icon(Icons.currency_rupee_rounded, size: 13, color: _kSlate900),
-                      Text(
-                        fare,
-                        style: GoogleFonts.poppins(fontSize: 15, fontWeight: FontWeight.w800, color: _kSlate900),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 5),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                    decoration: BoxDecoration(color: color.withOpacity(0.10), borderRadius: BorderRadius.circular(20)),
-                    child: Text(
-                      status.isNotEmpty ? status[0].toUpperCase() + status.substring(1).toLowerCase() : '—',
-                      style: GoogleFonts.poppins(fontSize: 10, fontWeight: FontWeight.w700, color: color),
+                    width: 35,
+                    height: 35,
+                    decoration: BoxDecoration(color: s.bg, borderRadius: BorderRadius.circular(10)),
+                    child: Icon(s.icon, color: s.fg, size: 16),
+                  ),
+                  const SizedBox(width: 11),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Flexible(
+                              child: Text(
+                                'Platform $station',
+                                style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w600, color: const Color(0xFF1E293B)),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            Icon(Icons.arrow_forward_rounded, size: 11, color: const Color(0xFFCBD5E1)),
+                            Flexible(
+                              child: Text(
+                                dest,
+                                style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w600, color: const Color(0xFF1E293B)),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 3),
+                        Row(
+                          spacing: 4.0,
+                          children: [
+                            Expanded(
+                              child: Row(
+                                children: [
+                                  const Icon(Icons.access_time_rounded, size: 11, color: Color(0xFFCBD5E1)),
+                                  const SizedBox(width: 4),
+                                  Text(bookedAt, style: GoogleFonts.poppins(fontSize: 11, color: const Color(0xFF94A3B8))),
+                                ],
+                              ),
+                            ),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                              decoration: BoxDecoration(color: s.bg, borderRadius: BorderRadius.circular(20)),
+                              child: Text(
+                                s.label,
+                                style: GoogleFonts.poppins(fontSize: 10, fontWeight: FontWeight.w600, color: s.fg),
+                              ),
+                            ),
+                            Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Icon(Icons.currency_rupee_rounded, size: 13, color: Color(0xFF1E293B)),
+                                Text(
+                                  fare,
+                                  style: GoogleFonts.poppins(fontSize: 15, fontWeight: FontWeight.w700, color: const Color(0xFF1E293B)),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ],
                     ),
                   ),
                 ],
               ),
-            ],
-          ),
+            ),
+            Container(
+              decoration: const BoxDecoration(
+                border: Border(top: BorderSide(color: Color(0xFFF1F5F9), width: 1)),
+              ),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              child: Row(
+                children: [
+                  _FooterChip(icon: Icons.train_rounded, label: 'Coach $coachNo'),
+                  if (weight != null) ...[const SizedBox(width: 12), _FooterChip(icon: Icons.monitor_weight_outlined, label: '$weight kg')],
+                ],
+              ),
+            ),
+          ],
         ),
       ),
     );
   }
 }
 
+class _FooterChip extends StatelessWidget {
+  final IconData icon;
+  final String label;
+
+  const _FooterChip({required this.icon, required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(icon, size: 12, color: const Color(0xFFCBD5E1)),
+        const SizedBox(width: 5),
+        Text(label, style: GoogleFonts.poppins(fontSize: 11, color: const Color(0xFF94A3B8))),
+      ],
+    );
+  }
+}
+
+class _StatusStyle {
+  final IconData icon;
+  final Color fg;
+  final Color bg;
+  final String label;
+
+  const _StatusStyle({required this.icon, required this.fg, required this.bg, required this.label});
+}
+
 class _HistoryShimmer extends StatefulWidget {
+  const _HistoryShimmer();
+
   @override
   State<_HistoryShimmer> createState() => _HistoryShimmerState();
 }
@@ -252,7 +283,7 @@ class _HistoryShimmerState extends State<_HistoryShimmer> with SingleTickerProvi
   @override
   void initState() {
     super.initState();
-    _ctrl = AnimationController(vsync: this, duration: const Duration(milliseconds: 1000))..repeat(reverse: true);
+    _ctrl = AnimationController(vsync: this, duration: const Duration(milliseconds: 900))..repeat(reverse: true);
     _anim = CurvedAnimation(parent: _ctrl, curve: Curves.easeInOut);
   }
 
@@ -267,35 +298,39 @@ class _HistoryShimmerState extends State<_HistoryShimmer> with SingleTickerProvi
     return AnimatedBuilder(
       animation: _anim,
       builder: (_, _) {
-        final opacity = 0.4 + _anim.value * 0.4;
+        final op = 0.35 + _anim.value * 0.35;
         return Column(
           children: List.generate(
             3,
             (i) => Container(
               margin: const EdgeInsets.only(bottom: 10),
-              padding: const EdgeInsets.all(14),
-              decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16)),
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: const Color(0xFFE2E8F0), width: 0.8),
+              ),
               child: Row(
                 children: [
-                  _ShimmerBox(width: 44, height: 44, radius: 13, opacity: opacity),
-                  const SizedBox(width: 12),
+                  _ShimBox(w: 40, h: 40, r: 10, op: op),
+                  const SizedBox(width: 11),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        _ShimmerBox(width: double.infinity, height: 13, radius: 6, opacity: opacity),
-                        const SizedBox(height: 8),
-                        _ShimmerBox(width: 120, height: 11, radius: 6, opacity: opacity),
+                        _ShimBox(w: double.infinity, h: 13, r: 5, op: op),
+                        const SizedBox(height: 7),
+                        _ShimBox(w: 100, h: 11, r: 5, op: op),
                       ],
                     ),
                   ),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: 10),
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
-                      _ShimmerBox(width: 50, height: 15, radius: 6, opacity: opacity),
+                      _ShimBox(w: 48, h: 15, r: 5, op: op),
                       const SizedBox(height: 6),
-                      _ShimmerBox(width: 60, height: 18, radius: 20, opacity: opacity),
+                      _ShimBox(w: 58, h: 18, r: 20, op: op),
                     ],
                   ),
                 ],
@@ -308,50 +343,52 @@ class _HistoryShimmerState extends State<_HistoryShimmer> with SingleTickerProvi
   }
 }
 
-class _ShimmerBox extends StatelessWidget {
-  final double width, height, radius, opacity;
+class _ShimBox extends StatelessWidget {
+  final double w, h, r, op;
 
-  const _ShimmerBox({required this.width, required this.height, required this.radius, required this.opacity});
+  const _ShimBox({required this.w, required this.h, required this.r, required this.op});
 
   @override
   Widget build(BuildContext context) {
     return Opacity(
-      opacity: opacity,
+      opacity: op,
       child: Container(
-        width: width,
-        height: height,
-        decoration: BoxDecoration(color: _kSlate100, borderRadius: BorderRadius.circular(radius)),
+        width: w,
+        height: h,
+        decoration: BoxDecoration(color: const Color(0xFFF1F5F9), borderRadius: BorderRadius.circular(r)),
       ),
     );
   }
 }
 
 class _EmptyHistory extends StatelessWidget {
+  const _EmptyHistory();
+
   @override
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.symmetric(vertical: 36),
+      padding: const EdgeInsets.symmetric(vertical: 32),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 12, offset: const Offset(0, 3))],
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: const Color(0xFFE2E8F0), width: 0.8),
       ),
       child: Column(
         children: [
           Container(
-            width: 56,
-            height: 56,
-            decoration: BoxDecoration(color: _kSlate100, borderRadius: BorderRadius.circular(16)),
-            child: const Icon(Icons.history_rounded, size: 28, color: _kSlate200),
+            width: 48,
+            height: 48,
+            decoration: BoxDecoration(color: const Color(0xFFF8FAFC), borderRadius: BorderRadius.circular(12)),
+            child: const Icon(Icons.history_rounded, size: 22, color: Color(0xFFCBD5E1)),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 10),
           Text(
             'No recent activity',
-            style: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.w600, color: _kSlate400),
+            style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w500, color: const Color(0xFF94A3B8)),
           ),
-          const SizedBox(height: 4),
-          Text('Completed jobs will appear here', style: GoogleFonts.poppins(fontSize: 12, color: _kSlate200)),
+          const SizedBox(height: 3),
+          Text('Completed jobs will appear here', style: GoogleFonts.poppins(fontSize: 11, color: const Color(0xFFCBD5E1))),
         ],
       ),
     );

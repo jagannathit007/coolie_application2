@@ -11,7 +11,7 @@ import '../../services/app_toasting.dart';
 class AuthService extends GetxService {
   Future<SignInResponseModel?> signIn({required String mobileNo, required String deviceId, required String fcm}) async {
     try {
-      final result = await apiManager.post(NetworkConstants.signIn, data: {"mobileNo": mobileNo, "deviceId": deviceId, "fcm": fcm});
+      final result = await apiManager.post(NetworkConstants.signInCollie, data: {"mobileNo": mobileNo, "deviceId": deviceId, "fcm": fcm});
       if (result.data is Map<String, dynamic>) {
         return SignInResponseModel.fromJson(result.data);
       } else {
@@ -26,7 +26,7 @@ class AuthService extends GetxService {
 
   Future<UserModel?> verifyOtp(Map<String, dynamic> request) async {
     try {
-      final result = await apiManager.post(NetworkConstants.otpVerification, data: request);
+      final result = await apiManager.post(NetworkConstants.otpVerificationCollie, data: request);
       final responseData = result.data is String ? json.decode(result.data) : result.data;
       if (responseData['user'] == null || responseData['token'] == null) {
         errorToast(result.message);
@@ -42,7 +42,7 @@ class AuthService extends GetxService {
 
   Future<void> reSendOtp(dynamic request) async {
     try {
-      final response = await apiManager.post(NetworkConstants.otpVerification, data: request);
+      final response = await apiManager.post(NetworkConstants.otpVerificationCollie, data: request);
       if (response.data == null) {
         errorToast(response.message);
         return;

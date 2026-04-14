@@ -22,10 +22,9 @@ class HomeCtrl extends GetxController {
   var userProfile = Rxn<CoolieUserProfile>();
   var isLoading = false.obs, isCheckInLoading = false.obs;
   final ImagePicker _imagePicker = ImagePicker();
-  final checkInStatusMessage = ''.obs, elapsedTime = '00:00'.obs, countdownTime = '00:30'.obs;
+  final checkInStatusMessage = ''.obs, countdownTime = '00:20'.obs;
   Timer? _timer;
   DateTime? bookingStartTime;
-  final timerDurationInSeconds = 30.obs;
 
   @override
   void onInit() async {
@@ -50,25 +49,10 @@ class HomeCtrl extends GetxController {
     await checkStatus();
   }
 
-  void startTimer() {
-    bookingStartTime = DateTime.now();
-    _timer?.cancel();
-    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      if (bookingStartTime != null) {
-        final now = DateTime.now();
-        final difference = now.difference(bookingStartTime!);
-        final minutes = difference.inMinutes;
-        final seconds = difference.inSeconds % 60;
-        elapsedTime.value = '${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
-      }
-    });
-  }
-
   void stopTimer() {
     _timer?.cancel();
     bookingStartTime = null;
-    elapsedTime.value = '00:00';
-    countdownTime.value = '00:30';
+    countdownTime.value = '00:20';
   }
 
   void startCountdownTimer() {
@@ -80,7 +64,7 @@ class HomeCtrl extends GetxController {
           final bookedAt = DateTime.parse(booking!.timestamp!.bookedAt.toString());
           final now = DateTime.now();
           final elapsed = now.difference(bookedAt).inSeconds;
-          final remaining = 30 - elapsed;
+          final remaining = 20 - elapsed;
           if (remaining > 0) {
             final minutes = (remaining ~/ 60).toString().padLeft(2, '0');
             final seconds = (remaining % 60).toString().padLeft(2, '0');
@@ -163,10 +147,6 @@ class HomeCtrl extends GetxController {
         if (passengerDetails.value.booking != null) {
           if (checkStatuss.value == 'pending') {
             startCountdownTimer();
-          } else if (checkStatuss.value == 'accepted' || checkStatuss.value.toLowerCase() == 'in-progress') {
-            if (bookingStartTime == null) {
-              startTimer();
-            }
           } else {
             stopTimer();
           }
@@ -188,9 +168,6 @@ class HomeCtrl extends GetxController {
       isLoading.value = true;
       final response = await authRepo.bookPassenger(bookingId, sessionId.toString(), isAccept);
       if (response != null) {
-        if (isAccept) {
-          startTimer();
-        }
         await initialize();
       }
     } catch (e) {
@@ -260,8 +237,7 @@ class HomeCtrl extends GetxController {
     }
     try {
       isLoading.value = true;
-
-      /// Req send to customer...
+      await authRepo.updateWeight({"bookingId": bookingId, "weight": newWeight});
     } catch (e) {
       errorToast('Failed to verify OTP: ${e.toString()}');
     } finally {
@@ -274,7 +250,6 @@ class HomeCtrl extends GetxController {
       isLoading.value = true;
       final response = await authRepo.logOut();
       if (response != null) {
-        Get.close(1);
         stopTimer();
         AppStorage.clearAll();
         Get.offAllNamed(RouteName.signIn);
@@ -294,10 +269,6 @@ class HomeCtrl extends GetxController {
         checkStatuss.value = response["currentStatus"];
         if (checkStatuss.value == 'pending') {
           startCountdownTimer();
-        } else if (checkStatuss.value == 'accepted' || checkStatuss.value.toLowerCase() == 'in-progress') {
-          if (bookingStartTime == null) {
-            startTimer();
-          }
         } else {
           stopTimer();
         }

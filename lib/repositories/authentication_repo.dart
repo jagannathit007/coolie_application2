@@ -82,7 +82,7 @@ class AuthenticationRepo {
 
   Future<dynamic> getOff() async {
     try {
-      final response = await apiManager.post(NetworkConstants.jobOff, data: {});
+      final response = await apiManager.post(NetworkConstants.jobOffCollie, data: {});
       if (response.status != 200) {
         return {'success': false, 'message': response.message, 'data': null};
       }
@@ -136,12 +136,12 @@ class AuthenticationRepo {
 
   Future<dynamic> logOut() async {
     try {
-      final response = await apiManager.post(NetworkConstants.logout, data: {});
+      final response = await apiManager.post(NetworkConstants.logoutCollie, data: {});
       if (response.status != 200) {
         warningToast(response.data?.message ?? 'Failed to fetch OTP');
         return null;
       }
-      return response.data;
+      return true;
     } catch (err) {
       errorToast('Error fetching LogOut: ${err.toString()}');
       return null;
@@ -164,7 +164,7 @@ class AuthenticationRepo {
 
   Future<dynamic> getHistory({int page = 1, int limit = 10}) async {
     try {
-      final response = await apiManager.post(NetworkConstants.allcompletedBookings, data: {"page": page, "limit": limit});
+      final response = await apiManager.post(NetworkConstants.allCompletedBookings, data: {"page": page, "limit": limit});
       if (response.status != 200) {
         warningToast(response.data?.message ?? 'Failed to fetch history');
         return null;
@@ -186,6 +186,20 @@ class AuthenticationRepo {
       return response.data;
     } catch (err) {
       errorToast('Error fetching History: ${err.toString()}');
+      return null;
+    }
+  }
+
+  Future<dynamic> updateWeight(dynamic data) async {
+    try {
+      final response = await apiManager.post(NetworkConstants.updateWeight, data: data);
+      if (response.status != 200) {
+        warningToast(response.data?.message ?? 'Failed to upadte Weight');
+        return null;
+      }
+      return true;
+    } catch (err) {
+      errorToast('Error fetching LogOut: ${err.toString()}');
       return null;
     }
   }
