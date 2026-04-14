@@ -54,6 +54,15 @@ void terminatedNotification() async {
 void _handleNotificationClick(RemoteMessage message) async {
   String? bookingId = message.data["bookingId"];
   bool isLogin = message.data["action"] == "login_approved" || message.data["action"] == "login_rejected";
+  String? action = message.data["action"];
+  if (action == "cancelled_by_passenger") {
+    await Future.delayed(const Duration(milliseconds: 500));
+    if (Get.isRegistered<HomeCtrl>()) {
+      final homeCtrl = Get.find<HomeCtrl>();
+      homeCtrl.onInit();
+    }
+    return;
+  }
   if (isLogin == true) {
     await Future.delayed(const Duration(milliseconds: 500));
     if (Get.isRegistered<HomeCtrl>()) {
@@ -62,12 +71,20 @@ void _handleNotificationClick(RemoteMessage message) async {
     }
   } else if (bookingId != null) {
     await Future.delayed(const Duration(milliseconds: 500));
-    if (Get.isRegistered<HomeCtrl>()) {
-      final homeCtrl = Get.find<HomeCtrl>();
-      homeCtrl.bookingId.value = bookingId;
-      homeCtrl.onInit();
+    if (action == "weight_confirmed" || action == "weight_disputed") {
+      if (Get.isRegistered<HomeCtrl>()) {
+        final homeCtrl = Get.find<HomeCtrl>();
+        homeCtrl.onInit();
+        homeCtrl.verifyBooking(notificationAction: action);
+      }
     } else {
-      Get.toNamed(RouteName.home, arguments: {"bookingId": bookingId});
+      if (Get.isRegistered<HomeCtrl>()) {
+        final homeCtrl = Get.find<HomeCtrl>();
+        homeCtrl.bookingId.value = bookingId;
+        homeCtrl.onInit();
+      } else {
+        Get.toNamed(RouteName.home, arguments: {"bookingId": bookingId});
+      }
     }
   }
 }

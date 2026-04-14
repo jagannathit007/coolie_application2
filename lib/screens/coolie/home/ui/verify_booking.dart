@@ -23,10 +23,19 @@ void otpDialog({
   required double bookedWeight,
   required Future<void> Function() onVerify,
   required Future<void> Function(double newWeight) onRequestWeightUpdate,
+  bool allowWeightUpdate = true,
+  bool isWeightConfirmed = false,
 }) {
   Get.dialog(
     barrierDismissible: false,
-    _OtpFlowDialog(verificationCodeController: verificationCodeController, bookedWeight: bookedWeight, onVerify: onVerify, onRequestWeightUpdate: onRequestWeightUpdate),
+    _OtpFlowDialog(
+      verificationCodeController: verificationCodeController,
+      bookedWeight: bookedWeight,
+      onVerify: onVerify,
+      onRequestWeightUpdate: onRequestWeightUpdate,
+      allowWeightUpdate: allowWeightUpdate,
+      isWeightConfirmed: isWeightConfirmed,
+    ),
   );
 }
 
@@ -35,14 +44,21 @@ class _OtpFlowDialog extends StatefulWidget {
   final double bookedWeight;
   final Future<void> Function() onVerify;
   final Future<void> Function(double newWeight) onRequestWeightUpdate;
+  final bool allowWeightUpdate;
+  final bool isWeightConfirmed;
 
-  const _OtpFlowDialog({required this.verificationCodeController, required this.bookedWeight, required this.onVerify, required this.onRequestWeightUpdate});
+  const _OtpFlowDialog({
+    required this.verificationCodeController,
+    required this.bookedWeight,
+    required this.onVerify,
+    required this.onRequestWeightUpdate,
+    required this.allowWeightUpdate,
+    required this.isWeightConfirmed,
+  });
 
   @override
   State<_OtpFlowDialog> createState() => _OtpFlowDialogState();
 }
-
-enum _DialogStep { weightConfirm, otpEntry, weightUpdate }
 
 class _OtpFlowDialogState extends State<_OtpFlowDialog> with SingleTickerProviderStateMixin {
   _DialogStep _step = _DialogStep.weightConfirm;
@@ -137,20 +153,31 @@ class _OtpFlowDialogState extends State<_OtpFlowDialog> with SingleTickerProvide
 
   Widget _buildStepIndicator() {
     final steps = [('Weight', Icons.scale_rounded), ('OTP', Icons.lock_open_rounded)];
-    final activeIndex = _step == _DialogStep.weightConfirm ? 0 : 1;
+    int activeIndex;
+    if (widget.isWeightConfirmed) {
+      activeIndex = 1;
+    } else {
+      activeIndex = _step == _DialogStep.weightConfirm ? 0 : 1;
+    }
 
     return Container(
       padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
       child: Row(
         children: [
           for (int i = 0; i < steps.length; i++) ...[
-            _StepDot(icon: steps[i].$2, label: steps[i].$1, isActive: i == activeIndex, isDone: i < activeIndex),
+            _StepDot(
+              icon: steps[i].$2,
+              label: steps[i].$1,
+              isActive: i == activeIndex,
+              isDone: widget.isWeightConfirmed ? i <= activeIndex : i < activeIndex,
+              isWeightConfirmed: widget.isWeightConfirmed && i == 0,
+            ),
             if (i < steps.length - 1)
               Expanded(
                 child: Container(
                   height: 2,
                   margin: const EdgeInsets.symmetric(horizontal: 8),
-                  decoration: BoxDecoration(color: activeIndex > i ? Constants.instance.primary : _kSlate200, borderRadius: BorderRadius.circular(2)),
+                  decoration: BoxDecoration(color: (widget.isWeightConfirmed || activeIndex > i) ? Constants.instance.primary : _kSlate200, borderRadius: BorderRadius.circular(2)),
                 ),
               ),
           ],
@@ -168,10 +195,18 @@ class _OtpFlowDialogState extends State<_OtpFlowDialog> with SingleTickerProvide
           onAccept: () {
             _goToStep(_DialogStep.otpEntry);
           },
-          onNotAcceptable: () => _goToStep(_DialogStep.weightUpdate),
+          onNotAcceptable: (!widget.isWeightConfirmed && widget.allowWeightUpdate) ? () => _goToStep(_DialogStep.weightUpdate) : null,
+          isWeightConfirmed: widget.isWeightConfirmed,
         );
       case _DialogStep.otpEntry:
-        return _OtpStep(key: const ValueKey('otp'), controller: widget.verificationCodeController, isLoading: _isLoading, onVerify: _handleVerify, onBack: () => _goToStep(_DialogStep.weightConfirm));
+        return _OtpStep(
+          key: const ValueKey('otp'),
+          controller: widget.verificationCodeController,
+          isLoading: _isLoading,
+          onVerify: _handleVerify,
+          onBack: widget.isWeightConfirmed ? null : () => _goToStep(_DialogStep.weightConfirm),
+          isWeightConfirmed: widget.isWeightConfirmed,
+        );
       case _DialogStep.weightUpdate:
         return _WeightUpdateStep(
           key: const ValueKey('weightUpdate'),
@@ -186,13 +221,16 @@ class _OtpFlowDialogState extends State<_OtpFlowDialog> with SingleTickerProvide
   }
 }
 
+enum _DialogStep { weightConfirm, otpEntry, weightUpdate }
+
 class _StepDot extends StatelessWidget {
   final IconData icon;
   final String label;
   final bool isActive;
   final bool isDone;
+  final bool isWeightConfirmed;
 
-  const _StepDot({required this.icon, required this.label, required this.isActive, required this.isDone});
+  const _StepDot({required this.icon, required this.label, required this.isActive, required this.isDone, this.isWeightConfirmed = false});
 
   @override
   Widget build(BuildContext context) {
@@ -203,7 +241,7 @@ class _StepDot extends StatelessWidget {
           width: 38,
           height: 38,
           decoration: BoxDecoration(
-            color: isDone
+            color: isDone || isWeightConfirmed
                 ? Constants.instance.primary
                 : isActive
                 ? Constants.instance.primary.withOpacity(0.12)
@@ -212,9 +250,9 @@ class _StepDot extends StatelessWidget {
             border: Border.all(color: isActive ? Constants.instance.primary : Colors.transparent, width: 2),
           ),
           child: Icon(
-            isDone ? Icons.check_rounded : icon,
+            (isDone || isWeightConfirmed) ? Icons.check_rounded : icon,
             size: 18,
-            color: isDone
+            color: (isDone || isWeightConfirmed)
                 ? Colors.white
                 : isActive
                 ? Constants.instance.primary
@@ -224,7 +262,7 @@ class _StepDot extends StatelessWidget {
         const SizedBox(height: 4),
         Text(
           label,
-          style: GoogleFonts.poppins(fontSize: 10, fontWeight: isActive ? FontWeight.w700 : FontWeight.w500, color: isActive ? Constants.instance.primary : _kSlate400),
+          style: GoogleFonts.poppins(fontSize: 10, fontWeight: isActive ? FontWeight.w700 : FontWeight.w500, color: (isActive || isWeightConfirmed) ? Constants.instance.primary : _kSlate400),
         ),
       ],
     );
@@ -234,9 +272,10 @@ class _StepDot extends StatelessWidget {
 class _WeightConfirmStep extends StatelessWidget {
   final double bookedWeight;
   final VoidCallback onAccept;
-  final VoidCallback onNotAcceptable;
+  final VoidCallback? onNotAcceptable;
+  final bool isWeightConfirmed;
 
-  const _WeightConfirmStep({super.key, required this.bookedWeight, required this.onAccept, required this.onNotAcceptable});
+  const _WeightConfirmStep({super.key, required this.bookedWeight, required this.onAccept, this.onNotAcceptable, this.isWeightConfirmed = false});
 
   @override
   Widget build(BuildContext context) {
@@ -246,31 +285,49 @@ class _WeightConfirmStep extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const SizedBox(height: 4),
-          Text(
-            'Confirm Luggage Weight',
-            style: GoogleFonts.poppins(fontSize: 17, fontWeight: FontWeight.w700, color: _kSlate900),
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  isWeightConfirmed ? 'Weight Confirmed ✓' : 'Confirm Luggage Weight',
+                  style: GoogleFonts.poppins(fontSize: 17, fontWeight: FontWeight.w700, color: _kSlate900),
+                ),
+              ),
+              if (isWeightConfirmed)
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(color: _kGreenBg, borderRadius: BorderRadius.circular(20)),
+                  child: Text(
+                    'Accepted',
+                    style: GoogleFonts.poppins(fontSize: 10, fontWeight: FontWeight.w600, color: _kGreen),
+                  ),
+                ),
+            ],
           ),
           const SizedBox(height: 4),
-          Text('Check the actual weight before starting the job.', style: GoogleFonts.poppins(fontSize: 12, color: _kSlate400)),
+          Text(
+            isWeightConfirmed ? 'Passenger has accepted the weight. You can proceed with OTP verification.' : 'Check the actual weight before starting the job.',
+            style: GoogleFonts.poppins(fontSize: 12, color: _kSlate400),
+          ),
           const SizedBox(height: 20),
           Container(
             width: double.infinity,
             padding: const EdgeInsets.symmetric(vertical: 24),
             decoration: BoxDecoration(
-              color: _kSlate50,
+              color: isWeightConfirmed ? _kGreenBg : _kSlate50,
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: _kSlate200),
+              border: Border.all(color: isWeightConfirmed ? _kGreen.withOpacity(0.3) : _kSlate200),
             ),
             child: Column(
               children: [
                 Container(
                   width: 56,
                   height: 56,
-                  decoration: BoxDecoration(color: Constants.instance.primary.withOpacity(.1), borderRadius: BorderRadius.circular(16)),
-                  child: Icon(Icons.scale_rounded, color: Constants.instance.primary, size: 28),
+                  decoration: BoxDecoration(color: isWeightConfirmed ? _kGreen.withOpacity(0.1) : Constants.instance.primary.withOpacity(.1), borderRadius: BorderRadius.circular(16)),
+                  child: Icon(isWeightConfirmed ? Icons.check_circle_rounded : Icons.scale_rounded, color: isWeightConfirmed ? _kGreen : Constants.instance.primary, size: 28),
                 ),
                 const SizedBox(height: 12),
-                Text('Booked Weight', style: GoogleFonts.poppins(fontSize: 12, color: _kSlate400)),
+                Text(isWeightConfirmed ? 'Confirmed Weight' : 'Booked Weight', style: GoogleFonts.poppins(fontSize: 12, color: isWeightConfirmed ? _kGreen : _kSlate400)),
                 const SizedBox(height: 4),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -278,13 +335,13 @@ class _WeightConfirmStep extends StatelessWidget {
                   children: [
                     Text(
                       bookedWeight.toStringAsFixed(0),
-                      style: GoogleFonts.poppins(fontSize: 42, fontWeight: FontWeight.w800, color: _kSlate900, height: 1),
+                      style: GoogleFonts.poppins(fontSize: 42, fontWeight: FontWeight.w800, color: isWeightConfirmed ? _kGreen : _kSlate900, height: 1),
                     ),
                     Padding(
                       padding: const EdgeInsets.only(bottom: 6, left: 4),
                       child: Text(
                         'kg',
-                        style: GoogleFonts.poppins(fontSize: 18, fontWeight: FontWeight.w600, color: _kSlate400),
+                        style: GoogleFonts.poppins(fontSize: 18, fontWeight: FontWeight.w600, color: isWeightConfirmed ? _kGreen : _kSlate400),
                       ),
                     ),
                   ],
@@ -293,36 +350,46 @@ class _WeightConfirmStep extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 12),
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: _kAmberBg,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: const Color(0xFFFDE68A)),
-            ),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Icon(Icons.info_outline_rounded, size: 16, color: _kAmber),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    'If actual weight differs from booked weight, tap "Not Acceptable" to request an update.',
-                    style: GoogleFonts.poppins(fontSize: 11, color: const Color(0xFF92400E), height: 1.5),
+          if (!isWeightConfirmed)
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: _kAmberBg,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: const Color(0xFFFDE68A)),
+              ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Icon(Icons.info_outline_rounded, size: 16, color: _kAmber),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      onNotAcceptable != null
+                          ? 'If actual weight differs from booked weight, tap "Not Acceptable" to request an update.'
+                          : 'Weight has been confirmed by passenger. Proceed with OTP verification.',
+                      style: GoogleFonts.poppins(fontSize: 11, color: const Color(0xFF92400E), height: 1.5),
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
           const SizedBox(height: 20),
           Row(
             children: [
+              if (onNotAcceptable != null && !isWeightConfirmed) ...[
+                Expanded(
+                  child: _OutlineButton(label: 'Not Acceptable', icon: Icons.close_rounded, color: _kRed, bgColor: _kRedBg, onTap: onNotAcceptable!),
+                ),
+                const SizedBox(width: 10),
+              ],
               Expanded(
-                child: _OutlineButton(label: 'Not Acceptable', icon: Icons.close_rounded, color: _kRed, bgColor: _kRedBg, onTap: onNotAcceptable),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: _FilledButton(label: 'Confirm', icon: Icons.check_rounded, color: _kGreen, onTap: onAccept),
+                child: _FilledButton(
+                  label: isWeightConfirmed ? 'Continue to OTP' : 'Confirm',
+                  icon: isWeightConfirmed ? Icons.arrow_forward_rounded : Icons.check_rounded,
+                  color: isWeightConfirmed ? Constants.instance.primary : _kGreen,
+                  onTap: onAccept,
+                ),
               ),
             ],
           ),
@@ -336,9 +403,10 @@ class _OtpStep extends StatelessWidget {
   final TextEditingController controller;
   final bool isLoading;
   final VoidCallback onVerify;
-  final VoidCallback onBack;
+  final VoidCallback? onBack;
+  final bool isWeightConfirmed;
 
-  const _OtpStep({super.key, required this.controller, required this.isLoading, required this.onVerify, required this.onBack});
+  const _OtpStep({super.key, required this.controller, required this.isLoading, required this.onVerify, this.onBack, this.isWeightConfirmed = false});
 
   @override
   Widget build(BuildContext context) {
@@ -349,25 +417,28 @@ class _OtpStep extends StatelessWidget {
         children: [
           Row(
             children: [
-              GestureDetector(
-                onTap: onBack,
-                child: Container(
-                  width: 34,
-                  height: 34,
-                  decoration: BoxDecoration(color: _kSlate100, borderRadius: BorderRadius.circular(10)),
-                  child: const Icon(Icons.arrow_back_ios_new_rounded, size: 15, color: _kSlate600),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Enter Passenger OTP',
-                    style: GoogleFonts.poppins(fontSize: 17, fontWeight: FontWeight.w700, color: _kSlate900),
+              if (onBack != null)
+                GestureDetector(
+                  onTap: onBack,
+                  child: Container(
+                    width: 34,
+                    height: 34,
+                    decoration: BoxDecoration(color: _kSlate100, borderRadius: BorderRadius.circular(10)),
+                    child: const Icon(Icons.arrow_back_ios_new_rounded, size: 15, color: _kSlate600),
                   ),
-                  Text('Ask passenger for the 4-digit code', style: GoogleFonts.poppins(fontSize: 11, color: _kSlate400)),
-                ],
+                ),
+              if (onBack != null) const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Enter Passenger OTP',
+                      style: GoogleFonts.poppins(fontSize: 17, fontWeight: FontWeight.w700, color: _kSlate900),
+                    ),
+                    Text('Ask passenger for the 4-digit code', style: GoogleFonts.poppins(fontSize: 11, color: _kSlate400)),
+                  ],
+                ),
               ),
             ],
           ),

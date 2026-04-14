@@ -703,7 +703,7 @@ class _ActiveCTAButton extends StatelessWidget {
               ? null
               : isInProgress
               ? () => controller.completeService(booking.id?.toString())
-              : () => controller.verifyBooking(),
+              : () => controller.verifyBooking(notificationAction: "weight_disputed"),
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 200),
             height: 58,

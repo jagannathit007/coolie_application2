@@ -205,13 +205,20 @@ class HomeCtrl extends GetxController {
     }
   }
 
-  void verifyBooking() {
+  void verifyBooking({String? notificationAction}) {
     verificationCodeController.clear();
+    verificationCodeController.clear();
+    String bookingID = passengerDetails.value.booking?.id ?? "";
+    double originalWeight = double.tryParse(passengerDetails.value.booking?.pickupDetails?.weight.toString() ?? "0.0") ?? 0.0;
+    bool allowWeightUpdate = passengerDetails.value.booking?.pickupDetails?.weightStatus != "verified" && notificationAction == "weight_disputed";
+    bool isWeightConfirmed = notificationAction == "weight_confirmed";
     otpDialog(
       verificationCodeController: verificationCodeController,
-      bookedWeight: double.tryParse(passengerDetails.value.booking?.pickupDetails?.weight.toString() ?? "0.0") ?? 0.0,
-      onVerify: () async => await bookingOPTVerify(passengerDetails.value.booking?.id),
-      onRequestWeightUpdate: (newWeight) async => await requestWeightUpdate(newWeight, passengerDetails.value.booking?.id),
+      bookedWeight: originalWeight,
+      onVerify: () async => await bookingOPTVerify(bookingID),
+      onRequestWeightUpdate: (newWeight) async => await requestWeightUpdate(newWeight, bookingID),
+      allowWeightUpdate: allowWeightUpdate,
+      isWeightConfirmed: isWeightConfirmed,
     );
   }
 
