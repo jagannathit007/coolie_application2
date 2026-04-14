@@ -32,6 +32,7 @@ class User {
   final String emailId;
   final String gender;
   final String buckleNumber;
+  final String stationId;
   final String address;
   final bool isLoggedIn;
   final bool isCheckedIn;
@@ -52,6 +53,7 @@ class User {
     required this.emailId,
     required this.gender,
     required this.buckleNumber,
+    required this.stationId,
     required this.address,
     required this.isLoggedIn,
     required this.isCheckedIn,
@@ -74,6 +76,7 @@ class User {
       emailId: json['emailId'] ?? '',
       gender: json['gender'] ?? '',
       buckleNumber: json['buckleNumber'] ?? '',
+      stationId: json['stationId'] ?? '',
       address: json['address'] ?? '',
       isLoggedIn: json['isLoggedIn'] ?? false,
       isCheckedIn: json['isCheckedIn'] ?? false,
@@ -97,6 +100,7 @@ class User {
       'emailId': emailId,
       'gender': gender,
       'buckleNumber': buckleNumber,
+      'stationId': stationId,
       'address': address,
       'isLoggedIn': isLoggedIn,
       'isCheckedIn': isCheckedIn,

@@ -9,7 +9,6 @@ class GetAllBookings {
   Timestamp? timestamp;
   Fare? fare;
   String? id;
-  String? passengerId;
   String? collieId;
   String? otp;
   String? status;
@@ -28,7 +27,6 @@ class GetAllBookings {
     this.timestamp,
     this.fare,
     this.id,
-    this.passengerId,
     this.collieId,
     this.otp,
     this.status,
@@ -48,7 +46,6 @@ class GetAllBookings {
     timestamp: Timestamp.fromJson(json["timestamp"]),
     fare: Fare.fromJson(json["fare"]),
     id: json["_id"],
-    passengerId: json["passengerId"],
     collieId: json["collieId"],
     otp: json["otp"],
     status: json["status"],
@@ -68,7 +65,6 @@ class GetAllBookings {
     "timestamp": timestamp?.toJson(),
     "fare": fare?.toJson(),
     "_id": id,
-    "passengerId": passengerId,
     "collieId": collieId,
     "otp": otp,
     "status": status,

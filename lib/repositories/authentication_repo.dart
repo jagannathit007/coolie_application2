@@ -24,6 +24,7 @@ class AuthenticationRepo {
             emailId: responseData['mukadam']?['email'] ?? "No mention",
             gender: responseData['mukadam']?['gender'] ?? "No mention",
             buckleNumber: '---',
+            stationId: responseData['mukadam']['stationId']?['_id'] ?? '',
             address: responseData['mukadam']?['stationId']?['address'] ?? 'No mention',
             image: ImageData(url: responseData['mukadam']?['image']?['url']),
             isLoggedIn: responseData['mukadam']?['isLoggedIn'] ?? false,

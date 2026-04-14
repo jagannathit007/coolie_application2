@@ -57,6 +57,7 @@ class AuthService extends GetxService {
           emailId: data['email'],
           gender: data['gender'],
           buckleNumber: '',
+          stationId: data['stationId']?['_id'] ?? '',
           address: data['stationId']?['address'] ?? '',
           image: ImageData(url: data['image']?['url']),
           isLoggedIn: data['isLoggedIn'] ?? false,
@@ -91,5 +92,23 @@ class AuthService extends GetxService {
     } catch (err) {
       errorToast("Failed to resend OTP: $err");
     }
+  }
+
+  Future<dynamic> checkStationRadius(dynamic request) async {
+    try {
+      final response = await apiManager.post(NetworkConstants.checkStationRadius, data: request);
+      if (response.data == null) {
+        errorToast(response.message);
+        return;
+      }
+      if (response.status != 200) {
+        warningToast(response.message);
+        return;
+      }
+      return response.data;
+    } catch (err) {
+      errorToast("Failed to resend OTP: $err");
+    }
+    return;
   }
 }

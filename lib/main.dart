@@ -5,6 +5,7 @@ import 'package:license_sahayak/routes/route_name.dart';
 import 'package:license_sahayak/routes/route_pages.dart';
 import 'package:license_sahayak/screens/coolie/home/home_ctrl.dart';
 import 'package:license_sahayak/screens/no_internet.dart';
+import 'package:license_sahayak/services/background_location_service.dart';
 import 'package:license_sahayak/services/notification_service.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -128,4 +129,5 @@ class MyApp extends StatelessWidget {
 
 Future<void> loadRepositories() async {
   await Get.putAsync(() => AuthenticationRepo().init());
+  await Get.putAsync(() => LocationService().init());
 }

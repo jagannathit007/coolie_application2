@@ -1,6 +1,8 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 import 'dart:developer';
+import 'package:geolocator/geolocator.dart' as gl;
 import 'package:license_sahayak/models/user_model.dart';
 import 'package:license_sahayak/routes/route_name.dart';
 import 'package:license_sahayak/screens/coolie/home/ui/verify_booking.dart';
@@ -10,11 +12,13 @@ import 'package:dio/dio.dart' as dio;
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:license_sahayak/services/background_location_service.dart';
 import '../../../models/get_passenger_coolie_model.dart';
 import '../../../repositories/authentication_repo.dart';
 
 class HomeCtrl extends GetxController {
   final AuthenticationRepo authRepo = AuthenticationRepo();
+  LocationService locationService = Get.find();
   final checkStatuss = ''.obs, bookingId = ''.obs, sessionId = ''.obs;
   final isCheckedIn = false.obs, isMukadam = false.obs;
   Rx<GetPassengerCoolieModel> passengerDetails = GetPassengerCoolieModel().obs;
@@ -109,6 +113,8 @@ class HomeCtrl extends GetxController {
       if (profile != null) {
         userProfile.value = profile;
         isCheckedIn.value = userProfile.value?.isCheckedIn == true;
+        await AppStorage.write('user', json.encode(profile.toJson()));
+        if (isCheckedIn.value == true) onBackgroundLocationStart();
       } else {
         isCheckedIn.value = false;
       }
@@ -128,6 +134,7 @@ class HomeCtrl extends GetxController {
       }
       isLoading.value = true;
       final response = await authRepo.getOff(isMukadam: isMukadam.value);
+      locationService.stopBackgroundLocation();
       if (response != null && response['success'] == true) {
         isCheckedIn.value = false;
         stopTimer();
@@ -296,6 +303,13 @@ class HomeCtrl extends GetxController {
     }
   }
 
+  void onBackgroundLocationStart() async {
+    bool locationPermissions = await locationService.locationAlwaysOnPermission();
+    if (locationPermissions == true) {
+      await locationService.locationEnabler();
+    }
+  }
+
   Future<void> performCheckIn() async {
     try {
       isCheckInLoading.value = true;
@@ -316,10 +330,12 @@ class HomeCtrl extends GetxController {
       checkInStatusMessage.value = 'Verifying your identity...';
       await Future.delayed(const Duration(milliseconds: 300));
       final File imageFile = File(image.path);
-      final formData = dio.FormData.fromMap({"mobileNo": mobileNumber.trim()});
+      final position = await gl.Geolocator.getCurrentPosition(desiredAccuracy: gl.LocationAccuracy.high);
+      final formData = dio.FormData.fromMap({"mobileNo": mobileNumber.trim(), "latitude": position.latitude, "longitude": position.longitude});
       formData.files.add(MapEntry('file', await dio.MultipartFile.fromFile(imageFile.path, filename: 'coolie_${DateTime.now().millisecondsSinceEpoch}.jpg')));
       final result = await authRepo.faceDetection(formData, isMukadam: isMukadam.value);
       if (result != null && result['success'] == true) {
+        onBackgroundLocationStart();
         isCheckedIn.value = true;
         await fetchUserProfile();
         await getPassengerData();
@@ -327,6 +343,7 @@ class HomeCtrl extends GetxController {
         checkInStatusMessage.value = '';
         successToast(result['message'] ?? "Check-in successful!");
       } else {
+        locationService.stopBackgroundLocation();
         isCheckInLoading.value = false;
         checkInStatusMessage.value = '';
         final errorMessage = result?['message'] ?? "Face verification failed. Please try again.";
