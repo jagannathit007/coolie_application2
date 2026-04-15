@@ -1,7 +1,7 @@
 class NetworkConstants {
-  static const String baseUrl = 'https://coolie.itfuturz.in/';
+  // static const String baseUrl = 'https://coolie.itfuturz.in/';
   // static const String baseUrl = 'https://nxlt0nhn-3181.inc1.devtunnels.ms/';
-  // static const String baseUrl = 'https://965rz0z3-3181.inc1.devtunnels.ms/';
+  static const String baseUrl = 'https://965rz0z3-3181.inc1.devtunnels.ms/';
   static const int sendTimeout = 30000;
 
   /// Coolie APIs
@@ -31,6 +31,6 @@ class NetworkConstants {
   static const String mukadamAttendance = 'api/users/mukadamAttendance';
   static const String approveCollieSession = 'api/users/approveCollieSession';
   static const String rejectCollieSession = 'api/users/rejectCollieSession';
-  static const String mukadamLogout = 'api/users/mukadamLogout';
   static const String checkStationRadius = 'api/users/checkStationRadius';
+  static const String mukadamLogout = 'api/users/mukadamLogout';
 }

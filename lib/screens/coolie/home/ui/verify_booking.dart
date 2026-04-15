@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:license_sahayak/services/customs/otp_verification.dart';
 import 'package:license_sahayak/utils/app_constants.dart';
+import 'package:pin_code_fields/pin_code_fields.dart';
 
 const _kSlate50 = Color(0xFFF8FAFC);
 const _kSlate100 = Color(0xFFF1F5F9);
@@ -97,7 +97,6 @@ class _OtpFlowDialogState extends State<_OtpFlowDialog> with SingleTickerProvide
     setState(() => _isLoading = true);
     try {
       await widget.onVerify();
-      Get.back();
     } catch (_) {
       setState(() => _isLoading = false);
     }
@@ -109,7 +108,6 @@ class _OtpFlowDialogState extends State<_OtpFlowDialog> with SingleTickerProvide
     setState(() => _isLoading = true);
     try {
       await widget.onRequestWeightUpdate(newWeight);
-      Get.back();
     } catch (_) {
       setState(() => _isLoading = false);
     }
@@ -453,24 +451,25 @@ class _OtpStep extends StatelessWidget {
           ),
           const SizedBox(height: 24),
           Center(
-            child: PinCodeTextField(
-              highlight: true,
-              maxLength: 4,
-              pinBoxWidth: 58,
-              pinBoxHeight: 58,
-              pinBoxRadius: 14,
-              pinBoxBorderWidth: 1.5,
-              wrapAlignment: WrapAlignment.center,
-              highlightPinBoxColor: Colors.white,
-              highlightColor: Constants.instance.primary,
-              defaultBorderColor: _kSlate200,
+            child: MaterialPinField(
+              length: 4,
+              onChanged: (value) {
+                controller.text = value;
+              },
               keyboardType: TextInputType.number,
-              pinTextStyle: GoogleFonts.poppins(fontSize: 22, fontWeight: FontWeight.w700, color: _kSlate900),
-              pinBoxOuterPadding: const EdgeInsets.symmetric(horizontal: 6),
-              pinBoxColor: _kSlate50,
-              errorBorderColor: _kRed,
-              hasTextBorderColor: _kSlate900,
-              controller: controller,
+              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+              enableHapticFeedback: true,
+              hapticFeedbackType: HapticFeedbackType.selection,
+              theme: MaterialPinTheme(
+                cellSize: const Size(56, 56),
+                shape: MaterialPinShape.filled,
+                borderRadius: BorderRadius.circular(12),
+                borderWidth: 2,
+                cursorHeight: 25,
+                focusedFillColor: Constants.instance.primary.withOpacity(0.05),
+                filledFillColor: Constants.instance.primary.withOpacity(0.1),
+              ),
+              autoFocus: true,
             ),
           ),
           const SizedBox(height: 28),

@@ -1,9 +1,23 @@
 import 'dart:io';
+import 'package:audioplayers/audioplayers.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 class NotificationService {
   final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
+
+  AudioPlayer player = AudioPlayer();
+
+  Future<void> _whistle(String sound) async {
+    await player.setSource(AssetSource(sound)).then((value) {
+      player.play(AssetSource(sound));
+    });
+    player.onPlayerStateChanged.listen((PlayerState s) async {
+      if (s == PlayerState.completed) {
+        await player.pause();
+      }
+    });
+  }
 
   Future<void> init() async {
     const AndroidInitializationSettings initializationSettingsAndroid = AndroidInitializationSettings('@mipmap/ic_launcher');
@@ -36,6 +50,7 @@ class NotificationService {
             : null,
         iOS: apple != null ? const DarwinNotificationDetails(presentAlert: true, presentBadge: true, presentSound: true) : null,
       );
+      _whistle("slow_spring_board.mp3");
       await flutterLocalNotificationsPlugin.show(id: notification.hashCode, title: notification.title, body: notification.body, notificationDetails: notificationDetails);
     }
   }

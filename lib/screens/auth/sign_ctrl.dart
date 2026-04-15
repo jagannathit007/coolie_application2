@@ -18,7 +18,7 @@ class SignCtrl extends GetxController {
   void onInit() {
     super.onInit();
     _initializeServices();
-    mobileController.text = '8160508314';
+    mobileController.text = '';
   }
 
   void _initializeServices() => authService = Get.isRegistered<AuthService>() ? Get.find<AuthService>() : Get.put(AuthService());

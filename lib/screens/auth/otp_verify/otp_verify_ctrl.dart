@@ -11,7 +11,7 @@ import '../auth_service.dart';
 
 class OtpVerifyCtrl extends GetxController {
   final mobile = ''.obs;
-  final verificationCodeController = TextEditingController();
+  final otpController = TextEditingController();
   late final AuthService authService;
   final isLoading = false.obs, isResendEnabled = true.obs, isMukadam = false.obs;
   final countdown = 30.obs;
@@ -46,11 +46,11 @@ class OtpVerifyCtrl extends GetxController {
   }
 
   Future<void> verifyOtp() async {
-    if (verificationCodeController.text.trim().isEmpty) {
+    if (otpController.text.trim().isEmpty) {
       warningToast("Please enter OTP");
       return;
     }
-    if (verificationCodeController.text.trim().length != 4) {
+    if (otpController.text.trim().length != 4) {
       warningToast("Please enter a valid 4-digit OTP");
       return;
     }
@@ -60,9 +60,9 @@ class OtpVerifyCtrl extends GetxController {
       String deviceId = await helper.getDeviceUniqueId();
       final request = {"mobileNo": mobile.value, "fcm": fcmToken, "deviceId": deviceId};
       if (isMukadam.value) {
-        request["otp"] = verificationCodeController.text.trim();
+        request["otp"] = otpController.text.trim();
       } else {
-        request["otpCode"] = verificationCodeController.text.trim();
+        request["otpCode"] = otpController.text.trim();
       }
       final userModel = await authService.verifyOtp(request, isMukadam: isMukadam.value);
       if (userModel != null) {
@@ -93,7 +93,7 @@ class OtpVerifyCtrl extends GetxController {
   @override
   void onClose() {
     _timer?.cancel();
-    verificationCodeController.dispose();
+    otpController.dispose();
     super.onClose();
   }
 }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:pin_code_fields/pin_code_fields.dart';
 import '../../../utils/app_constants.dart';
 import 'otp_verify_ctrl.dart';
 
@@ -180,7 +181,30 @@ class OtpVerification extends StatelessWidget {
               style: GoogleFonts.poppins(fontSize: 13, color: const Color(0xFF94A3B8), fontWeight: FontWeight.w400),
             ),
             const SizedBox(height: 28),
-            _OtpInputRow(controller: controller),
+            MaterialPinField(
+              length: 4,
+              onChanged: (value) {
+                controller.otpController.text = value;
+              },
+              onCompleted: (value) async {
+                controller.otpController.text = value;
+                await controller.verifyOtp();
+              },
+              keyboardType: TextInputType.number,
+              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+              enableHapticFeedback: true,
+              hapticFeedbackType: HapticFeedbackType.selection,
+              theme: MaterialPinTheme(
+                cellSize: const Size(56, 56),
+                shape: MaterialPinShape.filled,
+                borderRadius: BorderRadius.circular(12),
+                borderWidth: 2,
+                cursorHeight: 25,
+                focusedFillColor: Constants.instance.primary.withOpacity(0.05),
+                filledFillColor: Constants.instance.primary.withOpacity(0.1),
+              ),
+              autoFocus: true,
+            ),
             const SizedBox(height: 32),
             Obx(
               () => AnimatedScale(
@@ -258,120 +282,6 @@ class OtpVerification extends StatelessWidget {
         ],
       );
     });
-  }
-}
-
-class _OtpInputRow extends StatefulWidget {
-  final OtpVerifyCtrl controller;
-
-  const _OtpInputRow({required this.controller});
-
-  @override
-  State<_OtpInputRow> createState() => _OtpInputRowState();
-}
-
-class _OtpInputRowState extends State<_OtpInputRow> {
-  final int _length = 4;
-  late List<TextEditingController> _controllers;
-  late List<FocusNode> _focusNodes;
-
-  @override
-  void initState() {
-    super.initState();
-    _controllers = List.generate(_length, (_) => TextEditingController());
-    _focusNodes = List.generate(_length, (_) => FocusNode());
-  }
-
-  @override
-  void dispose() {
-    for (final c in _controllers) {
-      c.dispose();
-    }
-    for (final f in _focusNodes) {
-      f.dispose();
-    }
-    super.dispose();
-  }
-
-  void _onChanged(String value, int index) {
-    if (value.length == 1 && index < _length - 1) {
-      _focusNodes[index + 1].requestFocus();
-    }
-    if (value.isEmpty && index > 0) {
-      _focusNodes[index - 1].requestFocus();
-    }
-    final otp = _controllers.map((c) => c.text).join();
-    widget.controller.verificationCodeController.text = otp;
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: List.generate(_length, (i) {
-        return _OtpBox(
-          controller: _controllers[i],
-          focusNode: _focusNodes[i],
-          onChanged: (v) => _onChanged(v, i),
-          onTap: () => _controllers[i].selection = TextSelection.fromPosition(TextPosition(offset: _controllers[i].text.length)),
-        );
-      }),
-    );
-  }
-}
-
-class _OtpBox extends StatefulWidget {
-  final TextEditingController controller;
-  final FocusNode focusNode;
-  final ValueChanged<String> onChanged;
-  final VoidCallback onTap;
-
-  const _OtpBox({required this.controller, required this.focusNode, required this.onChanged, required this.onTap});
-
-  @override
-  State<_OtpBox> createState() => _OtpBoxState();
-}
-
-class _OtpBoxState extends State<_OtpBox> {
-  bool _isFocused = false;
-
-  @override
-  void initState() {
-    super.initState();
-    widget.focusNode.addListener(() {
-      setState(() => _isFocused = widget.focusNode.hasFocus);
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 180),
-      width: 64,
-      height: 64,
-      decoration: BoxDecoration(
-        color: _isFocused ? Constants.instance.primary.withOpacity(0.06) : Colors.white,
-        borderRadius: BorderRadius.circular(14),
-        boxShadow: _isFocused
-            ? [BoxShadow(color: Constants.instance.primary.withOpacity(0.18), blurRadius: 12, offset: const Offset(0, 4))]
-            : [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 6, offset: const Offset(0, 2))],
-      ),
-      child: TextField(
-        obscureText: true,
-        obscuringCharacter: "•",
-        controller: widget.controller,
-        focusNode: widget.focusNode,
-        onTap: widget.onTap,
-        onChanged: widget.onChanged,
-        textAlign: TextAlign.center,
-        keyboardType: TextInputType.number,
-        maxLength: 1,
-        cursorHeight: 25,
-        inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-        style: GoogleFonts.poppins(fontSize: 22, fontWeight: FontWeight.w700, color: const Color(0xFF1E293B)),
-        decoration: const InputDecoration(counterText: ''),
-      ),
-    );
   }
 }
 

@@ -4,7 +4,6 @@ import 'package:intl/intl.dart';
 
 class CustomFormField extends StatefulWidget {
   final String? initialValue;
-  final String? label;
   final List<TextInputFormatter>? inputFormatters;
   final TextEditingController? controller;
   final String? Function(String?)? validator;
@@ -21,7 +20,6 @@ class CustomFormField extends StatefulWidget {
   final bool isRequiredMark;
   final Color? fillColor;
   final TextStyle? titleStyle, style;
-  final FocusNode? focusNode;
   final TextAlign textAlign;
   final void Function(String)? onChanged;
   final EdgeInsets? contentPadding;
@@ -32,13 +30,10 @@ class CustomFormField extends StatefulWidget {
   final bool isPasswordField;
   final bool isDateField;
   final bool? borderEnabled;
-  final Iterable<String>? autofillHints;
   final TextCapitalization textCapitalization;
 
   const CustomFormField({
     super.key,
-    this.focusNode,
-    this.label,
     this.titleStyle,
     this.style,
     this.initialValue,
@@ -68,7 +63,6 @@ class CustomFormField extends StatefulWidget {
     this.isPasswordField = false,
     this.isDateField = false,
     this.borderEnabled = false,
-    this.autofillHints,
     this.textCapitalization = TextCapitalization.none,
   });
 
@@ -116,7 +110,6 @@ class CustomFormFieldState extends State<CustomFormField> {
         TextFormField(
           enabled: widget.enabled,
           textCapitalization: widget.textCapitalization,
-          focusNode: widget.focusNode,
           initialValue: widget.initialValue,
           controller: widget.controller,
           cursorColor: Colors.black,
@@ -136,7 +129,6 @@ class CustomFormFieldState extends State<CustomFormField> {
           textAlign: widget.textAlign,
           keyboardType: widget.isDateField ? TextInputType.none : widget.keyboardType,
           inputFormatters: widget.inputFormatters,
-          autofillHints: widget.autofillHints,
           textInputAction: widget.textInputAction ?? TextInputAction.next,
           readOnly: widget.isDateField ? true : widget.readOnly,
           onTap: widget.isDateField ? () => _selectDate(context) : widget.onTap,
@@ -162,7 +154,7 @@ class CustomFormFieldState extends State<CustomFormField> {
             contentPadding: widget.contentPadding ?? const EdgeInsets.symmetric(horizontal: 15, vertical: 15),
             isDense: true,
             constraints: widget.constraints ?? const BoxConstraints(maxHeight: 300, minHeight: 40),
-            labelText: widget.hintText,
+            hintText: widget.hintText,
             floatingLabelBehavior: FloatingLabelBehavior.auto,
             labelStyle: TextStyle(color: Colors.black, fontSize: widget.hintFontSize),
             border: OutlineInputBorder(

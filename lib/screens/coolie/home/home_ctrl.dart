@@ -5,6 +5,7 @@ import 'dart:developer';
 import 'package:geolocator/geolocator.dart' as gl;
 import 'package:license_sahayak/models/user_model.dart';
 import 'package:license_sahayak/routes/route_name.dart';
+import 'package:license_sahayak/screens/auth/auth_service.dart';
 import 'package:license_sahayak/screens/coolie/home/ui/verify_booking.dart';
 import 'package:license_sahayak/services/app_storage.dart';
 import 'package:license_sahayak/services/app_toasting.dart';
@@ -53,6 +54,8 @@ class HomeCtrl extends GetxController {
     await getPassengerData();
     await checkStatus();
   }
+
+  AuthService authService = Get.isRegistered<AuthService>() ? Get.find<AuthService>() : Get.put(AuthService());
 
   void stopTimer() {
     _timer?.cancel();
@@ -260,6 +263,7 @@ class HomeCtrl extends GetxController {
     try {
       isLoading.value = true;
       await authRepo.updateWeight({"bookingId": bookingId, "weight": newWeight});
+      Get.close(1);
     } catch (e) {
       errorToast('Failed to verify OTP: ${e.toString()}');
     } finally {
@@ -313,46 +317,104 @@ class HomeCtrl extends GetxController {
   Future<void> performCheckIn() async {
     try {
       isCheckInLoading.value = true;
-      checkInStatusMessage.value = 'Opening camera...';
-      String mobileNumber = userProfile.value?.mobileNo ?? "";
-      if (mobileNumber.isEmpty || mobileNumber.length != 10) {
-        isCheckInLoading.value = false;
-        errorToast('Please ensure your mobile number is set correctly');
-        return;
-      }
-      checkInStatusMessage.value = 'Capturing photo...';
-      final XFile? image = await _imagePicker.pickImage(source: ImageSource.camera, maxWidth: 800, maxHeight: 800, imageQuality: 90, preferredCameraDevice: CameraDevice.front);
-      if (image == null) {
-        isCheckInLoading.value = false;
-        checkInStatusMessage.value = '';
-        return;
-      }
-      checkInStatusMessage.value = 'Verifying your identity...';
-      await Future.delayed(const Duration(milliseconds: 300));
-      final File imageFile = File(image.path);
-      final position = await gl.Geolocator.getCurrentPosition(desiredAccuracy: gl.LocationAccuracy.high);
-      final formData = dio.FormData.fromMap({"mobileNo": mobileNumber.trim(), "latitude": position.latitude, "longitude": position.longitude});
-      formData.files.add(MapEntry('file', await dio.MultipartFile.fromFile(imageFile.path, filename: 'coolie_${DateTime.now().millisecondsSinceEpoch}.jpg')));
-      final result = await authRepo.faceDetection(formData, isMukadam: isMukadam.value);
-      if (result != null && result['success'] == true) {
-        onBackgroundLocationStart();
-        isCheckedIn.value = true;
-        await fetchUserProfile();
-        await getPassengerData();
-        isCheckInLoading.value = false;
-        checkInStatusMessage.value = '';
-        successToast(result['message'] ?? "Check-in successful!");
+      bool locationPermissions = await locationService.locationAlwaysOnPermission();
+      if (locationPermissions == true) {
+        final position = await gl.Geolocator.getCurrentPosition(desiredAccuracy: gl.LocationAccuracy.high);
+        final response = await AppStorage.read('user');
+        final decoded = json.decode(response);
+        User user = User.fromJson(decoded);
+        if (response != null) {
+          dynamic res = await authService.checkStationRadius({"stationId": user.stationId, "latitude": position.latitude, "longitude": position.longitude});
+          if (res != null && res["withinRadius"] == false) {
+            isCheckInLoading.value = false;
+            showErrorDialog('Location not allowed. Move to your station before checking in.');
+            return;
+          }
+        }
+        checkInStatusMessage.value = 'Opening camera...';
+        String mobileNumber = userProfile.value?.mobileNo ?? "";
+        if (mobileNumber.isEmpty || mobileNumber.length != 10) {
+          isCheckInLoading.value = false;
+          showErrorDialog('Your mobile number is missing or incorrect. Please update it in your profile.', title: 'Invalid Mobile Number');
+          return;
+        }
+        checkInStatusMessage.value = 'Capturing photo...';
+        final XFile? image = await _imagePicker.pickImage(source: ImageSource.camera, maxWidth: 800, maxHeight: 800, imageQuality: 90, preferredCameraDevice: CameraDevice.front);
+        if (image == null) {
+          isCheckInLoading.value = false;
+          checkInStatusMessage.value = '';
+          return;
+        }
+        checkInStatusMessage.value = 'Verifying your identity...';
+        final File imageFile = File(image.path);
+        final formData = dio.FormData.fromMap({"mobileNo": mobileNumber.trim(), "latitude": position.latitude, "longitude": position.longitude});
+        formData.files.add(MapEntry('file', await dio.MultipartFile.fromFile(imageFile.path, filename: 'coolie_${DateTime.now().millisecondsSinceEpoch}.jpg')));
+        final result = await authRepo.faceDetection(formData, isMukadam: isMukadam.value);
+        if (result != null && result['success'] == true) {
+          onBackgroundLocationStart();
+          isCheckedIn.value = true;
+          await fetchUserProfile();
+          await getPassengerData();
+          isCheckInLoading.value = false;
+          checkInStatusMessage.value = '';
+          successToast(result['message'] ?? "Check-in successful!");
+        } else {
+          locationService.stopBackgroundLocation();
+          isCheckInLoading.value = false;
+          checkInStatusMessage.value = '';
+          showErrorDialog(result?['message'] ?? 'Face verification failed. Please try again.', title: 'Verification Failed');
+        }
       } else {
-        locationService.stopBackgroundLocation();
         isCheckInLoading.value = false;
-        checkInStatusMessage.value = '';
-        final errorMessage = result?['message'] ?? "Face verification failed. Please try again.";
-        errorToast(errorMessage);
+        showErrorDialog('Location permission is required to complete check-in. Please enable it in your device settings.', title: 'Permission Required');
       }
     } catch (e) {
       isCheckInLoading.value = false;
       checkInStatusMessage.value = '';
-      errorToast('Failed to check in: ${e.toString()}');
+      showErrorDialog('Something went wrong: ${e.toString()}');
+    } finally {
+      isCheckInLoading.value = false;
     }
+  }
+
+  void showErrorDialog(String message, {String title = 'Check-in Failed'}) {
+    Get.dialog(
+      AlertDialog(
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        titlePadding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
+        contentPadding: const EdgeInsets.fromLTRB(20, 10, 20, 0),
+        actionsPadding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+        title: Row(
+          children: [
+            Container(
+              width: 32,
+              height: 32,
+              decoration: BoxDecoration(color: Colors.red.shade50, shape: BoxShape.circle),
+              child: Icon(Icons.error_outline, color: Colors.red.shade700, size: 18),
+            ),
+            const SizedBox(width: 10),
+            Text(title, style: const TextStyle(fontSize: 15, letterSpacing: .5, fontWeight: FontWeight.w600)),
+          ],
+        ),
+        content: Padding(
+          padding: const EdgeInsets.only(left: 42),
+          child: Text(message, style: TextStyle(fontSize: 14, color: Colors.grey.shade700, letterSpacing: .5)),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Get.close(1),
+            style: TextButton.styleFrom(
+              backgroundColor: Colors.red.shade50,
+              foregroundColor: Colors.red.shade700,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+            ),
+            child: const Text('OK', style: TextStyle(fontWeight: FontWeight.w500)),
+          ),
+        ],
+      ),
+      barrierDismissible: true,
+    );
   }
 }

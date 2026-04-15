@@ -29,6 +29,8 @@ dependencies:
   flutter_offline: ^6.0.0
   font_awesome_flutter: ^11.0.0
   permission_handler: ^12.0.1
+  pin_code_fields: ^9.3.0
+  audioplayers: ^6.6.0
 
 dev_dependencies:
   flutter_test:

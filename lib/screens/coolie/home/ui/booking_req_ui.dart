@@ -111,7 +111,7 @@ class _PendingRequestCard extends StatelessWidget {
         children: [
           _PendingHeader(controller: controller, primary: primary),
           _PassengerHighlight(booking: booking, primary: primary),
-          _TripDetailGrid(booking: booking, primary: primary),
+          _TripRouteSection(booking: booking, primary: primary),
           _ActionButtons(controller: controller, booking: booking, primary: primary),
         ],
       ),
@@ -243,52 +243,213 @@ class _PassengerHighlight extends StatelessWidget {
   }
 }
 
-class _TripDetailGrid extends StatelessWidget {
+class _TripRouteSection extends StatelessWidget {
   final Booking booking;
   final Color primary;
 
-  const _TripDetailGrid({required this.booking, required this.primary});
+  const _TripRouteSection({required this.booking, required this.primary});
 
   @override
   Widget build(BuildContext context) {
+    final station = booking.pickupDetails?.station?.toString() ?? 'N/A';
+    final coach = booking.pickupDetails?.coachNumber?.toString();
+    final dest = booking.destination?.toString() ?? 'N/A';
+    final weight = booking.pickupDetails?.weight?.toString();
+    final desc = booking.pickupDetails?.description?.toString() ?? '';
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+      padding: const EdgeInsets.fromLTRB(16, 14, 16, 0),
       child: Column(
         children: [
-          Row(
-            children: [
-              Expanded(
-                child: _GridTile(icon: Icons.train_rounded, label: 'Station', value: booking.pickupDetails?.station?.toString() ?? 'N/A', primary: primary),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: _GridTile(icon: Icons.event_seat_rounded, label: 'Coach', value: booking.pickupDetails?.coachNumber?.toString() ?? 'N/A', primary: primary),
-              ),
-            ],
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+            decoration: BoxDecoration(
+              color: _kSlate50,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: _kSlate200, width: 0.9),
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _RouteLine(),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _RouteStop(label: 'PICKUP', value: coach != null ? 'Platform $station  ·  Coach $coach' : 'Platform $station', labelColor: const Color(0xFF16A34A)),
+                      const SizedBox(height: 20),
+                      _RouteStop(label: 'DESTINATION', value: dest, labelColor: const Color(0xFFDC2626)),
+                    ],
+                  ),
+                ),
+                if (coach != null) ...[const SizedBox(width: 10), _CoachTag(coach: coach)],
+              ],
+            ),
           ),
           const SizedBox(height: 10),
           Row(
             children: [
+              if (weight != null)
+                Expanded(
+                  child: _MetaChip(icon: Icons.monitor_weight_outlined, label: 'WEIGHT', value: '$weight kg'),
+                ),
+              if (weight != null) const SizedBox(width: 8),
               Expanded(
-                child: _GridTile(icon: Icons.flag_rounded, label: 'Drop', value: booking.destination?.toString() ?? 'N/A', primary: primary),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: _GridTile(icon: Icons.scale_rounded, label: 'Weight', value: '${booking.pickupDetails?.weight ?? "?"}kg', primary: primary),
+                child: _MetaChip(icon: Icons.train_rounded, label: 'STATION', value: station),
               ),
             ],
           ),
-          Builder(
-            builder: (_) {
-              final desc = booking.pickupDetails?.description?.toString() ?? '';
-              if (desc.isEmpty || desc == 'N/A') return const SizedBox.shrink();
-              return Column(
-                children: [
-                  const SizedBox(height: 10),
-                  _NoteRow(note: desc, primary: primary),
-                ],
-              );
-            },
+          if (desc.isNotEmpty && desc != 'N/A') ...[const SizedBox(height: 10), _NoteRow(note: desc, primary: primary)],
+        ],
+      ),
+    );
+  }
+}
+
+class _ActiveRouteSection extends StatelessWidget {
+  final Booking booking;
+  final Color primary;
+
+  const _ActiveRouteSection({required this.booking, required this.primary});
+
+  @override
+  Widget build(BuildContext context) {
+    final station = booking.pickupDetails?.station?.toString() ?? 'N/A';
+    final coach = booking.pickupDetails?.coachNumber?.toString();
+    final dest = booking.destination?.toString() ?? 'N/A';
+    final weight = booking.pickupDetails?.weight?.toString();
+    final desc = booking.pickupDetails?.description?.toString() ?? '';
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+      child: Column(
+        children: [
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+            decoration: BoxDecoration(
+              color: _kSlate50,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: _kSlate200, width: 0.9),
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _RouteLine(),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _RouteStop(label: 'PICKUP', value: coach != null ? 'Platform $station  ·  Coach $coach' : 'Platform $station', labelColor: const Color(0xFF16A34A)),
+                      const SizedBox(height: 20),
+                      _RouteStop(label: 'DESTINATION', value: dest, labelColor: const Color(0xFFDC2626)),
+                    ],
+                  ),
+                ),
+                if (coach != null) ...[const SizedBox(width: 10), _CoachTag(coach: coach)],
+              ],
+            ),
+          ),
+          const SizedBox(height: 10),
+          Row(
+            children: [
+              if (weight != null)
+                Expanded(
+                  child: _MetaChip(icon: Icons.monitor_weight_outlined, label: 'WEIGHT', value: '$weight kg'),
+                ),
+              if (weight != null) const SizedBox(width: 8),
+              Expanded(
+                child: _MetaChip(icon: Icons.train_rounded, label: 'STATION', value: station),
+              ),
+            ],
+          ),
+          if (desc.isNotEmpty && desc != 'N/A') ...[const SizedBox(height: 10), _NoteRow(note: desc, primary: primary)],
+        ],
+      ),
+    );
+  }
+}
+
+class _RouteLine extends StatelessWidget {
+  const _RouteLine();
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        const SizedBox(height: 3),
+        Container(
+          width: 10,
+          height: 10,
+          decoration: BoxDecoration(
+            color: const Color(0xFF22C55E),
+            shape: BoxShape.circle,
+            border: Border.all(color: const Color(0xFFBBF7D0), width: 2.5),
+          ),
+        ),
+        ...List.generate(4, (_) => Container(margin: const EdgeInsets.symmetric(vertical: 2), width: 1.5, height: 5, color: const Color(0xFFE2E8F0))),
+        Container(
+          width: 10,
+          height: 10,
+          decoration: BoxDecoration(
+            color: const Color(0xFFEF4444),
+            shape: BoxShape.circle,
+            border: Border.all(color: const Color(0xFFFECACA), width: 2.5),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _RouteStop extends StatelessWidget {
+  final String label;
+  final String value;
+  final Color labelColor;
+
+  const _RouteStop({required this.label, required this.value, required this.labelColor});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: GoogleFonts.poppins(fontSize: 9, fontWeight: FontWeight.w600, color: labelColor, letterSpacing: 0.8),
+        ),
+        const SizedBox(height: 2),
+        Text(
+          value,
+          style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w600, color: _kSlate800),
+          overflow: TextOverflow.ellipsis,
+        ),
+      ],
+    );
+  }
+}
+
+class _CoachTag extends StatelessWidget {
+  final String coach;
+
+  const _CoachTag({required this.coach});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 6),
+      decoration: BoxDecoration(
+        color: _kWhite,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: _kSlate200, width: 0.8),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(Icons.train_rounded, size: 13, color: _kSlate400),
+          const SizedBox(width: 4),
+          Text(
+            coach,
+            style: GoogleFonts.poppins(fontSize: 11, fontWeight: FontWeight.w600, color: _kSlate600),
           ),
         ],
       ),
@@ -296,44 +457,35 @@ class _TripDetailGrid extends StatelessWidget {
   }
 }
 
-class _GridTile extends StatelessWidget {
+class _MetaChip extends StatelessWidget {
   final IconData icon;
   final String label;
   final String value;
-  final Color primary;
 
-  const _GridTile({required this.icon, required this.label, required this.value, required this.primary});
+  const _MetaChip({required this.icon, required this.label, required this.value});
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 9),
       decoration: BoxDecoration(
         color: _kSlate50,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: _kSlate200),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: _kSlate200, width: 0.8),
       ),
       child: Row(
         children: [
-          Container(
-            width: 30,
-            height: 30,
-            decoration: BoxDecoration(color: primary.withOpacity(0.08), borderRadius: BorderRadius.circular(8)),
-            child: Icon(icon, size: 15, color: primary),
-          ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(label, style: GoogleFonts.poppins(fontSize: 10, color: _kSlate400)),
-                Text(
-                  value,
-                  style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w700, color: _kSlate900),
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
-            ),
+          Icon(icon, size: 14, color: _kSlate400),
+          const SizedBox(width: 7),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(label, style: GoogleFonts.poppins(fontSize: 9, color: _kSlate400, letterSpacing: 0.6)),
+              Text(
+                value,
+                style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w600, color: _kSlate800),
+              ),
+            ],
           ),
         ],
       ),
@@ -514,7 +666,7 @@ class _ActiveJobCardState extends State<_ActiveJobCard> {
         child: Column(
           children: [
             _ActiveHeader(isInProgress: isInProgress, headerColor: headerColor, formattedTime: isInProgress ? _formattedTime : null),
-            _ActiveDetailGrid(booking: widget.booking, primary: widget.primary),
+            _ActiveRouteSection(booking: widget.booking, primary: widget.primary),
             _ActiveCTAButton(controller: widget.controller, booking: widget.booking, isInProgress: isInProgress, primary: widget.primary),
           ],
         ),
@@ -626,59 +778,6 @@ class _PulsingDotState extends State<_PulsingDot> with SingleTickerProviderState
         width: 8,
         height: 8,
         decoration: BoxDecoration(shape: BoxShape.circle, color: _kSuccess.withOpacity(_anim.value)),
-      ),
-    );
-  }
-}
-
-class _ActiveDetailGrid extends StatelessWidget {
-  final Booking booking;
-  final Color primary;
-
-  const _ActiveDetailGrid({required this.booking, required this.primary});
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-      child: Column(
-        children: [
-          Row(
-            children: [
-              Expanded(
-                child: _GridTile(icon: Icons.train_rounded, label: 'Station', value: booking.pickupDetails?.station?.toString() ?? 'N/A', primary: primary),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: _GridTile(icon: Icons.event_seat_rounded, label: 'Coach', value: booking.pickupDetails?.coachNumber?.toString() ?? 'N/A', primary: primary),
-              ),
-            ],
-          ),
-          const SizedBox(height: 10),
-          Row(
-            children: [
-              Expanded(
-                child: _GridTile(icon: Icons.flag_rounded, label: 'Drop', value: booking.destination?.toString() ?? 'N/A', primary: primary),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: _GridTile(icon: Icons.scale_rounded, label: 'Weight', value: '${booking.pickupDetails?.weight ?? "?"}kg', primary: primary),
-              ),
-            ],
-          ),
-          Builder(
-            builder: (_) {
-              final desc = booking.pickupDetails?.description?.toString() ?? '';
-              if (desc.isEmpty || desc == 'N/A') return const SizedBox.shrink();
-              return Column(
-                children: [
-                  const SizedBox(height: 10),
-                  _NoteRow(note: desc, primary: primary),
-                ],
-              );
-            },
-          ),
-        ],
       ),
     );
   }

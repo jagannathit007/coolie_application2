@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
+import 'package:license_sahayak/models/history_model.dart';
 import 'package:license_sahayak/screens/coolie/booking_history/booking_history.dart';
 import 'package:license_sahayak/screens/coolie/home/home_ctrl.dart';
+import 'package:license_sahayak/screens/coolie/home/ui/booking_details.dart';
 
 class RecentBookingHistory extends StatefulWidget {
   final HomeCtrl controller;
@@ -16,7 +18,7 @@ class RecentBookingHistory extends StatefulWidget {
 
 class _RecentBookingHistoryState extends State<RecentBookingHistory> {
   bool _isLoading = false;
-  List<dynamic> _recent = [];
+  List<GetAllBookings> _recent = [];
 
   @override
   void initState() {
@@ -29,8 +31,10 @@ class _RecentBookingHistoryState extends State<RecentBookingHistory> {
     try {
       final res = await widget.controller.authRepo.getHistory(page: 1, limit: 5);
       if (res != null) {
-        final docs = (res['bookings']['docs'] as List?) ?? [];
-        setState(() => _recent = docs);
+        final Map<String, dynamic> bookingsData = res['bookings'];
+        final List<dynamic> docs = bookingsData['docs'];
+        final newBookings = docs.map((e) => GetAllBookings.fromJson(e)).toList();
+        setState(() => _recent = newBookings);
       }
     } catch (_) {}
     setState(() => _isLoading = false);
@@ -93,7 +97,7 @@ class _ViewAllButton extends StatelessWidget {
 }
 
 class _RecentHistoryTile extends StatelessWidget {
-  final dynamic booking;
+  final GetAllBookings booking;
   final int index;
 
   const _RecentHistoryTile({required this.booking, required this.index});
@@ -124,14 +128,14 @@ class _RecentHistoryTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final status = booking['status']?.toString() ?? '';
+    final status = booking.status?.toString() ?? '';
     final s = _style(status);
-    final station = booking['pickupDetails']?['station']?.toString() ?? 'N/A';
-    final coachNo = booking['pickupDetails']?['coachNumber']?.toString() ?? 'N/A';
-    final weight = booking['pickupDetails']?['weight']?.toString();
-    final dest = booking['destination']?.toString() ?? 'N/A';
-    final fare = booking['fare']?['baseFare']?.toString() ?? '—';
-    final bookedAt = _formatDate(booking['timestamp']?['bookedAt']?.toString());
+    final station = booking.pickupDetails?.station?.toString() ?? 'N/A';
+    final coachNo = booking.pickupDetails?.coachNumber?.toString() ?? 'N/A';
+    final weight = booking.pickupDetails?.weight?.toString();
+    final dest = booking.destination?.toString() ?? 'N/A';
+    final fare = booking.fare?.baseFare?.toString() ?? '—';
+    final bookedAt = _formatDate(booking.timestamp?.bookedAt?.toString());
     return TweenAnimationBuilder<double>(
       duration: Duration(milliseconds: 180 + index * 50),
       tween: Tween(begin: 0.0, end: 1.0),
@@ -139,102 +143,105 @@ class _RecentHistoryTile extends StatelessWidget {
         opacity: v,
         child: Transform.translate(offset: Offset(0, 8 * (1 - v)), child: child),
       ),
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 10),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: const Color(0xFFE2E8F0), width: 0.8),
-        ),
-        child: Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(12, 12, 12, 10),
-              child: Row(
-                children: [
-                  Container(
-                    width: 35,
-                    height: 35,
-                    decoration: BoxDecoration(color: s.bg, borderRadius: BorderRadius.circular(10)),
-                    child: Icon(s.icon, color: s.fg, size: 16),
-                  ),
-                  const SizedBox(width: 11),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Flexible(
-                              child: Text(
-                                'Platform $station',
-                                style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w600, color: const Color(0xFF1E293B)),
-                                overflow: TextOverflow.ellipsis,
+      child: GestureDetector(
+        onTap: () => BookingDetailsSheet.show(context, booking: booking),
+        child: Container(
+          margin: const EdgeInsets.only(bottom: 10),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: const Color(0xFFE2E8F0), width: 0.8),
+          ),
+          child: Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(12, 12, 12, 10),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 35,
+                      height: 35,
+                      decoration: BoxDecoration(color: s.bg, borderRadius: BorderRadius.circular(10)),
+                      child: Icon(s.icon, color: s.fg, size: 16),
+                    ),
+                    const SizedBox(width: 11),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            spacing: 10.0,
+                            children: [
+                              Flexible(
+                                child: Text(
+                                  'Pickup $station',
+                                  style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w600, color: const Color(0xFF1E293B)),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
                               ),
-                            ),
-                            Icon(Icons.arrow_forward_rounded, size: 11, color: const Color(0xFFCBD5E1)),
-                            Flexible(
-                              child: Text(
-                                dest,
-                                style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w600, color: const Color(0xFF1E293B)),
-                                overflow: TextOverflow.ellipsis,
+                              Icon(Icons.arrow_forward_rounded, size: 11, color: const Color(0xFFCBD5E1)),
+                              Flexible(
+                                child: Text(
+                                  'Drop $dest',
+                                  style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w600, color: const Color(0xFF1E293B)),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
                               ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 3),
-                        Row(
-                          spacing: 4.0,
-                          children: [
-                            Expanded(
-                              child: Row(
+                            ],
+                          ),
+                          const SizedBox(height: 3),
+                          Row(
+                            spacing: 4.0,
+                            children: [
+                              Expanded(
+                                child: Row(
+                                  children: [
+                                    const Icon(Icons.access_time_rounded, size: 11, color: Color(0xFFCBD5E1)),
+                                    const SizedBox(width: 4),
+                                    Text(bookedAt, style: GoogleFonts.poppins(fontSize: 11, color: const Color(0xFF94A3B8))),
+                                  ],
+                                ),
+                              ),
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                decoration: BoxDecoration(color: s.bg, borderRadius: BorderRadius.circular(20)),
+                                child: Text(
+                                  s.label,
+                                  style: GoogleFonts.poppins(fontSize: 10, fontWeight: FontWeight.w600, color: s.fg),
+                                ),
+                              ),
+                              Row(
+                                mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  const Icon(Icons.access_time_rounded, size: 11, color: Color(0xFFCBD5E1)),
-                                  const SizedBox(width: 4),
-                                  Text(bookedAt, style: GoogleFonts.poppins(fontSize: 11, color: const Color(0xFF94A3B8))),
+                                  const Icon(Icons.currency_rupee_rounded, size: 13, color: Color(0xFF1E293B)),
+                                  Text(
+                                    fare,
+                                    style: GoogleFonts.poppins(fontSize: 15, fontWeight: FontWeight.w700, color: const Color(0xFF1E293B)),
+                                  ),
                                 ],
                               ),
-                            ),
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                              decoration: BoxDecoration(color: s.bg, borderRadius: BorderRadius.circular(20)),
-                              child: Text(
-                                s.label,
-                                style: GoogleFonts.poppins(fontSize: 10, fontWeight: FontWeight.w600, color: s.fg),
-                              ),
-                            ),
-                            Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                const Icon(Icons.currency_rupee_rounded, size: 13, color: Color(0xFF1E293B)),
-                                Text(
-                                  fare,
-                                  style: GoogleFonts.poppins(fontSize: 15, fontWeight: FontWeight.w700, color: const Color(0xFF1E293B)),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ],
+                            ],
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
-            Container(
-              decoration: const BoxDecoration(
-                border: Border(top: BorderSide(color: Color(0xFFF1F5F9), width: 1)),
+              Container(
+                decoration: const BoxDecoration(
+                  border: Border(top: BorderSide(color: Color(0xFFF1F5F9), width: 1)),
+                ),
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                child: Row(
+                  children: [
+                    _FooterChip(icon: Icons.train_rounded, label: 'Coach $coachNo'),
+                    if (weight != null) ...[const SizedBox(width: 12), _FooterChip(icon: Icons.monitor_weight_outlined, label: '$weight kg')],
+                  ],
+                ),
               ),
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              child: Row(
-                children: [
-                  _FooterChip(icon: Icons.train_rounded, label: 'Coach $coachNo'),
-                  if (weight != null) ...[const SizedBox(width: 12), _FooterChip(icon: Icons.monitor_weight_outlined, label: '$weight kg')],
-                ],
-              ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

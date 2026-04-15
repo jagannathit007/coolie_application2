@@ -329,7 +329,7 @@ class _StatsRow extends StatelessWidget {
                                 ? 'Check Out'
                                 : 'Check In',
                             style: GoogleFonts.poppins(
-                              fontSize: 14,
+                              fontSize: 12,
                               fontWeight: FontWeight.w600,
                               color: isApprovalRequested
                                   ? Colors.grey

@@ -7,6 +7,7 @@ import 'package:license_sahayak/models/user_model.dart';
 import 'package:license_sahayak/screens/auth/auth_service.dart';
 import 'package:license_sahayak/screens/coolie/home/home_ctrl.dart';
 import 'package:license_sahayak/services/app_storage.dart';
+import 'package:license_sahayak/services/app_toasting.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 class LocationService extends GetxService {
@@ -20,17 +21,20 @@ class LocationService extends GetxService {
   Timer? timer;
 
   Future<bool> locationAlwaysOnPermission() async {
-    bool whenInUseLocation = false;
-    var checkStatus = await Permission.locationWhenInUse.status;
-    if (!checkStatus.isGranted) {
-      var whenInUseStatus = await Permission.locationWhenInUse.request();
-      if (whenInUseStatus.isGranted) {
-        whenInUseLocation = true;
-      }
-    } else {
-      whenInUseLocation = true;
+    var status = await Permission.locationWhenInUse.status;
+    if (status.isGranted) {
+      return true;
     }
-    return whenInUseLocation;
+    if (status.isDenied) {
+      final result = await Permission.locationWhenInUse.request();
+      return result.isGranted;
+    }
+    if (status.isPermanentlyDenied) {
+      errorToast('Location permission permanently denied. Enable it from settings.');
+      openAppSettings();
+      return false;
+    }
+    return false;
   }
 
   Future<void> locationEnabler() async {
@@ -59,7 +63,7 @@ class LocationService extends GetxService {
     if (timer == null && !isBackgroundLocation.value) {
       log("Background location is stared...!");
       isBackgroundLocation.value = true;
-      timer = Timer.periodic(const Duration(seconds: 3), (timer) async {
+      timer = Timer.periodic(const Duration(minutes: 59), (timer) async {
         await getCurrentLocation();
       });
     }

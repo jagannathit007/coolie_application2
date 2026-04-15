@@ -3,8 +3,10 @@ import 'package:license_sahayak/firebase_options.dart';
 import 'package:license_sahayak/repositories/authentication_repo.dart';
 import 'package:license_sahayak/routes/route_name.dart';
 import 'package:license_sahayak/routes/route_pages.dart';
+import 'package:license_sahayak/screens/coolie/attendance/attendance_ctrl.dart';
 import 'package:license_sahayak/screens/coolie/home/home_ctrl.dart';
 import 'package:license_sahayak/screens/no_internet.dart';
+import 'package:license_sahayak/services/app_storage.dart';
 import 'package:license_sahayak/services/background_location_service.dart';
 import 'package:license_sahayak/services/notification_service.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -53,6 +55,10 @@ void terminatedNotification() async {
 }
 
 void _handleNotificationClick(RemoteMessage message) async {
+  final String token = AppStorage.read("token") ?? "";
+  if (token.isEmpty) {
+    return;
+  }
   String? bookingId = message.data["bookingId"];
   bool isLogin = message.data["action"] == "login_approved" || message.data["action"] == "login_rejected";
   String? action = message.data["action"];
@@ -69,6 +75,10 @@ void _handleNotificationClick(RemoteMessage message) async {
     if (Get.isRegistered<HomeCtrl>()) {
       final homeCtrl = Get.find<HomeCtrl>();
       homeCtrl.fetchUserProfile();
+    }
+    if (Get.isRegistered<AttendanceCtrl>()) {
+      final homeCtrl = Get.find<AttendanceCtrl>();
+      homeCtrl.fetchAttendance();
     }
   } else if (bookingId != null) {
     await Future.delayed(const Duration(milliseconds: 500));
