@@ -50,7 +50,7 @@ class NotificationService {
             : null,
         iOS: apple != null ? const DarwinNotificationDetails(presentAlert: true, presentBadge: true, presentSound: true) : null,
       );
-      _whistle("slow_spring_board.mp3");
+      _whistle("slow_spring_board.mp3"); // chnage notification sound
       await flutterLocalNotificationsPlugin.show(id: notification.hashCode, title: notification.title, body: notification.body, notificationDetails: notificationDetails);
     }
   }

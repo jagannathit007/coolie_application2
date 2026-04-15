@@ -14,6 +14,7 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
+import 'screens/coolie/home/ui/login_rejected_dialog.dart';
 import 'utils/app_config.dart';
 import 'utils/theme_constants.dart';
 
@@ -60,8 +61,25 @@ void _handleNotificationClick(RemoteMessage message) async {
     return;
   }
   String? bookingId = message.data["bookingId"];
-  bool isLogin = message.data["action"] == "login_approved" || message.data["action"] == "login_rejected";
+  bool isLogin = message.data["action"] == "login_request" || message.data["action"] == "login_approved" || message.data["action"] == "login_rejected";
   String? action = message.data["action"];
+  if (action == "login_rejected") {
+    await Future.delayed(const Duration(milliseconds: 500));
+    if (Get.context != null) {
+      String? reason = message.data["reason"] ?? message.data["message"];
+      LoginRejectedDialog.show(
+        Get.context!,
+        reason: reason,
+        onRetry: () {
+          if (Get.isRegistered<HomeCtrl>()) {
+            final homeCtrl = Get.find<HomeCtrl>();
+            homeCtrl.performCheckIn();
+          }
+        },
+      );
+    }
+    return;
+  }
   if (action == "cancelled_by_passenger") {
     await Future.delayed(const Duration(milliseconds: 500));
     if (Get.isRegistered<HomeCtrl>()) {
@@ -78,7 +96,7 @@ void _handleNotificationClick(RemoteMessage message) async {
     }
     if (Get.isRegistered<AttendanceCtrl>()) {
       final homeCtrl = Get.find<AttendanceCtrl>();
-      homeCtrl.fetchAttendance();
+      homeCtrl.onTabChanged(0);
     }
   } else if (bookingId != null) {
     await Future.delayed(const Duration(milliseconds: 500));

@@ -184,6 +184,20 @@ class AuthenticationRepo {
     }
   }
 
+  Future<dynamic> todayCompletedJobs() async {
+    try {
+      final response = await apiManager.post(NetworkConstants.todayCompletedJobs, data: {});
+      if (response.status != 200) {
+        warningToast(response.data?.message ?? 'Failed to fetch Jobs');
+        return null;
+      }
+      return response.data;
+    } catch (err) {
+      errorToast('Error fetching Jobs: ${err.toString()}');
+      return null;
+    }
+  }
+
   Future<dynamic> getHistory({int page = 1, int limit = 10}) async {
     try {
       final response = await apiManager.post(NetworkConstants.allCompletedBookings, data: {"page": page, "limit": limit});

@@ -362,7 +362,7 @@ class _StatsRow extends StatelessWidget {
                   ),
                   const SizedBox(height: 1),
                   Text(
-                    controller.passengerDetails.value.booking != null ? '1' : '0',
+                    controller.completedToday.value.toString(),
                     style: GoogleFonts.poppins(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w700),
                   ),
                 ],

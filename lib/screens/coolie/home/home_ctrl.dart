@@ -22,6 +22,7 @@ import '../../../repositories/authentication_repo.dart';
 class HomeCtrl extends GetxController {
   final AuthenticationRepo authRepo = AuthenticationRepo();
   LocationService locationService = Get.find();
+  final RxInt completedToday = 0.obs;
   final checkStatuss = ''.obs, bookingId = ''.obs, sessionId = ''.obs;
   final isCheckedIn = false.obs, isMukadam = false.obs;
   Rx<GetPassengerCoolieModel> passengerDetails = GetPassengerCoolieModel().obs;
@@ -54,6 +55,7 @@ class HomeCtrl extends GetxController {
     await fetchUserProfile();
     await getPassengerData();
     await checkStatus();
+    await todayCompletedJobs();
     if (timer == true) startCountdownTimer();
   }
 
@@ -372,6 +374,20 @@ class HomeCtrl extends GetxController {
       } else {
         checkStatuss.value = "";
         stopTimer();
+      }
+    } catch (e) {
+      errorToast('Failed to load checkOut: ${e.toString()}');
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  Future<void> todayCompletedJobs() async {
+    try {
+      isLoading.value = true;
+      final response = await authRepo.todayCompletedJobs();
+      if (response != null) {
+        completedToday.value = int.tryParse(response["completedToday"].toString()) ?? 0;
       }
     } catch (e) {
       errorToast('Failed to load checkOut: ${e.toString()}');

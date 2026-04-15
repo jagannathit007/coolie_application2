@@ -36,7 +36,16 @@ class AttendanceCtrl extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    fetchAttendance();
+    onTabChanged(0);
+  }
+
+  void onTabChanged(int index) {
+    selectedTabIndex.value = index;
+    if (selectedTabIndex.value == 0) {
+      fetchAttendance();
+    } else {
+      fetchPunchReport();
+    }
   }
 
   Future<void> fetchAttendance() async {
@@ -105,15 +114,6 @@ class AttendanceCtrl extends GetxController {
       _punchCurrentPage = result.report.page;
       _punchTotalPages = result.report.totalPages;
       punchReports.addAll(result.report.docs);
-    }
-  }
-
-  void onTabChanged(int index) {
-    selectedTabIndex.value = index;
-    if (selectedTabIndex.value == 0) {
-      fetchAttendance();
-    } else {
-      fetchPunchReport();
     }
   }
 
