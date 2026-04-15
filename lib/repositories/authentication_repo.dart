@@ -51,7 +51,13 @@ class AuthenticationRepo {
       final result = await apiManager.post(url, data: data);
       if (result.status == 200) {
         final message = result.message.toString().toLowerCase();
-        final hasFailureKeywords = message.contains('failed') || message.contains('error') || message.contains('below threshold') || message.contains('not match') || message.contains('unable');
+        final hasFailureKeywords =
+            message.contains('failed') ||
+            message.contains('error') ||
+            message.contains('below threshold') ||
+            message.contains('not match') ||
+            message.contains('unable') ||
+            message.contains('account is suspended');
         bool successByScore = true;
         if (result.data != null && result.data is Map<String, dynamic>) {
           final dataMap = result.data as Map<String, dynamic>;
