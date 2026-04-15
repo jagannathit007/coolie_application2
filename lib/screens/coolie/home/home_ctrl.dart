@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:developer';
 import 'package:geolocator/geolocator.dart' as gl;
+import 'package:google_fonts/google_fonts.dart';
 import 'package:license_sahayak/models/user_model.dart';
 import 'package:license_sahayak/routes/route_name.dart';
 import 'package:license_sahayak/screens/auth/auth_service.dart';
@@ -14,6 +15,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:license_sahayak/services/background_location_service.dart';
+import 'package:license_sahayak/utils/app_constants.dart';
 import '../../../models/get_passenger_coolie_model.dart';
 import '../../../repositories/authentication_repo.dart';
 
@@ -29,16 +31,15 @@ class HomeCtrl extends GetxController {
   final ImagePicker _imagePicker = ImagePicker();
   final checkInStatusMessage = ''.obs, countdownTime = '00:20'.obs;
   Timer? _timer;
-  DateTime? bookingStartTime;
 
   @override
-  void onInit() async {
+  void onInit({bool? timer}) async {
     super.onInit();
     final args = Get.arguments;
     if (args != null && args["bookingId"] != null) {
       bookingId.value = args["bookingId"];
     }
-    await initialize();
+    await initialize(timer: timer);
   }
 
   @override
@@ -48,28 +49,28 @@ class HomeCtrl extends GetxController {
     super.onClose();
   }
 
-  Future<void> initialize() async {
+  Future<void> initialize({bool? timer}) async {
     isMukadam.value = AppStorage.read("isMukadam") ?? false;
     await fetchUserProfile();
     await getPassengerData();
     await checkStatus();
+    if (timer == true) startCountdownTimer();
   }
 
   AuthService authService = Get.isRegistered<AuthService>() ? Get.find<AuthService>() : Get.put(AuthService());
 
   void stopTimer() {
     _timer?.cancel();
-    bookingStartTime = null;
     countdownTime.value = '00:20';
   }
 
-  void startCountdownTimer() {
+  void startPickupCountdownTimer() {
     _timer?.cancel();
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       final booking = passengerDetails.value.booking;
-      if (booking?.timestamp?.bookedAt != null && checkStatuss.value == 'pending') {
+      if (booking?.timestamp?.pickupTime != null && checkStatuss.value == 'pending') {
         try {
-          final bookedAt = DateTime.parse(booking!.timestamp!.bookedAt.toString());
+          final bookedAt = DateTime.parse(booking!.timestamp!.pickupTime.toString());
           final now = DateTime.now();
           final elapsed = now.difference(bookedAt).inSeconds;
           final remaining = 20 - elapsed;
@@ -80,7 +81,6 @@ class HomeCtrl extends GetxController {
           } else {
             countdownTime.value = '00:00';
             timer.cancel();
-            _autoDeclineRequest();
           }
         } catch (e) {
           timer.cancel();
@@ -91,22 +91,25 @@ class HomeCtrl extends GetxController {
     });
   }
 
-  void _autoDeclineRequest() {
-    final booking = passengerDetails.value.booking;
-    if (booking != null && checkStatuss.value == 'pending') {
-      bookPassenger(booking.id.toString(), false);
-    }
-  }
-
-  String getTimerDisplay() {
-    if (bookingStartTime == null) {
-      return '00:00';
-    }
-    final now = DateTime.now();
-    final difference = now.difference(bookingStartTime!);
-    final minutes = difference.inMinutes;
-    final seconds = difference.inSeconds % 60;
-    return '${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
+  Future<void> startCountdownTimer() async {
+    _timer?.cancel();
+    int remainingSeconds = 20;
+    _timer = Timer.periodic(const Duration(seconds: 1), (timer) async {
+      if (checkStatuss.value == 'pending') {
+        remainingSeconds--;
+        if (remainingSeconds > 0) {
+          final minutes = (remainingSeconds ~/ 60).toString().padLeft(2, '0');
+          final seconds = (remainingSeconds % 60).toString().padLeft(2, '0');
+          countdownTime.value = '$minutes:$seconds';
+        } else {
+          countdownTime.value = '00:00';
+          timer.cancel();
+          await getPassengerData();
+        }
+      } else {
+        timer.cancel();
+      }
+    });
   }
 
   Future<void> fetchUserProfile() async {
@@ -135,6 +138,76 @@ class HomeCtrl extends GetxController {
         warningToast("Action not allowed. Current booking status is $status.");
         return;
       }
+      final shouldCheckOut = await Get.dialog<bool>(
+        Dialog(
+          backgroundColor: Colors.transparent,
+          insetPadding: const EdgeInsets.symmetric(horizontal: 28),
+          child: Container(
+            padding: const EdgeInsets.fromLTRB(24, 24, 24, 20),
+            decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(20)),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 56,
+                  height: 56,
+                  decoration: BoxDecoration(color: const Color(0xFFFEF2F2), shape: BoxShape.circle),
+                  child: Icon(Icons.logout_rounded, color: Constants.instance.primary, size: 26),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  'Confirm Check Out',
+                  style: GoogleFonts.poppins(fontSize: 18, fontWeight: FontWeight.w700, color: const Color(0xFF1E293B)),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  'Are you sure you want to check out? This will end your duty?',
+                  textAlign: TextAlign.center,
+                  style: GoogleFonts.poppins(fontSize: 13, color: const Color(0xFF94A3B8), height: 1.5),
+                ),
+                const SizedBox(height: 24),
+                GestureDetector(
+                  onTap: () => Get.back(result: true),
+                  child: Container(
+                    height: 50,
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      color: Constants.instance.primary,
+                      borderRadius: BorderRadius.circular(14),
+                      boxShadow: [BoxShadow(color: Constants.instance.primary.withOpacity(0.35), blurRadius: 12, offset: const Offset(0, 5))],
+                    ),
+                    alignment: Alignment.center,
+                    child: Text(
+                      'Check Out',
+                      style: GoogleFonts.poppins(color: Colors.white, fontSize: 15, fontWeight: FontWeight.w600),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 10),
+                GestureDetector(
+                  onTap: () => Get.back(result: false),
+                  child: Container(
+                    height: 50,
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF8FAFC),
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(color: const Color(0xFFE2E8F0)),
+                    ),
+                    alignment: Alignment.center,
+                    child: Text(
+                      'Cancel',
+                      style: GoogleFonts.poppins(color: const Color(0xFF64748B), fontSize: 15, fontWeight: FontWeight.w500),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        barrierDismissible: true,
+      );
+      if (shouldCheckOut != true) return;
       isLoading.value = true;
       final response = await authRepo.getOff(isMukadam: isMukadam.value);
       locationService.stopBackgroundLocation();
@@ -163,7 +236,7 @@ class HomeCtrl extends GetxController {
         passengerDetails.value = GetPassengerCoolieModel.fromJson(response);
         if (passengerDetails.value.booking != null) {
           if (checkStatuss.value == 'pending') {
-            startCountdownTimer();
+            startPickupCountdownTimer();
           } else {
             stopTimer();
           }
@@ -292,7 +365,7 @@ class HomeCtrl extends GetxController {
       if (response != null) {
         checkStatuss.value = response["currentStatus"];
         if (checkStatuss.value == 'pending') {
-          startCountdownTimer();
+          startPickupCountdownTimer();
         } else {
           stopTimer();
         }

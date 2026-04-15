@@ -2,6 +2,7 @@ import 'package:license_sahayak/api_constants/api_manager.dart';
 import 'package:license_sahayak/api_constants/network_constants.dart';
 import 'package:license_sahayak/services/app_toasting.dart';
 import '../../../models/attendance_model.dart';
+import '../../../models/punch_report_model.dart';
 
 class AttendanceService {
   Future<AttendanceResponseModel?> getAttendance({int page = 1, int limit = 50, String startDate = '', String endDate = '', String collieId = ''}) async {
@@ -17,6 +18,23 @@ class AttendanceService {
       return AttendanceResponseModel.fromJson(response.data);
     } catch (e) {
       errorToast("Error fetching attendance: $e");
+      return null;
+    }
+  }
+
+  Future<PunchReportData?> getPunchReport({int page = 1, int limit = 50, String startDate = '', String endDate = ''}) async {
+    try {
+      final response = await apiManager.post(
+        NetworkConstants.colliePunchReport,
+        data: {"page": page, "limit": limit, if (startDate.isNotEmpty) "startDate": startDate, if (endDate.isNotEmpty) "endDate": endDate},
+      );
+      if (response.status != 200 || response.data == null) {
+        errorToast(response.message);
+        return null;
+      }
+      return PunchReportData.fromJson(response.data);
+    } catch (e) {
+      errorToast("Error fetching punch report: $e");
       return null;
     }
   }

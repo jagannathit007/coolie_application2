@@ -151,7 +151,12 @@ class _PendingHeader extends StatelessWidget {
                   'New Booking Request!',
                   style: GoogleFonts.poppins(color: _kWhite, fontSize: 14, fontWeight: FontWeight.w700),
                 ),
-                Text('Respond before time runs out', style: GoogleFonts.poppins(color: _kWhite.withOpacity(0.72), fontSize: 11)),
+                Text(
+                  'Respond before time runs out',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: GoogleFonts.poppins(color: _kWhite.withOpacity(0.72), fontSize: 11),
+                ),
               ],
             ),
           ),
@@ -256,6 +261,7 @@ class _TripRouteSection extends StatelessWidget {
     final dest = booking.destination?.toString() ?? 'N/A';
     final weight = booking.pickupDetails?.weight?.toString();
     final desc = booking.pickupDetails?.description?.toString() ?? '';
+    final fare = booking.fare?.baseFare?.toString() ?? '—';
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 14, 16, 0),
       child: Column(
@@ -276,7 +282,7 @@ class _TripRouteSection extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _RouteStop(label: 'PICKUP', value: coach != null ? 'Platform $station  ·  Coach $coach' : 'Platform $station', labelColor: const Color(0xFF16A34A)),
+                      _RouteStop(label: 'PICKUP', value: 'Platform $station', labelColor: const Color(0xFF16A34A)),
                       const SizedBox(height: 20),
                       _RouteStop(label: 'DESTINATION', value: dest, labelColor: const Color(0xFFDC2626)),
                     ],
@@ -295,7 +301,7 @@ class _TripRouteSection extends StatelessWidget {
                 ),
               if (weight != null) const SizedBox(width: 8),
               Expanded(
-                child: _MetaChip(icon: Icons.train_rounded, label: 'STATION', value: station),
+                child: _MetaChip(icon: Icons.train_rounded, label: 'Amt', value: "₹$fare"),
               ),
             ],
           ),
@@ -557,7 +563,7 @@ class _ActionButtons extends StatelessWidget {
                       const SizedBox(width: 6),
                       Text(
                         'Decline',
-                        style: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.w600, color: _kSlate600),
+                        style: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.w600, color: _kSlate600),
                       ),
                     ],
                   ),
@@ -588,7 +594,7 @@ class _ActionButtons extends StatelessWidget {
                             const SizedBox(width: 8),
                             Text(
                               'Accept Job',
-                              style: GoogleFonts.poppins(fontSize: 15, fontWeight: FontWeight.w700, color: _kWhite),
+                              style: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.w700, color: _kWhite),
                             ),
                           ],
                         ),

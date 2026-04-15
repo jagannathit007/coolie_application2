@@ -92,7 +92,7 @@ void _handleNotificationClick(RemoteMessage message) async {
       if (Get.isRegistered<HomeCtrl>()) {
         final homeCtrl = Get.find<HomeCtrl>();
         homeCtrl.bookingId.value = bookingId;
-        homeCtrl.onInit();
+        homeCtrl.onInit(timer: true);
       } else {
         Get.toNamed(RouteName.home, arguments: {"bookingId": bookingId});
       }
