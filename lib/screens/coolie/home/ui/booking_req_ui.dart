@@ -810,7 +810,7 @@ class _ActiveCTAButton extends StatelessWidget {
           onTap: controller.isLoading.value
               ? null
               : isInProgress
-              ? () => controller.completeService(booking.id?.toString())
+              ? () => _showCompleteConfirmDialog(context, controller, booking)
               : () => controller.verifyBooking(notificationAction: "weight_disputed"),
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 200),
@@ -849,6 +849,78 @@ class _ActiveCTAButton extends StatelessWidget {
                     ],
                   ),
           ),
+        ),
+      ),
+    );
+  }
+
+  void _showCompleteConfirmDialog(BuildContext context, HomeCtrl controller, Booking booking) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        contentPadding: const EdgeInsets.fromLTRB(24, 24, 24, 16),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 56,
+              height: 56,
+              decoration: BoxDecoration(color: const Color(0xFFDCFCE7), shape: BoxShape.circle),
+              child: const Icon(Icons.task_alt_rounded, color: Color(0xFF16A34A), size: 28),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'Complete Service?',
+              style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w700, color: const Color(0xFF0F172A)),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Confirm that you have successfully delivered the luggage to the destination. This action cannot be undone.',
+              textAlign: TextAlign.center,
+              style: GoogleFonts.poppins(fontSize: 12, color: const Color(0xFF94A3B8), height: 1.6),
+            ),
+            const SizedBox(height: 24),
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: () => Navigator.pop(context),
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 13),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      side: const BorderSide(color: Color(0xFFE2E8F0)),
+                    ),
+                    child: Text(
+                      'Cancel',
+                      style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w600, color: const Color(0xFF475569)),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  flex: 2,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      Navigator.pop(context);
+                      controller.completeService(booking.id?.toString());
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF16A34A),
+                      padding: const EdgeInsets.symmetric(vertical: 13),
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    ),
+                    child: Text(
+                      'Yes, Complete',
+                      style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w700, color: Colors.white),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
         ),
       ),
     );

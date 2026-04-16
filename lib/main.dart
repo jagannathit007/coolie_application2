@@ -43,7 +43,6 @@ Future<void> _setupFirebaseMessagingHandlers() async {
     _handleNotificationClick(message);
   });
   FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) async {
-    notificationService.showRemoteNotificationAndroid(message);
     _handleNotificationClick(message);
   });
   final RemoteMessage? initialMessage = await FirebaseMessaging.instance.getInitialMessage();
@@ -99,6 +98,12 @@ void _handleNotificationClick(RemoteMessage message) async {
       LoginRejectedDialog.show(
         Get.context!,
         reason: reason,
+        onRefresh: () async {
+          if (Get.isRegistered<HomeCtrl>()) {
+            final homeCtrl = Get.find<HomeCtrl>();
+            await homeCtrl.fetchUserProfile();
+          }
+        },
         onRetry: () async {
           if (Get.isRegistered<HomeCtrl>()) {
             final homeCtrl = Get.find<HomeCtrl>();

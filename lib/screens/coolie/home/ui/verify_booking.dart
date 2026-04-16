@@ -678,7 +678,7 @@ class _FilledButton extends StatelessWidget {
                   const SizedBox(width: 8),
                   Text(
                     label,
-                    style: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.w700, color: Colors.white),
+                    style: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.w700, color: Colors.white),
                   ),
                 ],
               ),

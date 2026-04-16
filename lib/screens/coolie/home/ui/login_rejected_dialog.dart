@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class LoginRejectedDialog {
-  static void show(BuildContext context, {String? reason, VoidCallback? onRetry}) {
+  static void show(BuildContext context, {String? reason, VoidCallback? onRetry, VoidCallback? onRefresh}) {
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -19,7 +19,6 @@ class LoginRejectedDialog {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // Header
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.fromLTRB(24, 24, 24, 20),
@@ -87,6 +86,9 @@ class LoginRejectedDialog {
                           child: TextButton(
                             onPressed: () {
                               Navigator.of(ctx).pop();
+                              if (onRefresh != null) {
+                                onRefresh();
+                              }
                             },
                             style: TextButton.styleFrom(
                               padding: const EdgeInsets.symmetric(vertical: 12),

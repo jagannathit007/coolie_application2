@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 class NotificationService {
   final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
@@ -20,6 +21,7 @@ class NotificationService {
   }
 
   Future<void> init() async {
+    _requestPermission();
     const AndroidInitializationSettings initializationSettingsAndroid = AndroidInitializationSettings('@mipmap/ic_launcher');
     const DarwinInitializationSettings initializationSettingsIOS = DarwinInitializationSettings();
     const InitializationSettings initializationSettings = InitializationSettings(android: initializationSettingsAndroid, iOS: initializationSettingsIOS);
@@ -27,7 +29,15 @@ class NotificationService {
     await FirebaseMessaging.instance.setForegroundNotificationPresentationOptions(alert: true, badge: true, sound: true);
   }
 
-  void showRemoteNotificationAndroid(RemoteMessage message) async {
+  Future<void> _requestPermission() async {
+    final FirebaseMessaging messaging = FirebaseMessaging.instance;
+    final NotificationSettings settings = await messaging.requestPermission(alert: true, badge: true, sound: true, provisional: false);
+    if (settings.authorizationStatus == AuthorizationStatus.denied) {
+      openAppSettings();
+    }
+  }
+
+  void showRemoteNotificationAndroid(RemoteMessage message, {bool? isPlay}) async {
     RemoteNotification? notification = message.notification;
     AndroidNotification? android = message.notification?.android;
     AppleNotification? apple = message.notification?.apple;
@@ -50,7 +60,9 @@ class NotificationService {
             : null,
         iOS: apple != null ? const DarwinNotificationDetails(presentAlert: true, presentBadge: true, presentSound: true) : null,
       );
-      _whistle("slow_spring_board.mp3");
+      if (isPlay == true) {
+        _whistle("slow_spring_board.mp3");
+      }
       await flutterLocalNotificationsPlugin.show(id: notification.hashCode, title: notification.title, body: notification.body, notificationDetails: notificationDetails);
     }
   }

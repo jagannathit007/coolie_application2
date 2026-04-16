@@ -115,10 +115,10 @@ class Timestamp {
   Timestamp({this.bookedAt, this.acceptedAt, this.pickupTime, this.completedAt});
 
   factory Timestamp.fromJson(Map<String, dynamic> json) => Timestamp(
-    bookedAt: DateTime.parse(json["bookedAt"]),
-    acceptedAt: DateTime.parse(json["acceptedAt"]),
-    pickupTime: DateTime.parse(json["pickupTime"]),
-    completedAt: DateTime.parse(json["completedAt"]),
+    bookedAt: DateTime.tryParse(json["bookedAt"].toString()),
+    acceptedAt: DateTime.tryParse(json["acceptedAt"].toString()),
+    pickupTime: DateTime.tryParse(json["pickupTime"].toString()),
+    completedAt: DateTime.tryParse(json["completedAt"].toString()),
   );
 
   Map<String, dynamic> toJson() => {
