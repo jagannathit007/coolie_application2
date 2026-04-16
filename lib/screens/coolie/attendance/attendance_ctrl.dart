@@ -117,16 +117,6 @@ class AttendanceCtrl extends GetxController {
     }
   }
 
-  void setDateRange(DateTime start, DateTime end) {
-    selectedStartDate.value = start;
-    selectedEndDate.value = end;
-    if (selectedTabIndex.value == 0) {
-      fetchAttendance();
-    } else {
-      fetchPunchReport();
-    }
-  }
-
   void clearFilters() {
     selectedStartDate.value = null;
     selectedEndDate.value = null;

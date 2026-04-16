@@ -39,7 +39,7 @@ class BookingDetailsSheet extends StatelessWidget {
   String _formatDate(String? raw) {
     if (raw == null || raw.isEmpty) return 'N/A';
     try {
-      return DateFormat("dd MMM yyyy, hh:mm a").format(DateTime.parse(raw));
+      return DateFormat("dd MMM yyyy, hh:mm a").format(DateTime.parse(raw).toUtc().toLocal());
     } catch (_) {
       return 'N/A';
     }

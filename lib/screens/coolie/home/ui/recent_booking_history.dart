@@ -23,7 +23,7 @@ class _RecentBookingHistoryState extends State<RecentBookingHistory> {
   @override
   void initState() {
     super.initState();
-    _loadRecent();
+    Future.delayed(Duration.zero, () async => await _loadRecent());
   }
 
   Future<void> _loadRecent() async {
@@ -120,7 +120,7 @@ class _RecentHistoryTile extends StatelessWidget {
   String _formatDate(String? raw) {
     if (raw == null) return 'N/A';
     try {
-      return DateFormat('dd MMM, hh:mm a').format(DateTime.parse(raw));
+      return DateFormat('dd MMM, hh:mm a').format(DateTime.parse(raw).toUtc().toLocal());
     } catch (_) {
       return 'N/A';
     }

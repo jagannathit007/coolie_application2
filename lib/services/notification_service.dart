@@ -35,8 +35,8 @@ class NotificationService {
       NotificationDetails notificationDetails = NotificationDetails(
         android: android != null
             ? const AndroidNotificationDetails(
-                "tasks_event",
-                "Tasks Event",
+                "booking_channel",
+                "Booking Channel",
                 ticker: 'ticker',
                 showWhen: true,
                 playSound: true,
@@ -45,12 +45,12 @@ class NotificationService {
                 priority: Priority.high,
                 importance: Importance.max,
                 visibility: NotificationVisibility.public,
-                channelDescription: "The event reminder system for planora user to manage events_history",
+                channelDescription: "The event reminder system for planora user to manage booking_channel",
               )
             : null,
         iOS: apple != null ? const DarwinNotificationDetails(presentAlert: true, presentBadge: true, presentSound: true) : null,
       );
-      _whistle("slow_spring_board.mp3"); // chnage notification sound
+      _whistle("slow_spring_board.mp3");
       await flutterLocalNotificationsPlugin.show(id: notification.hashCode, title: notification.title, body: notification.body, notificationDetails: notificationDetails);
     }
   }

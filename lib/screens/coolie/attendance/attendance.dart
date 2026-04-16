@@ -980,7 +980,7 @@ class _FilterRow extends StatelessWidget {
             Expanded(
               child: _DateBtn(label: ctrl.endDateDisplay, isSet: ctrl.selectedEndDate.value != null, onTap: () => _pick(context, isStart: false)),
             ),
-            if (ctrl.hasActiveFilter) ...[
+            if (ctrl.selectedTabIndex.value == 0 && ctrl.hasActiveFilter) ...[
               const SizedBox(width: 8),
               GestureDetector(
                 onTap: ctrl.clearFilters,
@@ -998,10 +998,12 @@ class _FilterRow extends StatelessWidget {
   }
 
   Future<void> _pick(BuildContext context, {required bool isStart}) async {
+    final DateTime firstDate = isStart ? DateTime(2023) : (ctrl.selectedStartDate.value ?? DateTime(2023));
+    final DateTime initialDate = isStart ? (ctrl.selectedStartDate.value ?? DateTime.now()) : (ctrl.selectedEndDate.value ?? ctrl.selectedStartDate.value ?? DateTime.now());
     final picked = await showDatePicker(
       context: context,
-      initialDate: DateTime.now(),
-      firstDate: DateTime(2023),
+      initialDate: initialDate,
+      firstDate: firstDate,
       lastDate: DateTime.now(),
       builder: (ctx, child) => Theme(
         data: ThemeData.light().copyWith(colorScheme: ColorScheme.light(primary: Constants.instance.primary)),

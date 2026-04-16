@@ -12,6 +12,16 @@ class BookingHistoryCtrl extends GetxController {
   final limit = 10;
   final scrollController = ScrollController();
 
+  final selectedStartDate = Rxn<DateTime>(DateTime.now()), selectedEndDate = Rxn<DateTime>(DateTime.now());
+
+  String get startDateFormatted => selectedStartDate.value != null ? DateFormat('yyyy-MM-dd').format(selectedStartDate.value!) : '';
+
+  String get endDateFormatted => selectedEndDate.value != null ? DateFormat('yyyy-MM-dd').format(selectedEndDate.value!) : '';
+
+  String get startDateDisplay => selectedStartDate.value != null ? DateFormat('dd MMM yyyy').format(selectedStartDate.value!) : 'Start Date';
+
+  String get endDateDisplay => selectedEndDate.value != null ? DateFormat('dd MMM yyyy').format(selectedEndDate.value!) : 'End Date';
+
   @override
   void onInit() {
     super.onInit();
@@ -29,11 +39,17 @@ class BookingHistoryCtrl extends GetxController {
     });
   }
 
+  Future<void> clearFilters() async {
+    selectedStartDate.value = null;
+    selectedEndDate.value = null;
+    await getHistory();
+  }
+
   Future<void> getHistory() async {
     if (isLoading.value) return;
     try {
       isLoading.value = true;
-      final res = await authenticationRepo.getHistory(page: page.value, limit: limit);
+      final res = await authenticationRepo.getHistory(page: page.value, limit: limit, startDate: startDateFormatted, endDate: endDateFormatted);
       if (res != null) {
         final Map<String, dynamic> bookingsData = res['bookings'];
         final List<dynamic> docs = bookingsData['docs'];
@@ -62,7 +78,7 @@ class BookingHistoryCtrl extends GetxController {
 
   String formatDate(String date) {
     try {
-      return DateFormat("dd MMM yyyy, hh:mm a").format(DateTime.parse(date));
+      return DateFormat("dd MMM yyyy, hh:mm a").format(DateTime.parse(date).toUtc().toLocal());
     } catch (e) {
       return "N/A";
     }
@@ -82,6 +98,8 @@ class BookingHistoryCtrl extends GetxController {
       return "0";
     }
   }
+
+  bool get hasActiveFilter => selectedStartDate.value != null || selectedEndDate.value != null;
 
   @override
   void onClose() {

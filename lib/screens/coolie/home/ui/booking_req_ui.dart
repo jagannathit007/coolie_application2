@@ -60,9 +60,9 @@ class _InfoBanner extends StatelessWidget {
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: _kWhite,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(12),
         border: Border.all(color: primary.withOpacity(0.12)),
-        boxShadow: [BoxShadow(color: primary.withOpacity(0.07), blurRadius: 20, offset: const Offset(0, 6))],
+        boxShadow: [BoxShadow(color: primary.withOpacity(0.07), blurRadius: 12, offset: const Offset(0, 6))],
       ),
       child: Row(
         children: [
@@ -104,8 +104,8 @@ class _PendingRequestCard extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: _kWhite,
-        borderRadius: BorderRadius.circular(24),
-        boxShadow: [BoxShadow(color: primary.withOpacity(0.10), blurRadius: 24, offset: const Offset(0, 8))],
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [BoxShadow(color: primary.withOpacity(0.10), blurRadius: 12, offset: const Offset(0, 8))],
       ),
       child: Column(
         children: [
@@ -132,7 +132,7 @@ class _PendingHeader extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(20, 16, 16, 16),
       decoration: BoxDecoration(
         color: primary,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
       ),
       child: Row(
         children: [
@@ -259,7 +259,7 @@ class _TripRouteSection extends StatelessWidget {
     final station = booking.pickupDetails?.station?.toString() ?? 'N/A';
     final coach = booking.pickupDetails?.coachNumber?.toString();
     final dest = booking.destination?.toString() ?? 'N/A';
-    final weight = booking.pickupDetails?.weight?.toString();
+    final weight = booking.pickupDetails?.weightStatus == "verified" ? booking.pickupDetails?.weight?.toString() : booking.pickupDetails?.originalWeight?.toString();
     final desc = booking.pickupDetails?.description?.toString() ?? '';
     final fare = booking.fare?.baseFare?.toString() ?? '—';
     return Padding(
@@ -323,7 +323,7 @@ class _ActiveRouteSection extends StatelessWidget {
     final station = booking.pickupDetails?.station?.toString() ?? 'N/A';
     final coach = booking.pickupDetails?.coachNumber?.toString();
     final dest = booking.destination?.toString() ?? 'N/A';
-    final weight = booking.pickupDetails?.weight?.toString();
+    final weight = booking.pickupDetails?.weightStatus == "verified" ? booking.pickupDetails?.weight?.toString() : booking.pickupDetails?.originalWeight?.toString();
     final desc = booking.pickupDetails?.description?.toString() ?? '';
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
@@ -580,8 +580,8 @@ class _ActionButtons extends StatelessWidget {
                   height: 54,
                   decoration: BoxDecoration(
                     color: primary,
-                    borderRadius: BorderRadius.circular(16),
-                    boxShadow: [BoxShadow(color: primary.withOpacity(0.38), blurRadius: 14, offset: const Offset(0, 5))],
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: [BoxShadow(color: primary.withOpacity(0.38), blurRadius: 12, offset: const Offset(0, 2))],
                   ),
                   child: controller.isLoading.value
                       ? const Center(
@@ -633,7 +633,10 @@ class _ActiveJobCardState extends State<_ActiveJobCard> {
     final pickupTimeRaw = widget.booking.timestamp?.pickupTime?.toString() ?? '';
     if (pickupTimeRaw.isNotEmpty) {
       try {
-        final pickupTime = DateTime.parse(pickupTimeRaw).toLocal();
+        DateTime pickupTime = DateTime.parse(pickupTimeRaw);
+        if (pickupTime.isUtc || pickupTimeRaw.endsWith('Z')) {
+          pickupTime = pickupTime.toLocal();
+        }
         _elapsed = DateTime.now().difference(pickupTime);
         if (_elapsed.isNegative) _elapsed = Duration.zero;
       } catch (_) {
@@ -666,8 +669,8 @@ class _ActiveJobCardState extends State<_ActiveJobCard> {
       return Container(
         decoration: BoxDecoration(
           color: _kWhite,
-          borderRadius: BorderRadius.circular(24),
-          boxShadow: [BoxShadow(color: headerColor.withOpacity(0.10), blurRadius: 24, offset: const Offset(0, 8))],
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: [BoxShadow(color: headerColor.withOpacity(0.10), blurRadius: 12, offset: const Offset(0, 8))],
         ),
         child: Column(
           children: [
@@ -695,7 +698,7 @@ class _ActiveHeader extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(20, 16, 16, 16),
       decoration: BoxDecoration(
         color: headerColor,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
       ),
       child: Row(
         children: [
@@ -815,8 +818,8 @@ class _ActiveCTAButton extends StatelessWidget {
             width: double.infinity,
             decoration: BoxDecoration(
               color: btnColor,
-              borderRadius: BorderRadius.circular(18),
-              boxShadow: [BoxShadow(color: btnColor.withOpacity(0.35), blurRadius: 16, offset: const Offset(0, 6))],
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: [BoxShadow(color: btnColor.withOpacity(0.35), blurRadius: 12, offset: const Offset(0, 1))],
             ),
             child: controller.isLoading.value
                 ? const Center(

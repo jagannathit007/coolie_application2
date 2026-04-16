@@ -57,6 +57,7 @@ class AuthenticationRepo {
             message.contains('below threshold') ||
             message.contains('not match') ||
             message.contains('unable') ||
+            message.contains('not your shift time') ||
             message.contains('account is suspended');
         bool successByScore = true;
         if (result.data != null && result.data is Map<String, dynamic>) {
@@ -137,8 +138,8 @@ class AuthenticationRepo {
   Future<dynamic> verifyBookingOTP(String bookingId, String otp) async {
     try {
       final response = await apiManager.post(NetworkConstants.startService, data: {"bookingId": bookingId, "otp": otp});
-      if (response.status != 200) {
-        warningToast(response.data?.message ?? 'Failed to fetch OTP');
+      if (response.status != 200 || response.data == null) {
+        warningToast(response.message);
         return null;
       }
       return response.data;
@@ -204,9 +205,12 @@ class AuthenticationRepo {
     }
   }
 
-  Future<dynamic> getHistory({int page = 1, int limit = 10}) async {
+  Future<dynamic> getHistory({int page = 1, int limit = 10, String startDate = '', String endDate = ''}) async {
     try {
-      final response = await apiManager.post(NetworkConstants.allCompletedBookings, data: {"page": page, "limit": limit});
+      final response = await apiManager.post(
+        NetworkConstants.allCompletedBookings,
+        data: {"page": page, "limit": limit, if (startDate.isNotEmpty) "startDate": startDate, if (endDate.isNotEmpty) "endDate": endDate},
+      );
       if (response.status != 200) {
         warningToast(response.data?.message ?? 'Failed to fetch history');
         return null;

@@ -21,8 +21,8 @@ const _kAmberBg = Color(0xFFFFFBEB);
 void otpDialog({
   required TextEditingController verificationCodeController,
   required double bookedWeight,
-  required Future<void> Function() onVerify,
-  required Future<void> Function(double newWeight) onRequestWeightUpdate,
+  required Future<bool> Function() onVerify,
+  required Future<bool> Function(double newWeight) onRequestWeightUpdate,
   bool allowWeightUpdate = true,
   bool isWeightConfirmed = false,
 }) {
@@ -42,8 +42,8 @@ void otpDialog({
 class _OtpFlowDialog extends StatefulWidget {
   final TextEditingController verificationCodeController;
   final double bookedWeight;
-  final Future<void> Function() onVerify;
-  final Future<void> Function(double newWeight) onRequestWeightUpdate;
+  final Future<bool> Function() onVerify;
+  final Future<bool> Function(double newWeight) onRequestWeightUpdate;
   final bool allowWeightUpdate;
   final bool isWeightConfirmed;
 
@@ -94,9 +94,12 @@ class _OtpFlowDialogState extends State<_OtpFlowDialog> with SingleTickerProvide
 
   Future<void> _handleVerify() async {
     if (widget.verificationCodeController.text.length < 4) return;
-    setState(() => _isLoading = true);
     try {
-      await widget.onVerify();
+      setState(() => _isLoading = true);
+      final success = await widget.onVerify();
+      if (!success) {
+        setState(() => _isLoading = false);
+      }
     } catch (_) {
       setState(() => _isLoading = false);
     }
@@ -105,9 +108,12 @@ class _OtpFlowDialogState extends State<_OtpFlowDialog> with SingleTickerProvide
   Future<void> _handleWeightUpdate() async {
     if (!(_weightFormKey.currentState?.validate() ?? false)) return;
     final newWeight = double.tryParse(_weightController.text) ?? 0;
-    setState(() => _isLoading = true);
     try {
-      await widget.onRequestWeightUpdate(newWeight);
+      setState(() => _isLoading = true);
+      final success = await widget.onRequestWeightUpdate(newWeight);
+      if (!success) {
+        setState(() => _isLoading = false);
+      }
     } catch (_) {
       setState(() => _isLoading = false);
     }
@@ -127,8 +133,8 @@ class _OtpFlowDialogState extends State<_OtpFlowDialog> with SingleTickerProvide
             borderRadius: BorderRadius.circular(24),
             boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.15), blurRadius: 40, offset: const Offset(0, 16))],
           ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
+          child: ListView(
+            shrinkWrap: true,
             children: [
               _buildStepIndicator(),
               AnimatedSwitcher(
@@ -546,16 +552,20 @@ class _WeightUpdateStep extends StatelessWidget {
               const SizedBox(width: 10),
               const Icon(Icons.arrow_forward_rounded, size: 16, color: _kSlate400),
               const SizedBox(width: 10),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                decoration: BoxDecoration(
-                  color: _kGreenBg,
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: _kGreen.withOpacity(0.25)),
-                ),
-                child: Text(
-                  'Actual weight',
-                  style: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.w600, color: _kGreen),
+              Expanded(
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: _kGreenBg,
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: _kGreen.withOpacity(0.25)),
+                  ),
+                  child: Text(
+                    'Actual weight',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.w600, color: _kGreen),
+                  ),
                 ),
               ),
             ],
@@ -566,7 +576,7 @@ class _WeightUpdateStep extends StatelessWidget {
             child: TextFormField(
               controller: weightController,
               keyboardType: const TextInputType.numberWithOptions(decimal: true),
-              inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d{0,1}'))],
+              inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d?'))],
               style: GoogleFonts.poppins(fontSize: 28, fontWeight: FontWeight.w700, color: _kSlate900),
               textAlign: TextAlign.center,
               decoration: InputDecoration(

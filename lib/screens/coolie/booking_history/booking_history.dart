@@ -7,6 +7,12 @@ import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'booking_history_ctrl.dart';
 
+const _kCard = Colors.white;
+const _kBorder = Color(0xFFEEF0F4);
+const _kText2 = Color(0xFF6B7280);
+const _kText3 = Color(0xFF9CA3AF);
+const _kRed = Color(0xFFDC2626);
+
 class BookingHistory extends StatelessWidget {
   const BookingHistory({super.key});
 
@@ -22,6 +28,10 @@ class BookingHistory extends StatelessWidget {
             body: Column(
               children: [
                 _buildAppBarWithStats(controller),
+                Container(
+                  color: Colors.white,
+                  child: _FilterRow(ctrl: controller),
+                ),
                 Expanded(
                   child: Obx(() {
                     if (controller.isLoading.value && controller.bookings.isEmpty) {
@@ -99,7 +109,7 @@ class BookingHistory extends StatelessWidget {
                     ),
                     const SizedBox(width: 12),
                     Expanded(
-                      child: _StatCard(icon: Icons.account_balance_wallet_outlined, label: "Total Spent", value: "₹${controller.calculateTotalSpent()}", iconColor: Colors.white),
+                      child: _StatCard(icon: Icons.account_balance_wallet_outlined, label: "Total Earn", value: "₹${controller.calculateTotalSpent()}", iconColor: Colors.white),
                     ),
                   ],
                 ),
@@ -612,6 +622,107 @@ class _ShimmerCardState extends State<_ShimmerCard> with SingleTickerProviderSta
           const SizedBox(height: 20),
           Row(children: [_shimmerBox(width: 70, height: 28), const Spacer(), _shimmerBox(width: 110, height: 36, radius: 12)]),
         ],
+      ),
+    );
+  }
+}
+
+class _FilterRow extends StatelessWidget {
+  final BookingHistoryCtrl ctrl;
+
+  const _FilterRow({required this.ctrl});
+
+  @override
+  Widget build(BuildContext context) {
+    return Obx(
+      () => Padding(
+        padding: const EdgeInsets.fromLTRB(16, 10, 16, 10),
+        child: Row(
+          children: [
+            Expanded(
+              child: _DateBtn(label: ctrl.startDateDisplay, isSet: ctrl.selectedStartDate.value != null, onTap: () => _pick(context, isStart: true)),
+            ),
+            Container(width: 8, height: 1, color: _kText3, margin: const EdgeInsets.symmetric(horizontal: 4)),
+            Expanded(
+              child: _DateBtn(label: ctrl.endDateDisplay, isSet: ctrl.selectedEndDate.value != null, onTap: () => _pick(context, isStart: false)),
+            ),
+            if (ctrl.hasActiveFilter) ...[
+              const SizedBox(width: 8),
+              GestureDetector(
+                onTap: ctrl.clearFilters,
+                child: Container(
+                  padding: const EdgeInsets.all(9),
+                  decoration: BoxDecoration(color: _kRed.withOpacity(0.08), borderRadius: BorderRadius.circular(9)),
+                  child: const Icon(Icons.close_rounded, size: 16, color: _kRed),
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _pick(BuildContext context, {required bool isStart}) async {
+    final DateTime firstDate = isStart ? DateTime(2023) : (ctrl.selectedStartDate.value ?? DateTime(2023));
+    final DateTime initialDate = isStart ? (ctrl.selectedStartDate.value ?? DateTime.now()) : (ctrl.selectedEndDate.value ?? ctrl.selectedStartDate.value ?? DateTime.now());
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: initialDate,
+      firstDate: firstDate,
+      lastDate: DateTime.now(),
+      builder: (ctx, child) => Theme(
+        data: ThemeData.light().copyWith(colorScheme: ColorScheme.light(primary: Constants.instance.primary)),
+        child: child!,
+      ),
+    );
+    if (picked == null) return;
+    if (isStart) {
+      ctrl.selectedStartDate.value = picked;
+      if (ctrl.selectedEndDate.value == null || ctrl.selectedEndDate.value!.isBefore(picked)) {
+        ctrl.selectedEndDate.value = picked;
+      }
+    } else {
+      ctrl.selectedEndDate.value = picked;
+    }
+    ctrl.page.value = 1;
+    ctrl.bookings.clear();
+    await ctrl.getHistory();
+  }
+}
+
+class _DateBtn extends StatelessWidget {
+  final String label;
+  final bool isSet;
+  final VoidCallback onTap;
+
+  const _DateBtn({required this.label, required this.isSet, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final active = Constants.instance.primary;
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        decoration: BoxDecoration(
+          color: isSet ? active.withOpacity(0.06) : _kCard,
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: isSet ? active.withOpacity(0.35) : _kBorder),
+        ),
+        child: Row(
+          children: [
+            Icon(Icons.calendar_today_rounded, size: 13, color: isSet ? active : _kText3),
+            const SizedBox(width: 6),
+            Expanded(
+              child: Text(
+                label,
+                style: GoogleFonts.poppins(fontSize: 11, fontWeight: isSet ? FontWeight.w600 : FontWeight.w400, color: isSet ? active : _kText2),
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

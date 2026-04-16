@@ -31,44 +31,50 @@ class HomeCtrl extends GetxController {
   var isLoading = false.obs, isCheckInLoading = false.obs;
   final ImagePicker _imagePicker = ImagePicker();
   final checkInStatusMessage = ''.obs, countdownTime = '00:20'.obs;
-  Timer? _timer;
+  Timer? _pickupTimer, _autoTimer;
 
   @override
-  void onInit({bool? timer}) async {
+  void onInit({bool? timer, bool? isVerify, String? action}) async {
     super.onInit();
     final args = Get.arguments;
     if (args != null && args["bookingId"] != null) {
       bookingId.value = args["bookingId"];
     }
-    await initialize(timer: timer);
+    if (args != null && args["timer"] != null) {
+      timer = args["timer"];
+    }
+    await initialize(timer: timer, isVerify: isVerify, action: action);
   }
 
   @override
   void onClose() {
-    _timer?.cancel();
+    _pickupTimer?.cancel();
+    _autoTimer?.cancel();
     verificationCodeController.dispose();
     super.onClose();
   }
 
-  Future<void> initialize({bool? timer}) async {
+  Future<void> initialize({bool? timer, bool? isVerify, String? action}) async {
     isMukadam.value = AppStorage.read("isMukadam") ?? false;
     await fetchUserProfile();
     await getPassengerData();
     await checkStatus();
     await todayCompletedJobs();
+    if (isVerify == true) verifyBooking(notificationAction: action);
     if (timer == true) startCountdownTimer();
   }
 
   AuthService authService = Get.isRegistered<AuthService>() ? Get.find<AuthService>() : Get.put(AuthService());
 
   void stopTimer() {
-    _timer?.cancel();
+    _pickupTimer?.cancel();
+    _autoTimer?.cancel();
     countdownTime.value = '00:20';
   }
 
   void startPickupCountdownTimer() {
-    _timer?.cancel();
-    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+    _pickupTimer?.cancel();
+    _pickupTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
       final booking = passengerDetails.value.booking;
       if (booking?.timestamp?.pickupTime != null && checkStatuss.value == 'pending') {
         try {
@@ -94,9 +100,9 @@ class HomeCtrl extends GetxController {
   }
 
   Future<void> startCountdownTimer() async {
-    _timer?.cancel();
+    _autoTimer?.cancel();
     int remainingSeconds = 20;
-    _timer = Timer.periodic(const Duration(seconds: 1), (timer) async {
+    _autoTimer = Timer.periodic(const Duration(seconds: 1), (timer) async {
       if (checkStatuss.value == 'pending') {
         remainingSeconds--;
         if (remainingSeconds > 0) {
@@ -239,14 +245,11 @@ class HomeCtrl extends GetxController {
         if (passengerDetails.value.booking != null) {
           if (checkStatuss.value == 'pending') {
             startPickupCountdownTimer();
-          } else {
-            stopTimer();
           }
         }
       } else {
         sessionId.value = "";
         passengerDetails.value = GetPassengerCoolieModel();
-        stopTimer();
       }
     } catch (e) {
       log("Failed to load Passenger: ${e.toString()}");
@@ -269,10 +272,10 @@ class HomeCtrl extends GetxController {
     }
   }
 
-  Future<void> bookingOPTVerify(String? bookingId) async {
+  Future<bool> bookingOPTVerify(String? bookingId) async {
     if (bookingId == null) {
       errorToast("Booking ID not found!");
-      return;
+      return false;
     }
     try {
       isLoading.value = true;
@@ -282,9 +285,12 @@ class HomeCtrl extends GetxController {
         await initialize();
         Get.close(1);
         successToast("OTP Verified Successfully!");
+        return true;
       }
+      return false;
     } catch (e) {
       errorToast('Failed to verify OTP: ${e.toString()}');
+      return false;
     } finally {
       isLoading.value = false;
     }
@@ -294,7 +300,9 @@ class HomeCtrl extends GetxController {
     verificationCodeController.clear();
     verificationCodeController.clear();
     String bookingID = passengerDetails.value.booking?.id ?? "";
-    double originalWeight = double.tryParse(passengerDetails.value.booking?.pickupDetails?.weight.toString() ?? "0.0") ?? 0.0;
+    double originalWeight = passengerDetails.value.booking?.pickupDetails?.weightStatus == "verified"
+        ? double.tryParse(passengerDetails.value.booking?.pickupDetails?.weight.toString() ?? "0.0") ?? 0.0
+        : double.tryParse(passengerDetails.value.booking?.pickupDetails?.originalWeight.toString() ?? "0.0") ?? 0.0;
     bool allowWeightUpdate = passengerDetails.value.booking?.pickupDetails?.weightStatus != "verified" && notificationAction == "weight_disputed";
     bool isWeightConfirmed = notificationAction == "weight_confirmed";
     otpDialog(
@@ -330,17 +338,19 @@ class HomeCtrl extends GetxController {
     }
   }
 
-  Future<void> requestWeightUpdate(double newWeight, String? bookingId) async {
+  Future<bool> requestWeightUpdate(double newWeight, String? bookingId) async {
     if (bookingId == null) {
       errorToast("Booking ID not found!");
-      return;
+      return false;
     }
     try {
       isLoading.value = true;
       await authRepo.updateWeight({"bookingId": bookingId, "weight": newWeight});
       Get.close(1);
+      return true;
     } catch (e) {
       errorToast('Failed to verify OTP: ${e.toString()}');
+      return false;
     } finally {
       isLoading.value = false;
     }
@@ -368,12 +378,9 @@ class HomeCtrl extends GetxController {
         checkStatuss.value = response["currentStatus"];
         if (checkStatuss.value == 'pending') {
           startPickupCountdownTimer();
-        } else {
-          stopTimer();
         }
       } else {
         checkStatuss.value = "";
-        stopTimer();
       }
     } catch (e) {
       errorToast('Failed to load checkOut: ${e.toString()}');
