@@ -36,6 +36,10 @@ class BookingDetailsSheet extends StatelessWidget {
 
   String? get _completedAtRaw => booking?.timestamp?.completedAt?.toString() ?? rawBooking?['timestamp']?['completedAt']?.toString();
 
+  String get _pnr => booking?.pickupDetails?.pnrNumber?.toString() ?? rawBooking?['pickupDetails']?['pnrNumber']?.toString() ?? 'N/A';
+
+  String get _trainNumber => booking?.pickupDetails?.trainNumber?.toString() ?? rawBooking?['pickupDetails']?['trainNumber']?.toString() ?? 'N/A';
+
   String _formatDate(String? raw) {
     if (raw == null || raw.isEmpty) return 'N/A';
     try {
@@ -146,9 +150,11 @@ class BookingDetailsSheet extends StatelessWidget {
                   _SectionLabel(label: 'Journey', primary: primary),
                   _InfoCard(
                     rows: [
-                      _InfoRow(icon: Icons.trip_origin_rounded, label: 'Pickup station', value: 'Platform $_station', primary: primary),
+                      _InfoRow(icon: Icons.trip_origin_rounded, label: 'Pickup station', value: _station, primary: primary),
                       _InfoRow(icon: Icons.location_on_rounded, label: 'Destination', value: _dest, primary: primary),
                       _InfoRow(icon: Icons.train_rounded, label: 'Coach number', value: _coach, primary: primary),
+                      _InfoRow(icon: Icons.confirmation_number_rounded, label: 'PNR number', value: _pnr, primary: primary),
+                      _InfoRow(icon: Icons.directions_railway_rounded, label: 'Train number', value: _trainNumber, primary: primary),
                       _InfoRow(icon: Icons.monitor_weight_outlined, label: 'Luggage weight', value: '$_weight kg', primary: primary),
                     ],
                   ),

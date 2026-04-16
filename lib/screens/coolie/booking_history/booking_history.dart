@@ -242,6 +242,8 @@ class _BookingCard extends StatelessWidget {
     final weight = booking.pickupDetails?.weight?.toString();
     final fare = booking.fare?.baseFare?.toString() ?? '—';
     final bookedAt = controller.formatDate(booking.timestamp?.bookedAt?.toString() ?? '');
+    final pnrNumber = booking.pickupDetails?.pnrNumber?.toString() ?? 'N/A';
+    final trainNumber = booking.pickupDetails?.trainNumber?.toString() ?? 'N/A';
     return TweenAnimationBuilder<double>(
       duration: Duration(milliseconds: 220 + (index * 40).clamp(0, 360)),
       tween: Tween(begin: 0.0, end: 1.0),
@@ -306,13 +308,25 @@ class _BookingCard extends StatelessWidget {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              _RouteStop(label: 'PICKUP', value: coach != null ? 'Platform $station  ·  Coach $coach' : 'Platform $station', labelColor: const Color(0xFF16A34A)),
+                              _RouteStop(label: 'PICKUP', value: station, labelColor: const Color(0xFF16A34A)),
                               const SizedBox(height: 18),
                               _RouteStop(label: 'DESTINATION', value: dest, labelColor: const Color(0xFFDC2626)),
                             ],
                           ),
                         ),
                         if (coach != null) ...[const SizedBox(width: 10), _CoachTag(coach: coach)],
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _MetaChip(icon: Icons.confirmation_number_rounded, label: 'PNR', value: pnrNumber),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: _MetaChip(icon: Icons.directions_railway_rounded, label: 'TRAIN', value: trainNumber),
+                        ),
                       ],
                     ),
                     const SizedBox(height: 12),

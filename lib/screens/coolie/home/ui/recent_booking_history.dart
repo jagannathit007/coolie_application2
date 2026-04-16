@@ -136,6 +136,8 @@ class _RecentHistoryTile extends StatelessWidget {
     final dest = booking.destination?.toString() ?? 'N/A';
     final fare = booking.fare?.baseFare?.toString() ?? '—';
     final bookedAt = _formatDate(booking.timestamp?.bookedAt?.toString());
+    final pnrNumber = booking.pickupDetails?.pnrNumber?.toString() ?? 'N/A';
+    final trainNumber = booking.pickupDetails?.trainNumber?.toString() ?? 'N/A';
     return TweenAnimationBuilder<double>(
       duration: Duration(milliseconds: 180 + index * 50),
       tween: Tween(begin: 0.0, end: 1.0),
@@ -174,7 +176,7 @@ class _RecentHistoryTile extends StatelessWidget {
                             children: [
                               Flexible(
                                 child: Text(
-                                  'Pickup $station',
+                                  station,
                                   style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w600, color: const Color(0xFF1E293B)),
                                   overflow: TextOverflow.ellipsis,
                                 ),
@@ -182,7 +184,7 @@ class _RecentHistoryTile extends StatelessWidget {
                               Icon(Icons.arrow_forward_rounded, size: 11, color: const Color(0xFFCBD5E1)),
                               Flexible(
                                 child: Text(
-                                  'Drop $dest',
+                                  dest,
                                   style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w600, color: const Color(0xFF1E293B)),
                                   overflow: TextOverflow.ellipsis,
                                 ),
@@ -233,10 +235,22 @@ class _RecentHistoryTile extends StatelessWidget {
                   border: Border(top: BorderSide(color: Color(0xFFF1F5F9), width: 1)),
                 ),
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                child: Row(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     _FooterChip(icon: Icons.train_rounded, label: 'Coach $coachNo'),
-                    if (weight != null) ...[const SizedBox(width: 12), _FooterChip(icon: Icons.monitor_weight_outlined, label: '$weight kg')],
+                    SizedBox(height: 4),
+                    Container(height: 1, width: double.infinity, color: Color(0xFFF1F5F9)),
+                    SizedBox(height: 4),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        _FooterChip(icon: Icons.confirmation_number_rounded, label: 'PNR: $pnrNumber'),
+                        const SizedBox(width: 12),
+                        _FooterChip(icon: Icons.directions_railway_rounded, label: 'Train: $trainNumber'),
+                        if (weight != null) ...[const SizedBox(width: 12), _FooterChip(icon: Icons.monitor_weight_outlined, label: '$weight kg')],
+                      ],
+                    ),
                   ],
                 ),
               ),

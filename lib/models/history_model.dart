@@ -96,14 +96,36 @@ class Fare {
 class PickupDetails {
   String? station;
   String? weight;
+  String? originalWeight;
+  String? pnrNumber;
+  String? trainNumber;
   String? coachNumber;
   String? description;
+  String? weightStatus;
 
-  PickupDetails({this.station, this.weight, this.coachNumber, this.description});
+  PickupDetails({this.station, this.weight, this.originalWeight, this.pnrNumber, this.trainNumber, this.coachNumber, this.description, this.weightStatus});
 
-  factory PickupDetails.fromJson(Map<String, dynamic> json) => PickupDetails(station: json["station"], weight: json['weight'], coachNumber: json["coachNumber"], description: json["description"]);
+  factory PickupDetails.fromJson(Map<String, dynamic> json) => PickupDetails(
+    station: json["station"],
+    weight: json['weight'],
+    originalWeight: json['originalWeight'],
+    pnrNumber: json["pnrNumber"],
+    trainNumber: json["trainNumber"],
+    coachNumber: json["coachNumber"],
+    description: json["description"],
+    weightStatus: json['weightStatus'],
+  );
 
-  Map<String, dynamic> toJson() => {"station": station, "weight": weight, "coachNumber": coachNumber, "description": description};
+  Map<String, dynamic> toJson() => {
+    "station": station,
+    "weight": weight,
+    "originalWeight": originalWeight,
+    "pnrNumber": pnrNumber,
+    "trainNumber": trainNumber,
+    "coachNumber": coachNumber,
+    "description": description,
+    "weightStatus": weightStatus,
+  };
 }
 
 class Timestamp {
