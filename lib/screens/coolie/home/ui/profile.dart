@@ -2,6 +2,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:license_sahayak/api_constants/network_constants.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:license_sahayak/screens/coolie/home/ui/coolie_reviews.dart';
 import 'package:license_sahayak/services/helper.dart';
 import '../../../../utils/app_constants.dart';
 import '../home_ctrl.dart';
@@ -61,10 +62,17 @@ class Profile extends StatelessWidget {
 
   Widget _buildSliverAppBar(BuildContext context, HomeCtrl controller) {
     return SliverAppBar(
-      expandedHeight: 240,
+      expandedHeight: 220,
       pinned: true,
       backgroundColor: Constants.instance.primary,
       iconTheme: const IconThemeData(color: Colors.white),
+      actions: [
+        IconButton(
+          icon: const Icon(Icons.support_agent_rounded, color: Colors.white, size: 24),
+          onPressed: () => Get.to(() => CoolieReviews(user: controller.userProfile.value!)),
+        ),
+        SizedBox(width: 10),
+      ],
       flexibleSpace: FlexibleSpaceBar(background: _ProfileHeader(controller: controller)),
     );
   }

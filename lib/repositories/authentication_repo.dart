@@ -53,12 +53,12 @@ class AuthenticationRepo {
         final message = result.message.toString().toLowerCase();
         final hasFailureKeywords =
             message.contains('failed') ||
-            message.contains('error') ||
-            message.contains('below threshold') ||
-            message.contains('not match') ||
-            message.contains('unable') ||
-            message.contains('not your shift time') ||
-            message.contains('account is suspended');
+                message.contains('error') ||
+                message.contains('below threshold') ||
+                message.contains('not match') ||
+                message.contains('unable') ||
+                message.contains('not your shift time') ||
+                message.contains('account is suspended');
         bool successByScore = true;
         if (result.data != null && result.data is Map<String, dynamic>) {
           final dataMap = result.data as Map<String, dynamic>;
@@ -201,6 +201,21 @@ class AuthenticationRepo {
       return response.data;
     } catch (err) {
       errorToast('Error fetching Jobs: ${err.toString()}');
+      return null;
+    }
+  }
+
+
+  Future<Map<String, dynamic>?> getWorkerReviews({required String workerId, int page = 1, int limit = 10}) async {
+    try {
+      final response = await apiManager.post(NetworkConstants.getWorkerReviews, data: {"workerId": workerId, "page": page, "limit": limit});
+      if (response.status != 200 || response.data == null) {
+        warningToast(response.message);
+        return null;
+      }
+      return response.data as Map<String, dynamic>;
+    } catch (err) {
+      errorToast('Error fetching worker reviews: $err');
       return null;
     }
   }

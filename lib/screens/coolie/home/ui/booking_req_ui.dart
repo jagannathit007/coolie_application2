@@ -3,8 +3,10 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:license_sahayak/api_constants/network_constants.dart';
 import 'package:license_sahayak/models/get_passenger_coolie_model.dart';
 import 'package:license_sahayak/screens/coolie/home/home_ctrl.dart';
+import 'package:license_sahayak/services/helper.dart';
 import 'package:license_sahayak/utils/app_constants.dart';
 
 const _kWhite = Colors.white;
@@ -212,7 +214,7 @@ class _PassengerHighlight extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final name = booking.passengerId?.name?.toString() ?? 'N/A';
+    final name = booking.passengerId?.name.toString() ?? 'N/A';
     return Container(
       margin: const EdgeInsets.fromLTRB(16, 16, 16, 0),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -263,7 +265,9 @@ class _TripRouteSection extends StatelessWidget {
     final desc = booking.pickupDetails?.description?.toString() ?? '';
     final fare = booking.fare?.baseFare?.toString() ?? '—';
     final pnrNumber = booking.pickupDetails?.pnrNumber?.toString() ?? 'N/A';
+    final utsNumber = booking.pickupDetails?.utsNumber?.toString() ?? 'N/A';
     final trainNumber = booking.pickupDetails?.trainNumber?.toString() ?? 'N/A';
+    final ticketType = booking.pickupDetails?.ticketType?.toString() ?? 'N/A';
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 14, 16, 0),
       child: Column(
@@ -298,11 +302,11 @@ class _TripRouteSection extends StatelessWidget {
           Row(
             children: [
               Expanded(
-                child: _MetaChip(icon: Icons.confirmation_number_rounded, label: 'PNR', value: pnrNumber),
+                child: _MetaChip(icon: Icons.confirmation_number_rounded, label: ticketType == 'reserved' ? 'PNR' : 'UTS', value: ticketType == 'reserved' ? pnrNumber : utsNumber),
               ),
               const SizedBox(width: 8),
               Expanded(
-                child: _MetaChip(icon: Icons.directions_railway_rounded, label: 'TRAIN', value: trainNumber),
+                child: _MetaChip(icon: Icons.directions_railway_rounded, label: 'TRAIN', value: "$trainNumber (${ticketType.capitalizeFirst})"),
               ),
             ],
           ),
@@ -315,7 +319,7 @@ class _TripRouteSection extends StatelessWidget {
                 ),
               if (weight != null) const SizedBox(width: 8),
               Expanded(
-                child: _MetaChip(icon: Icons.currency_rupee_rounded, label: 'FARE', value: "₹$fare"),
+                child: _MetaChip(icon: Icons.currency_rupee_rounded, label: 'FARE', value: fare),
               ),
             ],
           ),
@@ -340,7 +344,10 @@ class _ActiveRouteSection extends StatelessWidget {
     final weight = booking.pickupDetails?.weightStatus == "verified" ? booking.pickupDetails?.weight?.toString() : booking.pickupDetails?.originalWeight?.toString();
     final desc = booking.pickupDetails?.description?.toString() ?? '';
     final pnrNumber = booking.pickupDetails?.pnrNumber?.toString() ?? 'N/A';
+    final utsNumber = booking.pickupDetails?.utsNumber?.toString() ?? 'N/A';
     final trainNumber = booking.pickupDetails?.trainNumber?.toString() ?? 'N/A';
+    final ticketType = booking.pickupDetails?.ticketType?.toString() ?? 'N/A';
+    final fare = booking.fare?.baseFare?.toString() ?? '—';
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
       child: Column(
@@ -361,7 +368,7 @@ class _ActiveRouteSection extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _RouteStop(label: 'PICKUP', value: 'Platform $station', labelColor: const Color(0xFF16A34A)),
+                      _RouteStop(label: 'PICKUP', value: station, labelColor: const Color(0xFF16A34A)),
                       const SizedBox(height: 20),
                       _RouteStop(label: 'DESTINATION', value: dest, labelColor: const Color(0xFFDC2626)),
                     ],
@@ -375,11 +382,11 @@ class _ActiveRouteSection extends StatelessWidget {
           Row(
             children: [
               Expanded(
-                child: _MetaChip(icon: Icons.confirmation_number_rounded, label: 'PNR', value: pnrNumber),
+                child: _MetaChip(icon: Icons.confirmation_number_rounded, label: ticketType == 'reserved' ? 'PNR' : 'UTS', value: ticketType == 'reserved' ? pnrNumber : utsNumber),
               ),
               const SizedBox(width: 8),
               Expanded(
-                child: _MetaChip(icon: Icons.directions_railway_rounded, label: 'TRAIN', value: trainNumber),
+                child: _MetaChip(icon: Icons.directions_railway_rounded, label: 'TRAIN', value: "$trainNumber (${ticketType.capitalizeFirst})"),
               ),
             ],
           ),
@@ -392,11 +399,92 @@ class _ActiveRouteSection extends StatelessWidget {
                 ),
               if (weight != null) const SizedBox(width: 8),
               Expanded(
-                child: _MetaChip(icon: Icons.train_rounded, label: 'STATION', value: station),
+                child: _MetaChip(icon: Icons.currency_rupee_rounded, label: 'FARE', value: fare),
               ),
             ],
           ),
           if (desc.isNotEmpty && desc != 'N/A') ...[const SizedBox(height: 10), _NoteRow(note: desc, primary: primary)],
+          if (booking.passengerId != null) ...[_buildDivider(), _buildCoolieSection(booking.passengerId!)],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDivider() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 14),
+      child: Row(
+        children: List.generate(50, (i) => Expanded(child: Container(height: 1, color: i.isEven ? const Color(0xFFE2E8F0) : Colors.transparent))),
+      ),
+    );
+  }
+
+  Widget _buildCoolieSection(PassengerId passenger) {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF8FAFC),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFEDF2F7)),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 48,
+            height: 48,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: Colors.white,
+              border: Border.all(color: Colors.white, width: 1.6),
+              boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.15), blurRadius: 20, offset: const Offset(0, 8))],
+            ),
+            child: ClipOval(
+              child: passenger.image.isNotEmpty
+                  ? Image.network(
+                      NetworkConstants.baseUrl + passenger.image.toString(),
+                      fit: BoxFit.cover,
+                      loadingBuilder: (_, child, progress) => progress == null ? child : _AvatarFallback(),
+                      errorBuilder: (_, _, _) => _AvatarFallback(),
+                    )
+                  : Center(
+                      child: Text(
+                        passenger.name.isNotEmpty ? passenger.name[0].toUpperCase() : 'U',
+                        style: GoogleFonts.poppins(fontSize: 32, fontWeight: FontWeight.w700, color: Constants.instance.primary),
+                      ),
+                    ),
+            ),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  "Connected Passenger",
+                  style: GoogleFonts.poppins(fontSize: 10, color: const Color(0xFF94A3B8), fontWeight: FontWeight.w500),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  passenger.name.toString().capitalizeFirst.toString(),
+                  style: GoogleFonts.poppins(fontSize: 15, fontWeight: FontWeight.w700, color: const Color(0xFF1A202C)),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 10),
+          GestureDetector(
+            onTap: () => helper.makePhoneCall(passenger.mobileNo),
+            child: Container(
+              width: 32,
+              height: 32,
+              decoration: BoxDecoration(
+                color: const Color(0xFF16A34A),
+                borderRadius: BorderRadius.circular(10),
+                boxShadow: [BoxShadow(color: const Color(0xFF16A34A).withOpacity(0.3), blurRadius: 4, offset: const Offset(0, 3))],
+              ),
+              child: const Icon(Icons.phone_rounded, color: Colors.white, size: 18),
+            ),
+          ),
         ],
       ),
     );
@@ -511,15 +599,19 @@ class _MetaChip extends StatelessWidget {
         children: [
           Icon(icon, size: 14, color: _kSlate400),
           const SizedBox(width: 7),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(label, style: GoogleFonts.poppins(fontSize: 9, color: _kSlate400, letterSpacing: 0.6)),
-              Text(
-                value,
-                style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w600, color: _kSlate800),
-              ),
-            ],
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(label, style: GoogleFonts.poppins(fontSize: 9, color: _kSlate400, letterSpacing: 0.6)),
+                Text(
+                  value,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w600, color: const Color(0xFF1E293B)),
+                ),
+              ],
+            ),
           ),
         ],
       ),
@@ -951,6 +1043,16 @@ class _ActiveCTAButton extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+class _AvatarFallback extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      color: const Color(0xFFC60000),
+      child: const Icon(Icons.person_rounded, color: Colors.white, size: 42),
     );
   }
 }

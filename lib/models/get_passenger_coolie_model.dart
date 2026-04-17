@@ -108,15 +108,17 @@ class Fare {
 }
 
 class PassengerId {
-  String? id;
-  String? name;
-  String? mobileNo;
+  final String name;
+  final String mobileNo;
+  final String image;
 
-  PassengerId({this.id, this.name, this.mobileNo});
+  PassengerId({required this.name, required this.mobileNo, required this.image});
 
-  factory PassengerId.fromJson(Map<String, dynamic> json) => PassengerId(id: json["_id"], name: json["name"], mobileNo: json["mobileNo"]);
+  factory PassengerId.fromJson(Map<String, dynamic> json) {
+    return PassengerId(name: json['name']?.toString() ?? 'Unknown Coolie', mobileNo: json['mobileNo']?.toString() ?? '', image: json['image']?.toString() ?? '');
+  }
 
-  Map<String, dynamic> toJson() => {"_id": id, "name": name, "mobileNo": mobileNo};
+  Map<String, dynamic> toJson() => {'name': name, 'mobileNo': mobileNo, 'image': image};
 }
 
 class PickupDetails {
@@ -124,19 +126,23 @@ class PickupDetails {
   String? weight;
   String? originalWeight;
   String? pnrNumber;
+  String? utsNumber;
+  String? ticketType;
   String? trainNumber;
   String? coachNumber;
   String? description;
   String? weightStatus;
 
-  PickupDetails({this.station, this.weight, this.originalWeight, this.pnrNumber, this.trainNumber, this.coachNumber, this.description, this.weightStatus});
+  PickupDetails({this.station, this.weight, this.originalWeight, this.pnrNumber, this.utsNumber, this.trainNumber, this.ticketType, this.coachNumber, this.description, this.weightStatus});
 
   factory PickupDetails.fromJson(Map<String, dynamic> json) => PickupDetails(
     station: json["station"],
     weight: json['weight'],
     originalWeight: json['originalWeight'],
     pnrNumber: json["pnrNumber"],
+    utsNumber: json["utsNumber"],
     trainNumber: json["trainNumber"],
+    ticketType: json["ticketType"],
     coachNumber: json["coachNumber"],
     description: json["description"],
     weightStatus: json['weightStatus'],
@@ -147,7 +153,9 @@ class PickupDetails {
     "weight": weight,
     "originalWeight": originalWeight,
     "pnrNumber": pnrNumber,
+    "utsNumber": utsNumber,
     "trainNumber": trainNumber,
+    "ticketType": ticketType,
     "coachNumber": coachNumber,
     "description": description,
     "weightStatus": weightStatus,
@@ -156,15 +164,23 @@ class PickupDetails {
 
 class Timestamp {
   DateTime? bookedAt;
-  dynamic acceptedAt;
-  dynamic pickupTime;
-  dynamic completedAt;
+  DateTime? acceptedAt;
+  DateTime? pickupTime;
+  DateTime? completedAt;
 
   Timestamp({this.bookedAt, this.acceptedAt, this.pickupTime, this.completedAt});
 
-  factory Timestamp.fromJson(Map<String, dynamic> json) {
-    return Timestamp(bookedAt: DateTime.parse(json["bookedAt"]), acceptedAt: json["acceptedAt"], pickupTime: json["pickupTime"], completedAt: json["completedAt"]);
-  }
+  factory Timestamp.fromJson(Map<String, dynamic> json) => Timestamp(
+    bookedAt: DateTime.tryParse(json["bookedAt"].toString()),
+    acceptedAt: DateTime.tryParse(json["acceptedAt"].toString()),
+    pickupTime: DateTime.tryParse(json["pickupTime"].toString()),
+    completedAt: DateTime.tryParse(json["completedAt"].toString()),
+  );
 
-  Map<String, dynamic> toJson() => {"bookedAt": bookedAt?.toIso8601String(), "acceptedAt": acceptedAt, "pickupTime": pickupTime, "completedAt": completedAt};
+  Map<String, dynamic> toJson() => {
+    "bookedAt": bookedAt?.toIso8601String(),
+    "acceptedAt": acceptedAt?.toIso8601String(),
+    "pickupTime": pickupTime?.toIso8601String(),
+    "completedAt": completedAt?.toIso8601String(),
+  };
 }

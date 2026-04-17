@@ -1,16 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
-import 'package:license_sahayak/models/history_model.dart';
+import 'package:license_sahayak/models/get_passenger_coolie_model.dart';
 import 'package:license_sahayak/utils/app_constants.dart';
 
 class BookingDetailsSheet extends StatelessWidget {
-  final GetAllBookings? booking;
+  final Booking? booking;
   final Map<String, dynamic>? rawBooking;
 
   const BookingDetailsSheet._({this.booking, this.rawBooking}) : assert(booking != null || rawBooking != null, 'Provide either booking or rawBooking');
 
-  static void show(BuildContext context, {GetAllBookings? booking, Map<String, dynamic>? rawBooking}) {
+  static void show(BuildContext context, {Booking? booking, Map<String, dynamic>? rawBooking}) {
     assert(booking != null || rawBooking != null, 'Provide either booking or rawBooking');
     showModalBottomSheet(
       context: context,
@@ -38,7 +39,11 @@ class BookingDetailsSheet extends StatelessWidget {
 
   String get _pnr => booking?.pickupDetails?.pnrNumber?.toString() ?? rawBooking?['pickupDetails']?['pnrNumber']?.toString() ?? 'N/A';
 
+  String get _uts => booking?.pickupDetails?.utsNumber?.toString() ?? rawBooking?['pickupDetails']?['utsNumber']?.toString() ?? 'N/A';
+
   String get _trainNumber => booking?.pickupDetails?.trainNumber?.toString() ?? rawBooking?['pickupDetails']?['trainNumber']?.toString() ?? 'N/A';
+
+  String get _ticketType => booking?.pickupDetails?.ticketType?.toString() ?? rawBooking?['pickupDetails']?['ticketType']?.toString() ?? 'N/A';
 
   String _formatDate(String? raw) {
     if (raw == null || raw.isEmpty) return 'N/A';
@@ -153,7 +158,8 @@ class BookingDetailsSheet extends StatelessWidget {
                       _InfoRow(icon: Icons.trip_origin_rounded, label: 'Pickup station', value: _station, primary: primary),
                       _InfoRow(icon: Icons.location_on_rounded, label: 'Destination', value: _dest, primary: primary),
                       _InfoRow(icon: Icons.train_rounded, label: 'Coach number', value: _coach, primary: primary),
-                      _InfoRow(icon: Icons.confirmation_number_rounded, label: 'PNR number', value: _pnr, primary: primary),
+                      _InfoRow(icon: Icons.confirmation_number_rounded, label: '${_ticketType == 'reserved' ? 'PNR' : 'UTS'} number', value: _ticketType == 'reserved' ? _pnr : _uts, primary: primary),
+                      _InfoRow(icon: Icons.confirmation_number_rounded, label: 'Ticket type', value: _ticketType.capitalizeFirst.toString(), primary: primary),
                       _InfoRow(icon: Icons.directions_railway_rounded, label: 'Train number', value: _trainNumber, primary: primary),
                       _InfoRow(icon: Icons.monitor_weight_outlined, label: 'Luggage weight', value: '$_weight kg', primary: primary),
                     ],
@@ -183,7 +189,7 @@ class BookingDetailsSheet extends StatelessWidget {
                                   children: [
                                     TextSpan(
                                       text: '₹',
-                                      style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w700, color: const Color(0xFF1E293B)),
+                                      style: GoogleFonts.poppins(fontSize: 28, fontWeight: FontWeight.w700, color: const Color(0xFF1E293B)),
                                     ),
                                     TextSpan(
                                       text: _fare,

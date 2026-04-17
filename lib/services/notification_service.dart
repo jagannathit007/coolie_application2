@@ -67,14 +67,18 @@ class NotificationService {
 
   Future<String?> getToken() async {
     try {
-      await FirebaseMessaging.instance.deleteToken();
-      if (Platform.isIOS) {
-        String? fcmToken = await FirebaseMessaging.instance.getAPNSToken();
-        return fcmToken;
-      } else {
-        String? fcmToken = await FirebaseMessaging.instance.getToken();
-        return fcmToken;
+      if (Platform.isAndroid) {
+        final status = await Permission.notification.status;
+        if (!status.isGranted) {
+          await Permission.notification.request();
+        }
       }
+      String? token = await FirebaseMessaging.instance.getToken();
+      if (token == null || token.isEmpty) {
+        await Future.delayed(const Duration(seconds: 1));
+        token = await FirebaseMessaging.instance.getToken();
+      }
+      return token;
     } catch (err) {
       return null;
     }

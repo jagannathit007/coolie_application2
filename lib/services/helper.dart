@@ -1,3 +1,4 @@
+import 'dart:developer';
 import 'dart:io';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -8,6 +9,15 @@ class Helper {
       await launchUrl(Uri.parse(val));
     } else {
       throw 'Could not launch $val';
+    }
+  }
+
+  void makePhoneCall(String phoneNumber) async {
+    final Uri launchUri = Uri(scheme: 'tel', path: phoneNumber);
+    try {
+      await launchUrl(launchUri);
+    } catch (err) {
+      log("makePhoneCall Error: $err");
     }
   }
 

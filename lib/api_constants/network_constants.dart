@@ -1,5 +1,6 @@
 class NetworkConstants {
   static const String baseUrl = 'https://coolie.itfuturz.in/';
+
   // static const String baseUrl = 'https://nxlt0nhn-3181.inc1.devtunnels.ms/';
   // static const String baseUrl = 'https://965rz0z3-3181.inc1.devtunnels.ms/';
   static const int sendTimeout = 30000;
@@ -19,6 +20,7 @@ class NetworkConstants {
   static const String updateWeight = 'api/users/updateWeight';
   static const String currentBookingStatus = 'api/users/currentBookingStatus';
   static const String todayCompletedJobs = 'api/users/todayCompletedJobs';
+  static const String getWorkerReviews = '/api/users/getWorkerReviews';
   static const String allCompletedBookings = 'api/users/AllcompletedBookings';
   static const String logoutCollie = 'api/users/logout';
 

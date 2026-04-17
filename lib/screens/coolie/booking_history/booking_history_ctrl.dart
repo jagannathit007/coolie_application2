@@ -1,12 +1,12 @@
+import 'package:license_sahayak/models/get_passenger_coolie_model.dart';
 import 'package:license_sahayak/repositories/authentication_repo.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
-import '../../../models/history_model.dart';
 
 class BookingHistoryCtrl extends GetxController {
   final AuthenticationRepo authenticationRepo = AuthenticationRepo();
-  final bookings = <GetAllBookings>[].obs;
+  final bookings = <Booking>[].obs;
   final isLoading = false.obs, hasMore = true.obs;
   final page = 1.obs;
   final limit = 10;
@@ -54,7 +54,7 @@ class BookingHistoryCtrl extends GetxController {
         final Map<String, dynamic> bookingsData = res['bookings'];
         final List<dynamic> docs = bookingsData['docs'];
         final bool hasNextPage = bookingsData['hasNextPage'] ?? false;
-        final newBookings = docs.map((e) => GetAllBookings.fromJson(e)).toList();
+        final newBookings = docs.map((e) => Booking.fromJson(e)).toList();
         bookings.addAll(newBookings);
         hasMore.value = hasNextPage;
         if (hasNextPage) {

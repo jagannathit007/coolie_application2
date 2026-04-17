@@ -17,6 +17,7 @@ class HomeHeaderUI extends StatelessWidget {
     return Obx(() {
       final name = controller.userProfile.value?.name ?? 'Coolie';
       final imageUrl = controller.userProfile.value?.image?.url ?? "";
+      final buckleNumber = controller.userProfile.value?.buckleNumber ?? "---";
       final checkedIn = controller.isCheckedIn.value;
       final status = controller.checkStatuss.value.toLowerCase();
       return Container(
@@ -89,7 +90,30 @@ class HomeHeaderUI extends StatelessWidget {
                   ],
                 ),
                 const SizedBox(height: 18),
-                _StatusChip(isCheckedIn: checkedIn, status: status),
+                Row(
+                  spacing: 10.0,
+                  children: [
+                    _StatusChip(isCheckedIn: checkedIn, status: status),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.15),
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(color: Colors.white.withOpacity(0.20)),
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.confirmation_number, size: 16, color: Colors.white),
+                          const SizedBox(width: 8),
+                          Text(
+                            buckleNumber.toUpperCase(),
+                            style: GoogleFonts.poppins(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w500),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
                 const SizedBox(height: 14),
                 _StatsRow(controller: controller),
               ],

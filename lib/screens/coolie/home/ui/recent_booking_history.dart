@@ -2,8 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
-import 'package:license_sahayak/models/history_model.dart';
-import 'package:license_sahayak/screens/coolie/booking_history/booking_history.dart';
+import 'package:license_sahayak/models/get_passenger_coolie_model.dart';
 import 'package:license_sahayak/screens/coolie/home/home_ctrl.dart';
 import 'package:license_sahayak/screens/coolie/home/ui/booking_details.dart';
 
@@ -18,7 +17,7 @@ class RecentBookingHistory extends StatefulWidget {
 
 class _RecentBookingHistoryState extends State<RecentBookingHistory> {
   bool _isLoading = false;
-  List<GetAllBookings> _recent = [];
+  List<Booking> _recent = [];
 
   @override
   void initState() {
@@ -33,7 +32,7 @@ class _RecentBookingHistoryState extends State<RecentBookingHistory> {
       if (res != null) {
         final Map<String, dynamic> bookingsData = res['bookings'];
         final List<dynamic> docs = bookingsData['docs'];
-        final newBookings = docs.map((e) => GetAllBookings.fromJson(e)).toList();
+        final newBookings = docs.map((e) => Booking.fromJson(e)).toList();
         setState(() => _recent = newBookings);
       }
     } catch (_) {}
@@ -50,54 +49,14 @@ class _RecentBookingHistoryState extends State<RecentBookingHistory> {
           style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w600, color: const Color(0xFF64748B), letterSpacing: 0.6),
         ),
         const SizedBox(height: 10),
-        if (_isLoading)
-          const _HistoryShimmer()
-        else if (_recent.isEmpty)
-          const _EmptyHistory()
-        else
-          Column(
-            children: [
-              ..._recent.asMap().entries.map((e) => _RecentHistoryTile(booking: e.value, index: e.key)),
-              const SizedBox(height: 4),
-              _ViewAllButton(),
-            ],
-          ),
+        if (_isLoading) const _HistoryShimmer() else if (_recent.isEmpty) const _EmptyHistory() else ..._recent.asMap().entries.map((e) => _RecentHistoryTile(booking: e.value, index: e.key)),
       ],
     );
   }
 }
 
-class _ViewAllButton extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () => Get.to(() => const BookingHistory()),
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.symmetric(vertical: 13),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: const Color(0xFFE2E8F0), width: 0.8),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(Icons.access_time_rounded, size: 14, color: Color(0xFF94A3B8)),
-            const SizedBox(width: 7),
-            Text(
-              'View full history',
-              style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w500, color: const Color(0xFF64748B)),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
 class _RecentHistoryTile extends StatelessWidget {
-  final GetAllBookings booking;
+  final Booking booking;
   final int index;
 
   const _RecentHistoryTile({required this.booking, required this.index});
@@ -137,7 +96,9 @@ class _RecentHistoryTile extends StatelessWidget {
     final fare = booking.fare?.baseFare?.toString() ?? '—';
     final bookedAt = _formatDate(booking.timestamp?.bookedAt?.toString());
     final pnrNumber = booking.pickupDetails?.pnrNumber?.toString() ?? 'N/A';
+    final utsNumber = booking.pickupDetails?.utsNumber?.toString() ?? 'N/A';
     final trainNumber = booking.pickupDetails?.trainNumber?.toString() ?? 'N/A';
+    final ticketType = booking.pickupDetails?.ticketType?.toString() ?? 'N/A';
     return TweenAnimationBuilder<double>(
       duration: Duration(milliseconds: 180 + index * 50),
       tween: Tween(begin: 0.0, end: 1.0),
@@ -238,17 +199,23 @@ class _RecentHistoryTile extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _FooterChip(icon: Icons.train_rounded, label: 'Coach $coachNo'),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        _FooterChip(icon: Icons.confirmation_number_rounded, label: '${ticketType == 'reserved' ? 'PNR' : 'UTS'}: ${ticketType == 'reserved' ? pnrNumber : utsNumber}'),
+                        const SizedBox(width: 12),
+                        _FooterChip(icon: Icons.directions_railway_rounded, label: 'Train: $trainNumber'),
+                        if (weight != null) ...[const SizedBox(width: 12), _FooterChip(icon: Icons.monitor_weight_outlined, label: '$weight kg')],
+                      ],
+                    ),
                     SizedBox(height: 4),
                     Container(height: 1, width: double.infinity, color: Color(0xFFF1F5F9)),
                     SizedBox(height: 4),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        _FooterChip(icon: Icons.confirmation_number_rounded, label: 'PNR: $pnrNumber'),
-                        const SizedBox(width: 12),
-                        _FooterChip(icon: Icons.directions_railway_rounded, label: 'Train: $trainNumber'),
-                        if (weight != null) ...[const SizedBox(width: 12), _FooterChip(icon: Icons.monitor_weight_outlined, label: '$weight kg')],
+                        _FooterChip(icon: Icons.train_rounded, label: 'Coach $coachNo'),
+                        _FooterChip(icon: Icons.directions_railway_rounded, label: 'Ticket Type: ${ticketType.capitalizeFirst}'),
                       ],
                     ),
                   ],

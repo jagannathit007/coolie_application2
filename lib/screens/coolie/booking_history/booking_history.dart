@@ -1,4 +1,4 @@
-import 'package:license_sahayak/models/history_model.dart';
+import 'package:license_sahayak/models/get_passenger_coolie_model.dart';
 import 'package:license_sahayak/screens/coolie/home/ui/booking_details.dart';
 import 'package:license_sahayak/utils/app_constants.dart';
 import 'package:flutter/material.dart';
@@ -191,7 +191,7 @@ class _StatCard extends StatelessWidget {
 }
 
 class _BookingCard extends StatelessWidget {
-  final GetAllBookings booking;
+  final Booking booking;
   final BookingHistoryCtrl controller;
   final int index;
 
@@ -243,7 +243,9 @@ class _BookingCard extends StatelessWidget {
     final fare = booking.fare?.baseFare?.toString() ?? '—';
     final bookedAt = controller.formatDate(booking.timestamp?.bookedAt?.toString() ?? '');
     final pnrNumber = booking.pickupDetails?.pnrNumber?.toString() ?? 'N/A';
+    final utsNumber = booking.pickupDetails?.utsNumber?.toString() ?? 'N/A';
     final trainNumber = booking.pickupDetails?.trainNumber?.toString() ?? 'N/A';
+    final ticketType = booking.pickupDetails?.ticketType?.toString() ?? 'N/A';
     return TweenAnimationBuilder<double>(
       duration: Duration(milliseconds: 220 + (index * 40).clamp(0, 360)),
       tween: Tween(begin: 0.0, end: 1.0),
@@ -321,11 +323,11 @@ class _BookingCard extends StatelessWidget {
                     Row(
                       children: [
                         Expanded(
-                          child: _MetaChip(icon: Icons.confirmation_number_rounded, label: 'PNR', value: pnrNumber),
+                          child: _MetaChip(icon: Icons.confirmation_number_rounded, label: ticketType == 'reserved' ? 'PNR' : 'UTS', value: ticketType == 'reserved' ? pnrNumber : utsNumber),
                         ),
                         const SizedBox(width: 8),
                         Expanded(
-                          child: _MetaChip(icon: Icons.directions_railway_rounded, label: 'TRAIN', value: trainNumber),
+                          child: _MetaChip(icon: Icons.directions_railway_rounded, label: 'TRAIN', value: "$trainNumber (${ticketType.capitalizeFirst})"),
                         ),
                       ],
                     ),
@@ -520,7 +522,7 @@ class _CoachTag extends StatelessWidget {
           const Icon(Icons.train_rounded, size: 13, color: Color(0xFF94A3B8)),
           const SizedBox(width: 4),
           Text(
-            coach,
+            coach.capitalizeFirst.toString(),
             style: GoogleFonts.poppins(fontSize: 11, fontWeight: FontWeight.w600, color: const Color(0xFF64748B)),
           ),
         ],
@@ -545,15 +547,19 @@ class _MetaChip extends StatelessWidget {
         children: [
           Icon(icon, size: 14, color: const Color(0xFF94A3B8)),
           const SizedBox(width: 7),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(label, style: GoogleFonts.poppins(fontSize: 9, color: const Color(0xFF94A3B8), letterSpacing: 0.6)),
-              Text(
-                value,
-                style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w600, color: const Color(0xFF1E293B)),
-              ),
-            ],
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(label, style: GoogleFonts.poppins(fontSize: 9, color: const Color(0xFF94A3B8), letterSpacing: 0.6)),
+                Text(
+                  value,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w600, color: const Color(0xFF1E293B)),
+                ),
+              ],
+            ),
           ),
         ],
       ),
