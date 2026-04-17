@@ -9,7 +9,7 @@ class PunchReportData {
     return PunchReportData(
       summary: PunchReportSummary.fromJson(json['summary'] ?? {}),
       filters: PunchReportFilters.fromJson(json['filters'] ?? {}),
-      report: PunchReport.fromJson(json['report'] ?? {}),
+      report: PunchReport.fromJson(json['attendance'] ?? {}),
     );
   }
 }
@@ -139,11 +139,11 @@ class PunchReportCollie {
 
   factory PunchReportCollie.fromJson(Map<String, dynamic> json) {
     return PunchReportCollie(
-      collieId: json['collieId'] ?? '',
-      collieName: json['collieName'] ?? 'Unknown',
-      collieMobile: json['collieMobile'] ?? '',
-      buckleNumber: json['buckleNumber'] ?? '',
-      collieImage: json['collieImage'],
+      collieId: json['workerId'] ?? '',
+      collieName: json['workerName'] ?? 'Unknown',
+      collieMobile: json['workerMobile'] ?? '',
+      buckleNumber: json['buckleNumber'] ?? '---',
+      collieImage: json['workerImage'],
       stationId: json['stationId'] ?? '',
       stationName: json['stationName'] ?? '',
       stationCode: json['stationCode'] ?? '',

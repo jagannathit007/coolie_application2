@@ -98,7 +98,7 @@ class AuthenticationRepo {
     try {
       final response = await apiManager.post(NetworkConstants.getNextBooking, data: {});
       if (response.status != 200) {
-        warningToast(response.data?.message ?? 'Failed to fetch profile');
+        warningToast(response.message);
         return null;
       }
       return response.data;
@@ -125,7 +125,7 @@ class AuthenticationRepo {
     try {
       final response = await apiManager.post(NetworkConstants.bookingAction, data: {"bookingId": bookingId, "sessionId": sessionId, "action": isAccept ? "accept" : "reject"});
       if (response.status != 200) {
-        warningToast(response.data?.message ?? 'Failed to fetch bookings');
+        warningToast(response.message);
         return null;
       }
       return response.data;
@@ -153,7 +153,7 @@ class AuthenticationRepo {
     try {
       final response = await apiManager.post(NetworkConstants.completeService, data: {"bookingId": bookingId});
       if (response.status != 200) {
-        warningToast(response.data?.message ?? 'Failed to fetch OTP');
+        warningToast(response.message);
         return null;
       }
       return response.data;
@@ -181,7 +181,7 @@ class AuthenticationRepo {
     try {
       final response = await apiManager.post(NetworkConstants.currentBookingStatus, data: {});
       if (response.status != 200) {
-        warningToast(response.data?.message ?? 'Failed to fetch OTP');
+        warningToast(response.message);
         return null;
       }
       return response.data;
@@ -195,7 +195,7 @@ class AuthenticationRepo {
     try {
       final response = await apiManager.post(NetworkConstants.todayCompletedJobs, data: {});
       if (response.status != 200) {
-        warningToast(response.data?.message ?? 'Failed to fetch Jobs');
+        warningToast(response.message);
         return null;
       }
       return response.data;
@@ -227,7 +227,7 @@ class AuthenticationRepo {
         data: {"page": page, "limit": limit, if (startDate.isNotEmpty) "startDate": startDate, if (endDate.isNotEmpty) "endDate": endDate},
       );
       if (response.status != 200) {
-        warningToast(response.data?.message ?? 'Failed to fetch history');
+        warningToast(response.message);
         return null;
       }
       return response.data;
@@ -241,7 +241,7 @@ class AuthenticationRepo {
     try {
       final response = await apiManager.post(NetworkConstants.updateWeight, data: data);
       if (response.status != 200) {
-        warningToast(response.data?.message ?? 'Failed to upadte Weight');
+        warningToast(response.message);
         return null;
       }
       return true;

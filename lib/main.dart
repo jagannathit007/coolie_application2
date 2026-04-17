@@ -4,7 +4,6 @@ import 'package:license_sahayak/firebase_options.dart';
 import 'package:license_sahayak/repositories/authentication_repo.dart';
 import 'package:license_sahayak/routes/route_name.dart';
 import 'package:license_sahayak/routes/route_pages.dart';
-import 'package:license_sahayak/screens/coolie/attendance/attendance_ctrl.dart';
 import 'package:license_sahayak/screens/coolie/home/home_ctrl.dart';
 import 'package:license_sahayak/screens/no_internet.dart';
 import 'package:license_sahayak/services/app_storage.dart';
@@ -16,7 +15,6 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'screens/coolie/home/ui/login_rejected_dialog.dart';
 import 'utils/app_config.dart';
 import 'utils/theme_constants.dart';
 
@@ -90,31 +88,6 @@ void _handleNotificationClick(RemoteMessage message) async {
   }
   String? bookingId = message.data["_id"] ?? message.data["bookingId"];
   String? action = message.data["action"];
-  bool isLogin = action == "login_request" || action == "login_approved" || action == "login_rejected";
-  if (action == "login_rejected") {
-    await Future.delayed(const Duration(milliseconds: 500));
-    if (Get.context != null) {
-      String? reason = message.data["reason"] ?? message.data["message"];
-      LoginRejectedDialog.show(
-        Get.context!,
-        reason: reason,
-        onRefresh: () async {
-          if (Get.isRegistered<HomeCtrl>()) {
-            final homeCtrl = Get.find<HomeCtrl>();
-            await homeCtrl.fetchUserProfile();
-          }
-        },
-        onRetry: () async {
-          if (Get.isRegistered<HomeCtrl>()) {
-            final homeCtrl = Get.find<HomeCtrl>();
-            await homeCtrl.fetchUserProfile();
-            await homeCtrl.performCheckIn();
-          }
-        },
-      );
-    }
-    return;
-  }
   if (action == "cancelled_by_passenger") {
     await Future.delayed(const Duration(milliseconds: 500));
     if (Get.isRegistered<HomeCtrl>()) {
@@ -123,17 +96,7 @@ void _handleNotificationClick(RemoteMessage message) async {
     }
     return;
   }
-  if (isLogin == true) {
-    await Future.delayed(const Duration(milliseconds: 500));
-    if (Get.isRegistered<HomeCtrl>()) {
-      final homeCtrl = Get.find<HomeCtrl>();
-      await homeCtrl.fetchUserProfile();
-    }
-    if (Get.isRegistered<AttendanceCtrl>()) {
-      final homeCtrl = Get.find<AttendanceCtrl>();
-      homeCtrl.onTabChanged(0);
-    }
-  } else if (bookingId != null) {
+  if (bookingId != null) {
     await Future.delayed(const Duration(milliseconds: 500));
     if (action == "weight_confirmed" || action == "weight_disputed") {
       if (Get.isRegistered<HomeCtrl>()) {

@@ -31,10 +31,8 @@ class NetworkConstants {
   static const String getMukadamProfile = 'api/users/getMukadamProfile';
   static const String mukadamFaceLogin = 'api/users/mukadamFaceLogin';
   static const String mukadamJobOff = 'api/users/mukadamJobOff';
-  static const String mukadamAttendance = 'api/users/mukadamAttendance';
-  static const String approveCollieSession = 'api/users/approveCollieSession';
-  static const String rejectCollieSession = 'api/users/rejectCollieSession';
   static const String checkStationRadius = 'api/users/checkStationRadius';
+  static const String mukadamAddCollie = '/api/users/mukadamAddCollie';
   static const String mukadamLogout = 'api/users/mukadamLogout';
-  static const String colliePunchReport = '/api/admin/collie-punch-report';
+  static const String colliePunchReport = '/api/admin/collie-attendance';
 }

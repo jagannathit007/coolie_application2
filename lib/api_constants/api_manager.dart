@@ -18,64 +18,9 @@ class ApiManager {
     _dio.interceptors.add(_AuthInterceptor());
   }
 
-  Future<ResponseModel> get(String path, {Map<String, dynamic>? queryParameters, Map<String, dynamic>? headers}) async {
-    try {
-      final response = await _dio.get(
-        path,
-        queryParameters: queryParameters,
-        options: Options(headers: headers),
-      );
-      return ResponseModel.fromJson(response.data);
-    } on DioException catch (e) {
-      return _parseDioError(e);
-    }
-  }
-
   Future<ResponseModel> post(String path, {dynamic data, Map<String, dynamic>? queryParameters, Map<String, dynamic>? headers}) async {
     try {
       final response = await _dio.post(
-        path,
-        data: data,
-        queryParameters: queryParameters,
-        options: Options(headers: headers),
-      );
-      return ResponseModel.fromJson(response.data);
-    } on DioException catch (e) {
-      return _parseDioError(e);
-    }
-  }
-
-  Future<ResponseModel> put(String path, {dynamic data, Map<String, dynamic>? queryParameters, Map<String, dynamic>? headers}) async {
-    try {
-      final response = await _dio.put(
-        path,
-        data: data,
-        queryParameters: queryParameters,
-        options: Options(headers: headers),
-      );
-      return ResponseModel.fromJson(response.data);
-    } on DioException catch (e) {
-      return _parseDioError(e);
-    }
-  }
-
-  Future<ResponseModel> patch(String path, {dynamic data, Map<String, dynamic>? queryParameters, Map<String, dynamic>? headers}) async {
-    try {
-      final response = await _dio.patch(
-        path,
-        data: data,
-        queryParameters: queryParameters,
-        options: Options(headers: headers),
-      );
-      return ResponseModel.fromJson(response.data);
-    } on DioException catch (e) {
-      return _parseDioError(e);
-    }
-  }
-
-  Future<ResponseModel> delete(String path, {dynamic data, Map<String, dynamic>? queryParameters, Map<String, dynamic>? headers}) async {
-    try {
-      final response = await _dio.delete(
         path,
         data: data,
         queryParameters: queryParameters,

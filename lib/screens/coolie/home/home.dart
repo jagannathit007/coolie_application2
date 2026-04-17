@@ -95,18 +95,15 @@ class HomeScreen extends StatelessWidget {
                 ),
               ],
             ),
-            floatingActionButton: Obx(() {
-              if (!controller.isMukadam.value) return const SizedBox.shrink();
-              return FloatingActionButton.extended(
-                onPressed: () => Get.toNamed(RouteName.attendance),
-                backgroundColor: Constants.instance.primary,
-                icon: const Icon(Icons.fact_check_rounded, color: Colors.white),
-                label: Text(
-                  'Attendance',
-                  style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 14),
-                ),
-              );
-            }),
+            floatingActionButton: FloatingActionButton.extended(
+              onPressed: () => Get.toNamed(RouteName.attendance),
+              backgroundColor: Constants.instance.primary,
+              icon: const Icon(Icons.fact_check_rounded, color: Colors.white),
+              label: Text(
+                'Attendance',
+                style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 14),
+              ),
+            ),
           );
         },
       ),
