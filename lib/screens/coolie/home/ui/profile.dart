@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:license_sahayak/screens/coolie/home/ui/coolie_reviews.dart';
 import 'package:license_sahayak/screens/coolie/home/ui/feedback_sheet.dart';
-import 'package:license_sahayak/services/helper.dart';
 import '../home_ctrl.dart';
 
 class _DS {
@@ -40,13 +39,22 @@ class Profile extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _SectionLabel(label: 'Personal Information'),
+                      Obx(() {
+                        final profile = controller.userProfile.value;
+                        if (profile == null) return const SizedBox.shrink();
+                        return _StationCard(controller: controller);
+                      }),
+                      const SizedBox(height: 24),
+                      const _SectionLabel(label: 'Personal Information'),
                       const SizedBox(height: 12),
                       Obx(() {
                         final profile = controller.userProfile.value;
                         if (profile == null) {
                           return const Center(
-                            child: Padding(padding: EdgeInsets.all(40), child: CircularProgressIndicator()),
+                            child: Padding(
+                              padding: EdgeInsets.all(40),
+                              child: CircularProgressIndicator(color: _DS.primary),
+                            ),
                           );
                         }
                         return _ProfileCard(
@@ -59,10 +67,6 @@ class Profile extends StatelessWidget {
                           ],
                         );
                       }),
-                      const SizedBox(height: 28),
-                      _SectionLabel(label: 'Account'),
-                      const SizedBox(height: 12),
-                      _DeleteAccountTile(controller: controller),
                     ],
                   ),
                 ),
@@ -107,6 +111,266 @@ class Profile extends StatelessWidget {
       flexibleSpace: FlexibleSpaceBar(
         stretchModes: const [StretchMode.zoomBackground],
         background: _ProfileHeader(controller: controller),
+      ),
+    );
+  }
+}
+
+class _StationCard extends StatelessWidget {
+  final HomeCtrl controller;
+
+  const _StationCard({required this.controller});
+
+  @override
+  Widget build(BuildContext context) {
+    return Obx(() {
+      final isOnline = controller.isCheckedIn.value;
+      final completed = controller.completedToday.value;
+      final stationName = toTitleCase(controller.stationName.value);
+      final stationCode = controller.stationCode.value;
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const _SectionLabel(label: 'Current Station'),
+          const SizedBox(height: 12),
+          Container(
+            decoration: BoxDecoration(
+              color: _DS.surface,
+              borderRadius: BorderRadius.circular(_DS.radius),
+              border: Border.all(color: _DS.border, width: 1),
+            ),
+            child: Column(
+              children: [
+                _StationHeader(stationName: stationName, stationCode: stationCode, isOnline: isOnline),
+                const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 16),
+                  child: Divider(height: 1, color: Color(0xFFF1F5F9)),
+                ),
+                _StationStats(controller: controller, completed: completed),
+                const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 16),
+                  child: Divider(height: 1, color: Color(0xFFF1F5F9)),
+                ),
+                if (isOnline) _SessionRow(controller: controller),
+              ],
+            ),
+          ),
+        ],
+      );
+    });
+  }
+}
+
+class _StationHeader extends StatelessWidget {
+  final String stationName;
+  final String stationCode;
+  final bool isOnline;
+
+  const _StationHeader({required this.stationName, required this.stationCode, required this.isOnline});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: Row(
+        children: [
+          Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(color: _DS.primary, borderRadius: BorderRadius.circular(12)),
+            child: const Icon(Icons.train_rounded, color: Colors.white, size: 22),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(stationName, style: _DS.text(15, FontWeight.w600, _DS.labelPrimary)),
+                const SizedBox(height: 3),
+                Text('Code: $stationCode', style: _DS.text(12, FontWeight.w400, _DS.labelMuted)),
+              ],
+            ),
+          ),
+          _StatusPill(isOnline: isOnline),
+        ],
+      ),
+    );
+  }
+}
+
+class _StatusPill extends StatelessWidget {
+  final bool isOnline;
+
+  const _StatusPill({required this.isOnline});
+
+  @override
+  Widget build(BuildContext context) {
+    final color = isOnline ? const Color(0xFF16A34A) : const Color(0xFF94A3B8);
+    final bg = isOnline ? const Color(0xFFDCFCE7) : const Color(0xFFF1F5F9);
+    final label = isOnline ? 'Online' : 'Offline';
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: color.withOpacity(0.3), width: 0.8),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 6,
+            height: 6,
+            decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+          ),
+          const SizedBox(width: 5),
+          Text(label, style: _DS.text(11, FontWeight.w600, color)),
+        ],
+      ),
+    );
+  }
+}
+
+class _StationStats extends StatelessWidget {
+  final HomeCtrl controller;
+  final int completed;
+
+  const _StationStats({required this.controller, required this.completed});
+
+  @override
+  Widget build(BuildContext context) {
+    return Obx(() {
+      final passenger = controller.passengerDetails.value;
+      final accepted = passenger.booking != null ? 1 : 0;
+      final earnings = passenger.booking?.fare ?? 0;
+      return IntrinsicHeight(
+        child: Row(
+          children: [
+            _StatCell(value: '$completed', label: 'Completed', icon: Icons.check_circle_outline_rounded, iconColor: const Color(0xFF16A34A)),
+            const VerticalDivider(width: 1, color: Color(0xFFF1F5F9), thickness: 1),
+            _StatCell(value: '$accepted', label: 'Accepted', icon: Icons.handshake_outlined, iconColor: const Color(0xFF2563EB)),
+            const VerticalDivider(width: 1, color: Color(0xFFF1F5F9), thickness: 1),
+            _StatCell(value: '₹$earnings', label: 'Earnings', icon: Icons.currency_rupee_rounded, iconColor: const Color(0xFFD97706)),
+          ],
+        ),
+      );
+    });
+  }
+}
+
+class _StatCell extends StatelessWidget {
+  final String value;
+  final String label;
+  final IconData icon;
+  final Color iconColor;
+
+  const _StatCell({required this.value, required this.label, required this.icon, required this.iconColor});
+
+  @override
+  Widget build(BuildContext context) {
+    return Expanded(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 14),
+        child: Column(
+          children: [
+            Icon(icon, size: 18, color: iconColor),
+            const SizedBox(height: 6),
+            Text(value, style: _DS.text(16, FontWeight.w700, _DS.labelPrimary)),
+            const SizedBox(height: 2),
+            Text(label, style: _DS.text(10.5, FontWeight.w500, _DS.labelMuted)),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _SessionRow extends StatelessWidget {
+  final HomeCtrl controller;
+
+  const _SessionRow({required this.controller});
+
+  @override
+  Widget build(BuildContext context) {
+    return Obx(() {
+      final punchIn = DateTime.tryParse(controller.punchInTime.value) ?? DateTime.now();
+      String sessionLabel = 'Session active';
+      String durationLabel = '—';
+      final duration = DateTime.now().difference(punchIn);
+      final h = duration.inHours;
+      final m = duration.inMinutes.remainder(60);
+      durationLabel = h > 0 ? '${h}h ${m}m' : '${m}m';
+      final timeStr = '${punchIn.hour.toString().padLeft(2, '0')}:${punchIn.minute.toString().padLeft(2, '0')}';
+      sessionLabel = 'Active since $timeStr';
+      return Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 13),
+        child: Row(
+          children: [
+            _PulsingDot(),
+            const SizedBox(width: 10),
+            Expanded(child: Text(sessionLabel, style: _DS.text(12.5, FontWeight.w500, _DS.labelSecond))),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              decoration: BoxDecoration(color: _DS.primaryMuted, borderRadius: BorderRadius.circular(8)),
+              child: Text(durationLabel, style: _DS.text(12, FontWeight.w600, _DS.primary)),
+            ),
+          ],
+        ),
+      );
+    });
+  }
+}
+
+class _PulsingDot extends StatefulWidget {
+  @override
+  State<_PulsingDot> createState() => _PulsingDotState();
+}
+
+class _PulsingDotState extends State<_PulsingDot> with SingleTickerProviderStateMixin {
+  late AnimationController _ctrl;
+  late Animation<double> _scale;
+  late Animation<double> _opacity;
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrl = AnimationController(vsync: this, duration: const Duration(milliseconds: 1400))..repeat(reverse: true);
+    _scale = Tween<double>(begin: 1.0, end: 1.6).animate(CurvedAnimation(parent: _ctrl, curve: Curves.easeInOut));
+    _opacity = Tween<double>(begin: 0.5, end: 0.0).animate(CurvedAnimation(parent: _ctrl, curve: Curves.easeInOut));
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    const dotColor = Color(0xFF16A34A);
+    return SizedBox(
+      width: 16,
+      height: 16,
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          AnimatedBuilder(
+            animation: _ctrl,
+            builder: (_, _) => Transform.scale(
+              scale: _scale.value,
+              child: Container(
+                width: 10,
+                height: 10,
+                decoration: BoxDecoration(color: dotColor.withOpacity(_opacity.value), shape: BoxShape.circle),
+              ),
+            ),
+          ),
+          Container(
+            width: 8,
+            height: 8,
+            decoration: const BoxDecoration(color: dotColor, shape: BoxShape.circle),
+          ),
+        ],
       ),
     );
   }
@@ -283,91 +547,9 @@ class _ProfileItem {
   const _ProfileItem({required this.icon, required this.label, required this.value, this.isLast = false});
 }
 
-class _DeleteAccountTile extends StatelessWidget {
-  final HomeCtrl controller;
-
-  const _DeleteAccountTile({required this.controller});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: _DS.surface,
-        borderRadius: BorderRadius.circular(_DS.radius),
-        border: Border.all(color: _DS.border, width: 1),
-      ),
-      child: Material(
-        color: Colors.transparent,
-        borderRadius: BorderRadius.circular(_DS.radius),
-        child: InkWell(
-          borderRadius: BorderRadius.circular(_DS.radius),
-          onTap: () => deleteAccount(context),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-            child: Row(
-              children: [
-                Container(
-                  width: 40,
-                  height: 40,
-                  decoration: BoxDecoration(color: Theme.of(context).colorScheme.error.withOpacity(0.08), borderRadius: BorderRadius.circular(12)),
-                  child: Icon(Icons.delete_outline_rounded, color: Theme.of(context).colorScheme.error, size: 20),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Delete Account',
-                        style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Theme.of(context).colorScheme.error),
-                      ),
-                      Text(
-                        'Permanently remove your account',
-                        style: TextStyle(fontSize: 11, fontWeight: FontWeight.w400, color: const Color(0xFFF87171)),
-                      ),
-                    ],
-                  ),
-                ),
-                Icon(Icons.chevron_right_rounded, color: Theme.of(context).colorScheme.error.withOpacity(0.5)),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
 String toTitleCase(String text) {
   if (text.isEmpty) return text;
   return text.toLowerCase().split(' ').map((w) => w.isNotEmpty ? w[0].toUpperCase() + w.substring(1) : w).join(' ');
-}
-
-Future<void> deleteAccount(BuildContext context) async {
-  const url = 'https://docs.google.com/forms/d/e/1FAIpQLSe_6UsyVHh5hX02k2N-uaAz26Kl9iTim2fTskkyppcthKmlDQ/viewform?pli=1';
-  final confirm = await showDialog<bool>(
-    context: context,
-    builder: (ctx) => AlertDialog(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-      title: Text('Delete Account', style: _DS.text(17, FontWeight.w700, _DS.labelPrimary)),
-      content: Text('Are you sure you want to delete your account? This action is permanent and cannot be undone.', style: _DS.text(13, FontWeight.w400, _DS.labelSecond)),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.of(ctx).pop(false),
-          child: Text('Cancel', style: _DS.text(14, FontWeight.w600, _DS.labelSecond)),
-        ),
-        FilledButton(
-          style: FilledButton.styleFrom(
-            backgroundColor: const Color(0xFFEF4444),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          ),
-          onPressed: () => Navigator.of(ctx).pop(true),
-          child: Text('Delete', style: _DS.text(14, FontWeight.w600, Colors.white)),
-        ),
-      ],
-    ),
-  );
-  if (confirm == true) await helper.launchURL(url);
 }
 
 class _AvatarFallback extends StatelessWidget {

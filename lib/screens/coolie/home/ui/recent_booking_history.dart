@@ -3,8 +3,10 @@ import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:license_sahayak/models/get_passenger_coolie_model.dart';
+import 'package:license_sahayak/routes/route_name.dart';
 import 'package:license_sahayak/screens/coolie/home/home_ctrl.dart';
 import 'package:license_sahayak/screens/coolie/home/ui/booking_details.dart';
+import 'package:license_sahayak/utils/app_constants.dart';
 
 class RecentBookingHistory extends StatefulWidget {
   final HomeCtrl controller;
@@ -56,7 +58,35 @@ class _RecentBookingHistoryState extends State<RecentBookingHistory> {
         ),
         const SizedBox(height: 10),
         if (_isLoading) const _HistoryShimmer() else if (_recent.isEmpty) const _EmptyHistory() else ..._recent.asMap().entries.map((e) => _RecentHistoryTile(booking: e.value, index: e.key)),
+        _buildViewAllButton(context),
       ],
+    );
+  }
+
+  Widget _buildViewAllButton(BuildContext context) {
+    return GestureDetector(
+      onTap: () => Get.toNamed(RouteName.bookingHistory),
+      child: Container(
+        width: double.infinity,
+        margin: const EdgeInsets.only(top: 10),
+        padding: const EdgeInsets.symmetric(vertical: 14),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: Constants.instance.primary.withOpacity(0.25), width: 1.5),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              'View All Bookings',
+              style: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.w600, color: Constants.instance.primary),
+            ),
+            const SizedBox(width: 6),
+            Icon(Icons.arrow_forward_rounded, size: 16, color: Constants.instance.primary),
+          ],
+        ),
+      ),
     );
   }
 }

@@ -26,6 +26,7 @@ class HomeCtrl extends GetxController {
   LocationService locationService = Get.find();
   final RxInt completedToday = 0.obs;
   final checkStatuss = ''.obs, bookingId = ''.obs, sessionId = ''.obs;
+  final stationName = ''.obs, stationCode = ''.obs, punchInTime = ''.obs;
   final isCheckedIn = false.obs, isMukadam = false.obs;
   Rx<GetPassengerCoolieModel> passengerDetails = GetPassengerCoolieModel().obs;
   final verificationCodeController = TextEditingController();
@@ -179,6 +180,17 @@ class HomeCtrl extends GetxController {
       final session = await authRepo.getMyActiveSession();
       if (session != null && session["sessionId"] != null && session["sessionId"] != "") {
         sessionId.value = session["sessionId"];
+        if (session["station"] != null) {
+          if (session["station"]["name"] != null && session["station"]["name"] != "") {
+            stationName.value = session["station"]["name"];
+          }
+          if (session["station"]["code"] != null && session["station"]["code"] != "") {
+            stationCode.value = session["station"]["code"];
+          }
+        }
+        if (session["punchInTime"] != null && session["punchInTime"] != "") {
+          punchInTime.value = session["punchInTime"];
+        }
       }
     } catch (_) {
     } finally {

@@ -15,6 +15,7 @@ const _kText1 = Color(0xFF111827);
 const _kText2 = Color(0xFF6B7280);
 const _kText3 = Color(0xFF9CA3AF);
 const _kGreen = Color(0xFF16A34A);
+const _kRed = Color(0xFFD32F2F);
 const _kBlue = Color(0xFF2563EB);
 const _kAmber = Color(0xFFD97706);
 
@@ -37,10 +38,15 @@ class Attendance extends StatelessWidget {
             style: GoogleFonts.poppins(fontSize: 18, fontWeight: FontWeight.w700, color: Colors.white),
           ),
           actions: [
-            IconButton(
-              icon: const Icon(Icons.person_add, color: Colors.white, size: 24),
-              onPressed: () => Get.to(() => CollieCreation()),
-            ),
+            Obx(() {
+              if (ctrl.isMukadam.value == true) {
+                return IconButton(
+                  icon: const Icon(Icons.person_add, color: Colors.white, size: 24),
+                  onPressed: () => Get.to(() => CollieCreation()),
+                );
+              }
+              return SizedBox.shrink();
+            }),
             SizedBox(width: 10),
           ],
         ),
@@ -138,9 +144,7 @@ class _PunchSummary extends StatelessWidget {
               _divider(),
               _PunchStat(value: '${s.uniqueCollies}', label: 'Collies', icon: Icons.people_outline_rounded, color: Constants.instance.primary),
               _divider(),
-              _PunchStat(value: '${s.totalHours.toStringAsFixed(1)}h', label: 'Total Hours', icon: Icons.access_time_rounded, color: _kAmber),
-              _divider(),
-              _PunchStat(value: '${s.totalMinutes}m', label: 'Total Mins', icon: Icons.timer_rounded, color: _kText2),
+              _PunchStat(value: helper.formatDecimalHoursToTime(s.totalHours), label: 'Total Hours', icon: Icons.access_time_rounded, color: _kAmber),
             ],
           ),
         ],
@@ -315,7 +319,7 @@ class _PunchCard extends StatelessWidget {
                 children: [
                   _PunchTimeChip(icon: Icons.history_rounded, label: 'Sessions', value: '${collie.totalSessions}', color: _kBlue),
                   const Spacer(),
-                  _PunchTimeChip(icon: Icons.access_time_rounded, label: 'Hours', value: '${collie.totalHours.toStringAsFixed(1)}h', color: _kAmber),
+                  _PunchTimeChip(icon: Icons.access_time_rounded, label: 'Hours', value: helper.formatDecimalHoursToTime(collie.totalHours), color: _kAmber),
                   const Spacer(),
                   GestureDetector(
                     onTap: () => Get.to(() => CollieSessionsScreen(collie: collie)),
@@ -372,11 +376,14 @@ class CollieSessionsScreen extends StatelessWidget {
                     padding: const EdgeInsets.fromLTRB(20, 48, 20, 16),
                     child: Row(
                       children: [
-                        CircleAvatar(
-                          radius: 32,
-                          backgroundColor: Colors.white.withOpacity(0.2),
-                          backgroundImage: collie.collieImage != null ? NetworkImage(NetworkConstants.baseUrl + collie.collieImage!) : null,
-                          child: collie.collieImage == null ? const Icon(Icons.person_rounded, color: Colors.white, size: 32) : null,
+                        GestureDetector(
+                          onTap: collie.collieImage == null ? null : () => helper.imageShow(uri: NetworkConstants.baseUrl + collie.collieImage.toString(), context: context),
+                          child: CircleAvatar(
+                            radius: 32,
+                            backgroundColor: Colors.white.withOpacity(0.2),
+                            backgroundImage: collie.collieImage != null ? NetworkImage(NetworkConstants.baseUrl + collie.collieImage!) : null,
+                            child: collie.collieImage == null ? const Icon(Icons.person_rounded, color: Colors.white, size: 32) : null,
+                          ),
                         ),
                         const SizedBox(width: 16),
                         Expanded(
@@ -444,7 +451,7 @@ class CollieSessionsScreen extends StatelessWidget {
                 children: [
                   _SessionStat(value: '${collie.totalSessions}', label: 'Sessions', icon: Icons.history_rounded, color: _kBlue),
                   _vDivider(),
-                  _SessionStat(value: '${collie.totalHours.toStringAsFixed(1)}h', label: 'Total Hours', icon: Icons.access_time_rounded, color: _kAmber),
+                  _SessionStat(value: helper.formatDecimalHoursToTime(collie.totalHours), label: 'Total Hours', icon: Icons.access_time_rounded, color: _kAmber),
                 ],
               ),
             ),
@@ -553,6 +560,7 @@ class _SessionDetailCard extends StatelessWidget {
                         'Session ${index + 1}',
                         style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w600, color: _kText1),
                       ),
+                      const SizedBox(height: 2),
                       Text('${session.date}  •  ${session.dayOfWeek}', style: GoogleFonts.poppins(fontSize: 11, color: _kText2)),
                     ],
                   ),
@@ -562,12 +570,25 @@ class _SessionDetailCard extends StatelessWidget {
           ),
           const Divider(height: 1, color: _kBorder, indent: 14, endIndent: 14),
           Padding(
+            padding: const EdgeInsets.fromLTRB(14, 12, 14, 8),
+            child: Row(
+              children: [
+                _DetailTile(icon: Icons.login_rounded, label: 'Punch In', value: helper.getFormattedDateTimer(session.punchIn ?? "---"), color: _kGreen),
+                _vLine(),
+                _DetailTile(icon: Icons.logout_rounded, label: 'Punch Out', value: helper.getFormattedDateTimer(session.punchOut ?? "---"), color: _kRed),
+                _vLine(),
+                _DetailTile(icon: Icons.timer_outlined, label: 'Duration', value: session.durationFormatted, color: _kAmber),
+              ],
+            ),
+          ),
+          const Divider(height: 1, color: _kBorder, indent: 14, endIndent: 14),
+          Padding(
             padding: const EdgeInsets.all(14),
             child: Row(
               children: [
-                _DetailTile(icon: Icons.timer_outlined, label: 'Duration', value: session.durationFormatted, color: _kAmber),
-                _vLine(),
                 _DetailTile(icon: Icons.work_outline_rounded, label: 'Completed Jobs', value: '${session.completedJobs}', color: _kGreen),
+                _vLine(),
+                _DetailTile(icon: Icons.currency_rupee_rounded, label: 'Earnings', value: '₹${session.earnings}', color: _kBlue),
               ],
             ),
           ),
@@ -603,7 +624,7 @@ class _DetailTile extends StatelessWidget {
               Text(label, style: GoogleFonts.poppins(fontSize: 9.5, color: _kText3)),
               Text(
                 value,
-                style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w700, color: _kText1),
+                style: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.w700, color: _kText1),
               ),
             ],
           ),

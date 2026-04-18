@@ -8,7 +8,7 @@ class BookingHistoryCtrl extends GetxController {
   final AuthenticationRepo authenticationRepo = AuthenticationRepo();
   final bookings = <Booking>[].obs;
   final isLoading = false.obs, hasMore = true.obs;
-  final page = 1.obs;
+  final page = 1.obs, totalDocs = 0.obs;
   final limit = 10;
   final scrollController = ScrollController();
 
@@ -53,6 +53,7 @@ class BookingHistoryCtrl extends GetxController {
       if (res != null) {
         final Map<String, dynamic> bookingsData = res['bookings'];
         final List<dynamic> docs = bookingsData['docs'];
+        totalDocs.value = int.tryParse(bookingsData['totalDocs'].toString()) ?? 0;
         final bool hasNextPage = bookingsData['hasNextPage'] ?? false;
         final newBookings = docs.map((e) => Booking.fromJson(e)).toList();
         bookings.addAll(newBookings);

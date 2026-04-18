@@ -105,7 +105,7 @@ class BookingHistory extends StatelessWidget {
                 child: Row(
                   children: [
                     Expanded(
-                      child: _StatCard(icon: Icons.confirmation_num_outlined, label: "Total Trips", value: controller.bookings.length.toString(), iconColor: Colors.white),
+                      child: _StatCard(icon: Icons.confirmation_num_outlined, label: "Total Trips", value: controller.totalDocs.value.toString(), iconColor: Colors.white),
                     ),
                     const SizedBox(width: 12),
                     Expanded(
@@ -316,7 +316,8 @@ class _BookingCard extends StatelessWidget {
                             ],
                           ),
                         ),
-                        if (coach != null) ...[const SizedBox(width: 10), _CoachTag(coach: coach)],
+                        SizedBox(width: 10),
+                        _CoachTag(coach: ticketType.capitalizeFirst.toString()),
                       ],
                     ),
                     const SizedBox(height: 12),
@@ -327,7 +328,7 @@ class _BookingCard extends StatelessWidget {
                         ),
                         const SizedBox(width: 8),
                         Expanded(
-                          child: _MetaChip(icon: Icons.directions_railway_rounded, label: 'TRAIN', value: "$trainNumber (${ticketType.capitalizeFirst})"),
+                          child: _MetaChip(icon: Icons.directions_railway_rounded, label: 'TRAIN', value: "${coach.toString().toUpperCase()} • $trainNumber"),
                         ),
                       ],
                     ),

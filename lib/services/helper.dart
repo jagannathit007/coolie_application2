@@ -2,6 +2,7 @@ import 'dart:developer';
 import 'dart:io';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class Helper {
@@ -66,6 +67,36 @@ class Helper {
       },
       context: context,
     );
+  }
+
+  String formatDecimalHoursToTime(double decimalHours) {
+    int hours = decimalHours.floor();
+    int minutes = ((decimalHours - hours) * 60).round();
+    if (minutes == 60) {
+      hours++;
+      minutes = 0;
+    }
+    return "${hours}h ${minutes.toString().padLeft(2, '0')}m";
+  }
+
+  String getFormattedDateTimer(String dtStr) {
+    try {
+      final utcTime = DateTime.parse(dtStr);
+      const kolkataOffset = Duration(hours: 5, minutes: 30);
+      final kolkataTime = utcTime.add(kolkataOffset);
+      final now = DateTime.now().toUtc().add(kolkataOffset);
+      final kolkataNow = DateTime(now.year, now.month, now.day);
+      int dateDifference = kolkataNow.difference(kolkataTime).inDays;
+      String dateFormat = (kolkataTime.year != kolkataNow.year)
+          ? "dd MMM yyyy, h:mm a"
+          : (dateDifference < 1)
+          ? "h:mm a"
+          : "dd MMM, h:mm a";
+      String formattedDate = DateFormat(dateFormat, 'en_US').format(kolkataTime);
+      return formattedDate;
+    } catch (e) {
+      return "---";
+    }
   }
 }
 
