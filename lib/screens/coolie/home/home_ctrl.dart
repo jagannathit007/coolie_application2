@@ -48,9 +48,6 @@ class HomeCtrl extends GetxController {
       timer = args["timer"];
     }
     await initialize(timer: timer, isVerify: isVerify, action: action);
-    if (userProfile.value != null) {
-      await socketService.connect(userProfile.value!.id.toString());
-    }
     _setupSocketListeners();
   }
 
@@ -80,7 +77,7 @@ class HomeCtrl extends GetxController {
       socketService.onBookingTimeout.listen((data) async {
         if (data != null && (data['_id'] == bookingId.value || data['bookingId'] == bookingId.value)) {
           stopTimer();
-          await getPassengerData();
+          passengerDetails.value = GetPassengerCoolieModel();
           bookingId.value = '';
           checkStatuss.value = '';
         }
@@ -105,7 +102,7 @@ class HomeCtrl extends GetxController {
       socketService.onPassengerCancelled.listen((data) async {
         if (data != null && (data['_id'] == bookingId.value || data['bookingId'] == bookingId.value)) {
           stopTimer();
-          await getPassengerData();
+          passengerDetails.value = GetPassengerCoolieModel();
           bookingId.value = '';
           checkStatuss.value = '';
         }
@@ -114,7 +111,7 @@ class HomeCtrl extends GetxController {
     _socketSubscriptions.add(
       socketService.onCancelAllowed.listen((data) async {
         if (data != null && (data['_id'] == bookingId.value || data['bookingId'] == bookingId.value)) {
-          await getPassengerData();
+          passengerDetails.value.booking!.allowCancel = data["allowCancel"] ?? false;
         }
       }),
     );
@@ -135,6 +132,11 @@ class HomeCtrl extends GetxController {
     await getPassengerData();
     await checkStatus();
     await todayCompletedJobs();
+    if (userProfile.value != null && userProfile.value!.id.isNotEmpty) {
+      if (!socketService.isConnected.value) {
+        await socketService.connect(userProfile.value!.id.toString());
+      }
+    }
     if (isVerify == true) verifyBooking(notificationAction: action);
     if (timer == true) startCountdownTimer();
   }
@@ -429,7 +431,7 @@ class HomeCtrl extends GetxController {
       if (response != null) {
         successToast('Booking canceled successfully');
         stopTimer();
-        await getPassengerData();
+        passengerDetails.value = GetPassengerCoolieModel();
         checkStatuss.value = '';
         this.bookingId.value = '';
       }
@@ -446,7 +448,7 @@ class HomeCtrl extends GetxController {
       isLoading.value = true;
       await authRepo.logOut(isMukadam: isMukadam.value);
       stopTimer();
-      AppStorage.clearAll();
+      await AppStorage.clearAll();
       await Get.offAllNamed(RouteName.signIn);
     } catch (e) {
       errorToast('Failed to load LogOut: ${e.toString()}');

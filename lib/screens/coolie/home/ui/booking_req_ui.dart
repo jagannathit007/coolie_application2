@@ -1157,7 +1157,7 @@ class _AvatarFallback extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       color: const Color(0xFFC60000),
-      child: const Icon(Icons.person_rounded, color: Colors.white, size: 42),
+      child: const Icon(Icons.person_rounded, color: Colors.white, size: 24),
     );
   }
 }

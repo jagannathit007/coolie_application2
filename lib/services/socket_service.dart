@@ -1,10 +1,10 @@
 import 'dart:async';
 import 'dart:developer';
-
 import 'package:audioplayers/audioplayers.dart';
 import 'package:get/get.dart';
 import 'package:license_sahayak/api_constants/network_constants.dart';
 import 'package:license_sahayak/services/app_storage.dart';
+import 'package:license_sahayak/services/app_toasting.dart';
 import 'package:socket_io_client/socket_io_client.dart' as io;
 
 class SocketService extends GetxController {
@@ -66,6 +66,7 @@ class SocketService extends GetxController {
       connectionError.value = null;
       final role = AppStorage.read("isMukadam") == true ? "mukadam" : "coolie";
       _socket!.emit('join', {'userId': userId, 'role': role});
+      warningToast("Socket: Connected successfully ${socketService.isConnected.value}");
     });
 
     _socket!.onDisconnect((_) {
