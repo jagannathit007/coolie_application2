@@ -1,12 +1,11 @@
 import 'dart:async';
-import 'dart:convert';
 import 'dart:developer';
+
 import 'package:audioplayers/audioplayers.dart';
-import 'package:license_sahayak/api_constants/network_constants.dart';
-import 'package:license_sahayak/models/user_model.dart';
-import 'package:socket_io_client/socket_io_client.dart' as io;
 import 'package:get/get.dart';
+import 'package:license_sahayak/api_constants/network_constants.dart';
 import 'package:license_sahayak/services/app_storage.dart';
+import 'package:socket_io_client/socket_io_client.dart' as io;
 
 class SocketService extends GetxController {
   io.Socket? _socket;
@@ -36,17 +35,10 @@ class SocketService extends GetxController {
     });
   }
 
-  Future<void> connect() async {
+  Future<void> connect(String userId) async {
     try {
-      final token = AppStorage.read("token") ?? "";
-      final response = await AppStorage.read('user');
-      if (response == null) {
-        log("Socket: No user data found");
-        return;
-      }
-      final decoded = json.decode(response);
-      User user = User.fromJson(decoded);
-      if (token.isEmpty || user.id.isEmpty) {
+      final token = await AppStorage.read("token") ?? "";
+      if (token.isEmpty || userId.isEmpty) {
         log("Socket: Cannot connect - missing token or userId");
         return;
       }
@@ -56,7 +48,7 @@ class SocketService extends GetxController {
       }
       final options = io.OptionBuilder().setTransports(['websocket']).disableAutoConnect().setAuth({'token': token}).setPath('/socket.io/').build();
       _socket = io.io(NetworkConstants.baseUrl, options);
-      _setupEventListeners(user.id);
+      _setupEventListeners(userId);
       _socket!.connect();
     } catch (e) {
       log("Socket: Connection error - $e");

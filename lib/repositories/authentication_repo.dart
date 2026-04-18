@@ -15,7 +15,6 @@ class AuthenticationRepo {
         User? userModel;
         if (isMukadam && responseData['mukadam'] != null) {
           userModel = User(
-            rateCard: RateCard(baseRate: "", baseTime: "", waitingRate: ""),
             id: responseData['mukadam']?['_id'] ?? "",
             name: responseData['mukadam']?['name'] ?? "No mention",
             mobileNo: responseData['mukadam']?['mobileNo'] ?? "No mention",

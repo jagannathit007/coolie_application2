@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 Future<String?> showCancelBookingDialog(BuildContext context) async {
-  final reasons = ['Passenger not responding', 'Location too far', 'I am not feeling well', 'Emergency came up', 'Passenger cancelled from their side', 'Other'];
+  final reasons = ['Passenger not responding', 'I am not feeling well', 'Emergency came up', 'Other'];
   String? selectedReason;
   final otherController = TextEditingController();
   final formKey = GlobalKey<FormState>();

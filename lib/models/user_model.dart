@@ -20,7 +20,6 @@ class UserModel {
 
 class User {
   final ImageData? image;
-  final RateCard rateCard;
   final double? latitude;
   final double? longitude;
   final String? currentBookingId;
@@ -41,7 +40,6 @@ class User {
 
   User({
     this.image,
-    required this.rateCard,
     this.latitude,
     this.longitude,
     this.currentBookingId,
@@ -64,7 +62,6 @@ class User {
   factory User.fromJson(Map<String, dynamic> json) {
     return User(
       image: json['image'] != null ? ImageData.fromJson(json['image']) : null,
-      rateCard: RateCard.fromJson(json['rateCard']),
       latitude: json['latitude'] != null ? double.parse(json['latitude'].toString()) : null,
       longitude: json['longitude'] != null ? double.parse(json['longitude'].toString()) : null,
       currentBookingId: json['currentBookingId'],
@@ -88,7 +85,6 @@ class User {
   Map<String, dynamic> toJson() {
     return {
       'image': image?.toJson(),
-      'rateCard': rateCard.toJson(),
       'latitude': latitude,
       'longitude': longitude,
       'currentBookingId': currentBookingId,

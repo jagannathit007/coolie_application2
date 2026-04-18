@@ -48,7 +48,6 @@ class AuthService extends GetxService {
       UserModel userModel;
       if (isMukadam) {
         User user = User(
-          rateCard: RateCard(baseRate: "", baseTime: "", waitingRate: ""),
           id: data['_id'],
           name: data['name'],
           mobileNo: data['mobileNo'],

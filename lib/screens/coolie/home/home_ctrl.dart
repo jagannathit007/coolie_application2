@@ -40,7 +40,6 @@ class HomeCtrl extends GetxController {
   @override
   void onInit({bool? timer, bool? isVerify, String? action}) async {
     super.onInit();
-    await socketService.connect();
     final args = Get.arguments;
     if (args != null && args["bookingId"] != null) {
       bookingId.value = args["bookingId"];
@@ -49,6 +48,9 @@ class HomeCtrl extends GetxController {
       timer = args["timer"];
     }
     await initialize(timer: timer, isVerify: isVerify, action: action);
+    if (userProfile.value != null) {
+      await socketService.connect(userProfile.value!.id.toString());
+    }
     _setupSocketListeners();
   }
 
