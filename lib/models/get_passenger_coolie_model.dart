@@ -28,6 +28,7 @@ class Booking {
   String? feedback;
   String? complaint;
   bool? isDeleted;
+  bool? allowCancel;
   DateTime? createdAt;
   DateTime? updatedAt;
   String? bookingId;
@@ -47,6 +48,7 @@ class Booking {
     this.feedback,
     this.complaint,
     this.isDeleted,
+    this.allowCancel,
     this.createdAt,
     this.updatedAt,
     this.bookingId,
@@ -67,6 +69,7 @@ class Booking {
     feedback: json["feedback"],
     complaint: json["complaint"],
     isDeleted: json["isDeleted"],
+    allowCancel: json["allowCancel"],
     createdAt: DateTime.parse(json["createdAt"]),
     updatedAt: DateTime.parse(json["updatedAt"]),
     bookingId: json["bookingId"],
@@ -87,6 +90,7 @@ class Booking {
     "feedback": feedback,
     "complaint": complaint,
     "isDeleted": isDeleted,
+    "allowCancel": allowCancel,
     "createdAt": createdAt?.toIso8601String(),
     "updatedAt": updatedAt?.toIso8601String(),
     "bookingId": bookingId,

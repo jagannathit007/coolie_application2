@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:license_sahayak/api_constants/network_constants.dart';
 import 'package:license_sahayak/screens/coolie/attendance/collie_management/collie_creation.dart';
+import 'package:license_sahayak/services/helper.dart';
 import '../../../utils/app_constants.dart';
 import '../../../models/punch_report_model.dart';
 import 'attendance_ctrl.dart';
@@ -235,29 +236,32 @@ class _PunchCard extends StatelessWidget {
               padding: const EdgeInsets.all(14),
               child: Row(
                 children: [
-                  Stack(
-                    children: [
-                      CircleAvatar(
-                        radius: 22,
-                        backgroundColor: Constants.instance.primary.withOpacity(0.1),
-                        backgroundImage: collie.collieImage != null ? NetworkImage(NetworkConstants.baseUrl + collie.collieImage!) : null,
-                        child: collie.collieImage == null ? Icon(Icons.person_rounded, color: Constants.instance.primary, size: 22) : null,
-                      ),
-                      if (collie.isCurrentlyActive)
-                        Positioned(
-                          bottom: 1,
-                          right: 1,
-                          child: Container(
-                            width: 10,
-                            height: 10,
-                            decoration: BoxDecoration(
-                              color: _kGreen,
-                              shape: BoxShape.circle,
-                              border: Border.all(color: Colors.white, width: 1.5),
+                  GestureDetector(
+                    onTap: collie.collieImage == null ? null : () => helper.imageShow(uri: NetworkConstants.baseUrl + collie.collieImage.toString(), context: context),
+                    child: Stack(
+                      children: [
+                        CircleAvatar(
+                          radius: 22,
+                          backgroundColor: Constants.instance.primary.withOpacity(0.1),
+                          backgroundImage: collie.collieImage != null ? NetworkImage(NetworkConstants.baseUrl + collie.collieImage!) : null,
+                          child: collie.collieImage == null ? Icon(Icons.person_rounded, color: Constants.instance.primary, size: 22) : null,
+                        ),
+                        if (collie.isCurrentlyActive)
+                          Positioned(
+                            bottom: 1,
+                            right: 1,
+                            child: Container(
+                              width: 10,
+                              height: 10,
+                              decoration: BoxDecoration(
+                                color: _kGreen,
+                                shape: BoxShape.circle,
+                                border: Border.all(color: Colors.white, width: 1.5),
+                              ),
                             ),
                           ),
-                        ),
-                    ],
+                      ],
+                    ),
                   ),
                   const SizedBox(width: 12),
                   Expanded(

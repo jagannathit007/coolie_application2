@@ -294,7 +294,7 @@ class _TripRouteSection extends StatelessWidget {
                     ],
                   ),
                 ),
-                if (coach != null) ...[const SizedBox(width: 10), _CoachTag(coach: coach)],
+                if (ticketType.isNotEmpty) ...[SizedBox(width: 10), _CoachTag(coach: ticketType.capitalizeFirst.toString())],
               ],
             ),
           ),
@@ -306,7 +306,7 @@ class _TripRouteSection extends StatelessWidget {
               ),
               const SizedBox(width: 8),
               Expanded(
-                child: _MetaChip(icon: Icons.directions_railway_rounded, label: 'TRAIN', value: "$trainNumber (${ticketType.capitalizeFirst})"),
+                child: _MetaChip(icon: Icons.directions_railway_rounded, label: 'TRAIN', value: "${coach.toString().toUpperCase()} • $trainNumber"),
               ),
             ],
           ),
@@ -374,7 +374,7 @@ class _ActiveRouteSection extends StatelessWidget {
                     ],
                   ),
                 ),
-                if (coach != null) ...[const SizedBox(width: 10), _CoachTag(coach: coach)],
+                if (ticketType.isNotEmpty) ...[const SizedBox(width: 10), _CoachTag(coach: ticketType.capitalizeFirst.toString())],
               ],
             ),
           ),
@@ -386,7 +386,7 @@ class _ActiveRouteSection extends StatelessWidget {
               ),
               const SizedBox(width: 8),
               Expanded(
-                child: _MetaChip(icon: Icons.directions_railway_rounded, label: 'TRAIN', value: "$trainNumber (${ticketType.capitalizeFirst})"),
+                child: _MetaChip(icon: Icons.directions_railway_rounded, label: 'TRAIN', value: "${coach.toString().toUpperCase()} • $trainNumber"),
               ),
             ],
           ),
@@ -404,7 +404,7 @@ class _ActiveRouteSection extends StatelessWidget {
             ],
           ),
           if (desc.isNotEmpty && desc != 'N/A') ...[const SizedBox(height: 10), _NoteRow(note: desc, primary: primary)],
-          if (booking.passengerId != null) ...[_buildDivider(), _buildCoolieSection(booking.passengerId!)],
+          if (booking.passengerId != null) ...[_buildDivider(), _buildCoolieSection(booking.passengerId!, context)],
         ],
       ),
     );
@@ -419,7 +419,7 @@ class _ActiveRouteSection extends StatelessWidget {
     );
   }
 
-  Widget _buildCoolieSection(PassengerId passenger) {
+  Widget _buildCoolieSection(PassengerId passenger, BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
@@ -440,11 +440,14 @@ class _ActiveRouteSection extends StatelessWidget {
             ),
             child: ClipOval(
               child: passenger.image.isNotEmpty
-                  ? Image.network(
-                      NetworkConstants.baseUrl + passenger.image.toString(),
-                      fit: BoxFit.cover,
-                      loadingBuilder: (_, child, progress) => progress == null ? child : _AvatarFallback(),
-                      errorBuilder: (_, _, _) => _AvatarFallback(),
+                  ? GestureDetector(
+                      onTap: () => helper.imageShow(uri: NetworkConstants.baseUrl + passenger.image, context: context),
+                      child: Image.network(
+                        NetworkConstants.baseUrl + passenger.image.toString(),
+                        fit: BoxFit.cover,
+                        loadingBuilder: (_, child, progress) => progress == null ? child : _AvatarFallback(),
+                        errorBuilder: (_, _, _) => _AvatarFallback(),
+                      ),
                     )
                   : Center(
                       child: Text(
@@ -786,6 +789,7 @@ class _ActiveJobCardState extends State<_ActiveJobCard> {
     return Obx(() {
       final isInProgress = widget.controller.checkStatuss.value.toLowerCase() == 'in-progress';
       final headerColor = isInProgress ? _kSuccess : widget.primary;
+      final isPending = ["pending", "accepted", "rejected"].contains(widget.controller.checkStatuss.value.toLowerCase());
       return Container(
         decoration: BoxDecoration(
           color: _kWhite,
@@ -797,10 +801,118 @@ class _ActiveJobCardState extends State<_ActiveJobCard> {
             _ActiveHeader(isInProgress: isInProgress, headerColor: headerColor, formattedTime: isInProgress ? _formattedTime : null),
             _ActiveRouteSection(booking: widget.booking, primary: widget.primary),
             _ActiveCTAButton(controller: widget.controller, booking: widget.booking, isInProgress: isInProgress, primary: widget.primary),
+            if (isPending && widget.booking.allowCancel == true) Padding(padding: const EdgeInsets.fromLTRB(16, 0, 16, 14), child: _buildCancelButton()),
           ],
         ),
       );
     });
+  }
+
+  Widget _buildCancelButton() {
+    return SizedBox(
+      width: double.infinity,
+      child: OutlinedButton.icon(
+        onPressed: () => _showCancelDialog(),
+        icon: const Icon(Icons.cancel_outlined, size: 17),
+        label: Text("Cancel Booking", style: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.w600)),
+        style: OutlinedButton.styleFrom(
+          foregroundColor: Constants.instance.primary,
+          side: BorderSide(color: Constants.instance.primary.withOpacity(0.5)),
+          padding: const EdgeInsets.symmetric(vertical: 14),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+          backgroundColor: Constants.instance.primary.withOpacity(0.03),
+        ),
+      ),
+    );
+  }
+
+  void _showCancelDialog() {
+    Get.dialog(
+      AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22)),
+        contentPadding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
+        titlePadding: const EdgeInsets.fromLTRB(24, 24, 24, 16),
+        title: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(color: const Color(0xFFFEE2E2), borderRadius: BorderRadius.circular(12)),
+              child: const Icon(Icons.warning_amber_rounded, color: Color(0xFFDC2626), size: 22),
+            ),
+            const SizedBox(width: 12),
+            Text(
+              "Cancel Booking?",
+              style: GoogleFonts.poppins(fontWeight: FontWeight.w700, fontSize: 16, color: const Color(0xFF1A202C)),
+            ),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text("Are you sure you want to cancel this booking?", style: GoogleFonts.poppins(fontSize: 14, color: const Color(0xFF64748B), height: 1.5)),
+            const SizedBox(height: 14),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: const Color(0xFFFFFBEB),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: const Color(0xFFFDE68A)),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.info_outline_rounded, color: Color(0xFFD97706), size: 16),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      "This action cannot be undone.",
+                      style: GoogleFonts.poppins(fontSize: 12, color: const Color(0xFF92400E), fontWeight: FontWeight.w500),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 20),
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: () => Get.close(1),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: const Color(0xFF64748B),
+                      side: const BorderSide(color: Color(0xFFE2E8F0)),
+                      padding: const EdgeInsets.symmetric(vertical: 13),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    ),
+                    child: Text("Keep It", style: GoogleFonts.poppins(fontWeight: FontWeight.w600, fontSize: 14)),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Obx(
+                    () => ElevatedButton(
+                      onPressed: widget.controller.isLoading.value ? null : () async => await widget.controller.cancelBooking(widget.booking.id.toString(), true),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFFDC2626),
+                        padding: const EdgeInsets.symmetric(vertical: 13),
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                      child: widget.controller.isLoading.value
+                          ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, valueColor: AlwaysStoppedAnimation(Colors.white)))
+                          : Text(
+                              "Yes, Cancel",
+                              style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 14),
+                            ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
 
@@ -955,16 +1067,9 @@ class _ActiveCTAButton extends StatelessWidget {
                         child: Icon(isInProgress ? Icons.task_alt_rounded : Icons.lock_open_rounded, size: 20, color: _kWhite),
                       ),
                       const SizedBox(width: 12),
-                      Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            isInProgress ? 'Complete Service' : 'Verify OTP to Start',
-                            style: GoogleFonts.poppins(fontSize: 15, fontWeight: FontWeight.w700, color: _kWhite),
-                          ),
-                          Text(isInProgress ? 'Mark this job as done' : 'Enter OTP shared by passenger', style: GoogleFonts.poppins(fontSize: 11, color: _kWhite.withOpacity(0.72))),
-                        ],
+                      Text(
+                        isInProgress ? 'Complete Booking' : 'Verify OTP to Start',
+                        style: GoogleFonts.poppins(fontSize: 15, letterSpacing: .5, fontWeight: FontWeight.w600, color: _kWhite),
                       ),
                     ],
                   ),

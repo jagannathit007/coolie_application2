@@ -53,12 +53,12 @@ class AuthenticationRepo {
         final message = result.message.toString().toLowerCase();
         final hasFailureKeywords =
             message.contains('failed') ||
-                message.contains('error') ||
-                message.contains('below threshold') ||
-                message.contains('not match') ||
-                message.contains('unable') ||
-                message.contains('not your shift time') ||
-                message.contains('account is suspended');
+            message.contains('error') ||
+            message.contains('below threshold') ||
+            message.contains('not match') ||
+            message.contains('unable') ||
+            message.contains('not your shift time') ||
+            message.contains('account is suspended');
         bool successByScore = true;
         if (result.data != null && result.data is Map<String, dynamic>) {
           final dataMap = result.data as Map<String, dynamic>;
@@ -91,6 +91,20 @@ class AuthenticationRepo {
       }
     } catch (err) {
       return {'data': null, 'message': err.toString(), 'success': false};
+    }
+  }
+
+  Future<dynamic> getMyActiveSession() async {
+    try {
+      final response = await apiManager.post(NetworkConstants.getMyActiveSession, data: {});
+      if (response.status != 200) {
+        warningToast(response.message);
+        return null;
+      }
+      return response.data;
+    } catch (err) {
+      errorToast('Error fetching Get Session: ${err.toString()}');
+      return null;
     }
   }
 
@@ -205,7 +219,6 @@ class AuthenticationRepo {
     }
   }
 
-
   Future<Map<String, dynamic>?> getWorkerReviews({required String workerId, int page = 1, int limit = 10}) async {
     try {
       final response = await apiManager.post(NetworkConstants.getWorkerReviews, data: {"workerId": workerId, "page": page, "limit": limit});
@@ -247,6 +260,35 @@ class AuthenticationRepo {
       return true;
     } catch (err) {
       errorToast('Error fetching LogOut: ${err.toString()}');
+      return null;
+    }
+  }
+
+  Future<dynamic> cancelBooking(String bookingId, String reason) async {
+    try {
+      final response = await apiManager.post(NetworkConstants.cancelBooking, data: {"bookingId": bookingId, "reason": reason});
+      if (response.status != 200 || response.data == null) {
+        warningToast(response.message);
+        return null;
+      }
+      return response.data;
+    } catch (err) {
+      errorToast('Error canceling booking: ${err.toString()}');
+      return null;
+    }
+  }
+
+  Future<dynamic> submitFeedback(Map<String, dynamic> data) async {
+    try {
+      final response = await apiManager.post(NetworkConstants.submitFeedback, data: data);
+      if (response.status != 200) {
+        warningToast(response.message);
+        return null;
+      }
+      successToast("Thank you for your feedback!");
+      return response.data;
+    } catch (err) {
+      errorToast('Error submitting feedback: ${err.toString()}');
       return null;
     }
   }

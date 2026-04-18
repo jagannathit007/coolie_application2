@@ -26,8 +26,10 @@ class _RecentBookingHistoryState extends State<RecentBookingHistory> {
   }
 
   Future<void> _loadRecent() async {
-    setState(() => _isLoading = true);
     try {
+      if (mounted) {
+        setState(() => _isLoading = true);
+      }
       final res = await widget.controller.authRepo.getHistory(page: 1, limit: 5);
       if (res != null) {
         final Map<String, dynamic> bookingsData = res['bookings'];
@@ -35,8 +37,12 @@ class _RecentBookingHistoryState extends State<RecentBookingHistory> {
         final newBookings = docs.map((e) => Booking.fromJson(e)).toList();
         setState(() => _recent = newBookings);
       }
-    } catch (_) {}
-    setState(() => _isLoading = false);
+    } catch (_) {
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
   }
 
   @override

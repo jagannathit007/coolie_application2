@@ -3,9 +3,23 @@ import 'package:license_sahayak/api_constants/network_constants.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:license_sahayak/screens/coolie/home/ui/coolie_reviews.dart';
+import 'package:license_sahayak/screens/coolie/home/ui/feedback_sheet.dart';
 import 'package:license_sahayak/services/helper.dart';
-import '../../../../utils/app_constants.dart';
 import '../home_ctrl.dart';
+
+class _DS {
+  static const Color primary = Color(0xFFC60000);
+  static const Color primaryMuted = Color(0x12C60000);
+  static const Color bg = Color(0xFFF4F5F7);
+  static const Color surface = Colors.white;
+  static const Color border = Color(0xFFEEF0F4);
+  static const Color labelPrimary = Color(0xFF0F172A);
+  static const Color labelSecond = Color(0xFF475569);
+  static const Color labelMuted = Color(0xFF94A3B8);
+  static const double radius = 16;
+
+  static TextStyle text(double size, FontWeight w, Color c) => GoogleFonts.dmSans(fontSize: size, fontWeight: w, color: c);
+}
 
 class Profile extends StatelessWidget {
   const Profile({super.key});
@@ -16,7 +30,7 @@ class Profile extends StatelessWidget {
       init: HomeCtrl(),
       builder: (controller) {
         return Scaffold(
-          backgroundColor: const Color(0xFFF5F6FA),
+          backgroundColor: _DS.bg,
           body: CustomScrollView(
             slivers: [
               _buildSliverAppBar(context, controller),
@@ -26,7 +40,7 @@ class Profile extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _buildSectionLabel('Personal Information'),
+                      _SectionLabel(label: 'Personal Information'),
                       const SizedBox(height: 12),
                       Obx(() {
                         final profile = controller.userProfile.value;
@@ -46,7 +60,7 @@ class Profile extends StatelessWidget {
                         );
                       }),
                       const SizedBox(height: 28),
-                      _buildSectionLabel('Account Actions'),
+                      _SectionLabel(label: 'Account'),
                       const SizedBox(height: 12),
                       _DeleteAccountTile(controller: controller),
                     ],
@@ -60,27 +74,61 @@ class Profile extends StatelessWidget {
     );
   }
 
-  Widget _buildSliverAppBar(BuildContext context, HomeCtrl controller) {
+  SliverAppBar _buildSliverAppBar(BuildContext context, HomeCtrl controller) {
     return SliverAppBar(
-      expandedHeight: 220,
+      expandedHeight: 248,
       pinned: true,
-      backgroundColor: Constants.instance.primary,
+      stretch: true,
+      backgroundColor: _DS.primary,
       iconTheme: const IconThemeData(color: Colors.white),
+      elevation: 0,
+      title: Text('My Profile', style: _DS.text(18, FontWeight.w700, Colors.white)),
       actions: [
-        IconButton(
-          icon: const Icon(Icons.support_agent_rounded, color: Colors.white, size: 24),
-          onPressed: () => Get.to(() => CoolieReviews(user: controller.userProfile.value!)),
+        Tooltip(
+          message: 'My Reviews',
+          child: IconButton(
+            icon: const Icon(Icons.star_outline_rounded, color: Colors.white, size: 22),
+            onPressed: () {
+              final profile = controller.userProfile.value;
+              if (profile == null) return;
+              Get.to(() => CoolieReviews(user: profile));
+            },
+          ),
         ),
-        SizedBox(width: 10),
+        Tooltip(
+          message: 'Send Feedback',
+          child: IconButton(
+            icon: const Icon(Icons.rate_review_outlined, color: Colors.white, size: 22),
+            onPressed: () => showModalBottomSheet(context: context, isScrollControlled: true, backgroundColor: Colors.transparent, builder: (_) => const FeedbackSheet()),
+          ),
+        ),
+        const SizedBox(width: 6),
       ],
-      flexibleSpace: FlexibleSpaceBar(background: _ProfileHeader(controller: controller)),
+      flexibleSpace: FlexibleSpaceBar(
+        stretchModes: const [StretchMode.zoomBackground],
+        background: _ProfileHeader(controller: controller),
+      ),
     );
   }
+}
 
-  Widget _buildSectionLabel(String text) {
-    return Text(
-      text.toUpperCase(),
-      style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Colors.grey.shade500, letterSpacing: 1.2),
+class _SectionLabel extends StatelessWidget {
+  const _SectionLabel({required this.label});
+
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Container(
+          width: 3,
+          height: 14,
+          decoration: BoxDecoration(color: _DS.primary, borderRadius: BorderRadius.circular(4)),
+        ),
+        const SizedBox(width: 8),
+        Text(label.toUpperCase(), style: _DS.text(10.5, FontWeight.w700, _DS.labelSecond).copyWith(letterSpacing: 1.1)),
+      ],
     );
   }
 }
@@ -92,63 +140,84 @@ class _ProfileHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        gradient: LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: [Constants.instance.primary, Constants.instance.primary.withOpacity(0.75)]),
-      ),
-      child: SafeArea(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const SizedBox(height: 36),
-            Obx(() {
-              final profile = controller.userProfile.value;
-              return Container(
-                width: 90,
-                height: 90,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: Colors.white,
-                  border: Border.all(color: Colors.white, width: 3),
-                  boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.15), blurRadius: 20, offset: const Offset(0, 8))],
-                ),
-                child: ClipOval(
-                  child: profile != null && profile.image!.url.isNotEmpty
-                      ? Image.network(
-                          NetworkConstants.baseUrl + profile.image!.url,
-                          fit: BoxFit.cover,
-                          loadingBuilder: (_, child, progress) => progress == null ? child : _AvatarFallback(),
-                          errorBuilder: (_, _, _) => _AvatarFallback(),
-                        )
-                      : Center(
-                          child: Text(
-                            profile != null && profile.name.isNotEmpty ? profile.name[0].toUpperCase() : 'U',
-                            style: GoogleFonts.poppins(fontSize: 32, fontWeight: FontWeight.w700, color: Constants.instance.primary),
-                          ),
-                        ),
-                ),
-              );
-            }),
-            const SizedBox(height: 14),
-            Obx(() {
-              final profile = controller.userProfile.value;
-              return Column(
-                children: [
-                  Text(
-                    profile != null ? toTitleCase(profile.name) : '—',
-                    style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w700, letterSpacing: 0.3),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(profile?.emailId ?? '', style: TextStyle(color: Colors.white.withOpacity(0.7), fontSize: 13)),
-                ],
-              );
-            }),
-            const SizedBox(height: 16),
-          ],
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(begin: Alignment.topRight, end: Alignment.bottomLeft, colors: [Color(0xFFE53935), Color(0xFF9B0000)]),
+          ),
         ),
-      ),
+        Positioned(top: -50, right: -40, child: _circle(180, 0.07)),
+        Positioned(bottom: 30, left: -30, child: _circle(110, 0.05)),
+        SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.only(bottom: 20),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                Obx(() {
+                  final profile = controller.userProfile.value;
+                  return Container(
+                    width: 86,
+                    height: 86,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: Colors.white,
+                      border: Border.all(color: Colors.white.withOpacity(0.9), width: 3),
+                      boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.2), blurRadius: 20, offset: const Offset(0, 8))],
+                    ),
+                    child: ClipOval(
+                      child: profile != null && profile.image!.url.isNotEmpty
+                          ? Image.network(
+                              NetworkConstants.baseUrl + profile.image!.url,
+                              fit: BoxFit.cover,
+                              loadingBuilder: (_, child, progress) => progress == null ? child : _AvatarFallback(),
+                              errorBuilder: (_, _, _) => _AvatarFallback(),
+                            )
+                          : Center(child: Text(profile != null && profile.name.isNotEmpty ? profile.name[0].toUpperCase() : 'U', style: _DS.text(32, FontWeight.w800, _DS.primary))),
+                    ),
+                  );
+                }),
+                const SizedBox(height: 12),
+                Obx(() {
+                  final profile = controller.userProfile.value;
+                  return Column(
+                    children: [
+                      Text(profile != null ? toTitleCase(profile.name) : '—', style: _DS.text(20, FontWeight.w700, Colors.white)),
+                      const SizedBox(height: 8),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.15),
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(color: Colors.white.withOpacity(0.25)),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(Icons.verified_rounded, size: 12, color: Colors.white),
+                            const SizedBox(width: 4),
+                            Text('Verified Coolie', style: _DS.text(11, FontWeight.w500, Colors.white)),
+                          ],
+                        ),
+                      ),
+                    ],
+                  );
+                }),
+              ],
+            ),
+          ),
+        ),
+      ],
     );
   }
+
+  Widget _circle(double size, double opacity) => Container(
+    width: size,
+    height: size,
+    decoration: BoxDecoration(color: Colors.white.withOpacity(opacity), shape: BoxShape.circle),
+  );
 }
 
 class _ProfileCard extends StatelessWidget {
@@ -160,48 +229,46 @@ class _ProfileCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.06), blurRadius: 20, offset: const Offset(0, 6))],
+        color: _DS.surface,
+        borderRadius: BorderRadius.circular(_DS.radius),
+        border: Border.all(color: _DS.border, width: 1),
       ),
-      child: Column(children: items.map((item) => _buildTile(context, item)).toList()),
+      child: Column(children: items.map((item) => _buildTile(item)).toList()),
     );
   }
 
-  Widget _buildTile(BuildContext context, _ProfileItem item) {
+  Widget _buildTile(_ProfileItem item) {
     return Column(
       children: [
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 13),
           child: Row(
             children: [
               Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(color: Constants.instance.primary.withOpacity(0.08), borderRadius: BorderRadius.circular(12)),
-                child: Icon(item.icon, color: Constants.instance.primary, size: 20),
+                width: 38,
+                height: 38,
+                decoration: BoxDecoration(color: _DS.primaryMuted, borderRadius: BorderRadius.circular(10)),
+                child: Icon(item.icon, color: _DS.primary, size: 18),
               ),
-              const SizedBox(width: 16),
+              const SizedBox(width: 14),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      item.label,
-                      style: TextStyle(fontSize: 11, color: Colors.grey.shade500, fontWeight: FontWeight.w500, letterSpacing: 0.3),
-                    ),
-                    const SizedBox(height: 3),
-                    Text(
-                      item.value.isEmpty ? "---" : item.value,
-                      style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: Color(0xFF1A1A2E)),
-                    ),
+                    Text(item.label, style: _DS.text(10.5, FontWeight.w500, _DS.labelMuted)),
+                    const SizedBox(height: 2),
+                    Text(item.value.isEmpty ? '—' : item.value, style: _DS.text(14, FontWeight.w600, _DS.labelPrimary)),
                   ],
                 ),
               ),
             ],
           ),
         ),
-        if (!item.isLast) Divider(height: 1, thickness: 1, indent: 76, endIndent: 20, color: Colors.grey.shade100),
+        if (!item.isLast)
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 16),
+            child: Divider(height: 1, color: Color(0xFFF1F5F9)),
+          ),
       ],
     );
   }
@@ -225,15 +292,15 @@ class _DeleteAccountTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 16, offset: const Offset(0, 4))],
+        color: _DS.surface,
+        borderRadius: BorderRadius.circular(_DS.radius),
+        border: Border.all(color: _DS.border, width: 1),
       ),
       child: Material(
         color: Colors.transparent,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(_DS.radius),
         child: InkWell(
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(_DS.radius),
           onTap: () => deleteAccount(context),
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
@@ -252,10 +319,12 @@ class _DeleteAccountTile extends StatelessWidget {
                     children: [
                       Text(
                         'Delete Account',
-                        style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: Theme.of(context).colorScheme.error),
+                        style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Theme.of(context).colorScheme.error),
                       ),
-                      const SizedBox(height: 2),
-                      Text('Permanently remove your account', style: TextStyle(fontSize: 12, color: Colors.grey.shade500)),
+                      Text(
+                        'Permanently remove your account',
+                        style: TextStyle(fontSize: 11, fontWeight: FontWeight.w400, color: const Color(0xFFF87171)),
+                      ),
                     ],
                   ),
                 ),
@@ -271,45 +340,40 @@ class _DeleteAccountTile extends StatelessWidget {
 
 String toTitleCase(String text) {
   if (text.isEmpty) return text;
-  return text.toLowerCase().split(' ').map((word) => word.isNotEmpty ? word[0].toUpperCase() + word.substring(1) : word).join(' ');
+  return text.toLowerCase().split(' ').map((w) => w.isNotEmpty ? w[0].toUpperCase() + w.substring(1) : w).join(' ');
 }
 
 Future<void> deleteAccount(BuildContext context) async {
   const url = 'https://docs.google.com/forms/d/e/1FAIpQLSe_6UsyVHh5hX02k2N-uaAz26Kl9iTim2fTskkyppcthKmlDQ/viewform?pli=1';
-  bool? confirmDelete = await showDialog<bool>(
+  final confirm = await showDialog<bool>(
     context: context,
-    builder: (BuildContext context) {
-      return AlertDialog(
-        title: const Text('Delete Account'),
-        content: const Text('Are you sure you want to delete your account? This action is permanent and cannot be undone.'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Cancel', style: TextStyle(color: Colors.black)),
+    builder: (ctx) => AlertDialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      title: Text('Delete Account', style: _DS.text(17, FontWeight.w700, _DS.labelPrimary)),
+      content: Text('Are you sure you want to delete your account? This action is permanent and cannot be undone.', style: _DS.text(13, FontWeight.w400, _DS.labelSecond)),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(ctx).pop(false),
+          child: Text('Cancel', style: _DS.text(14, FontWeight.w600, _DS.labelSecond)),
+        ),
+        FilledButton(
+          style: FilledButton.styleFrom(
+            backgroundColor: const Color(0xFFEF4444),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           ),
-          FilledButton(
-            style: FilledButton.styleFrom(
-              backgroundColor: Colors.red,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            ),
-            onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Delete'),
-          ),
-        ],
-      );
-    },
+          onPressed: () => Navigator.of(ctx).pop(true),
+          child: Text('Delete', style: _DS.text(14, FontWeight.w600, Colors.white)),
+        ),
+      ],
+    ),
   );
-  if (confirmDelete == true) {
-    await helper.launchURL(url);
-  }
+  if (confirm == true) await helper.launchURL(url);
 }
 
 class _AvatarFallback extends StatelessWidget {
   @override
-  Widget build(BuildContext context) {
-    return Container(
-      color: const Color(0xFFC60000),
-      child: const Icon(Icons.person_rounded, color: Colors.white, size: 42),
-    );
-  }
+  Widget build(BuildContext context) => Container(
+    color: _DS.primary,
+    child: const Icon(Icons.person_rounded, color: Colors.white, size: 42),
+  );
 }

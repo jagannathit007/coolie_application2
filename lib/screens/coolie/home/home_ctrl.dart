@@ -7,6 +7,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:license_sahayak/models/user_model.dart';
 import 'package:license_sahayak/routes/route_name.dart';
 import 'package:license_sahayak/screens/auth/auth_service.dart';
+import 'package:license_sahayak/screens/coolie/home/ui/show_cancel_dialog.dart';
 import 'package:license_sahayak/screens/coolie/home/ui/verify_booking.dart';
 import 'package:license_sahayak/services/app_storage.dart';
 import 'package:license_sahayak/services/app_toasting.dart';
@@ -15,6 +16,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:license_sahayak/services/background_location_service.dart';
+import 'package:license_sahayak/services/socket_service.dart';
 import 'package:license_sahayak/utils/app_constants.dart';
 import '../../../models/get_passenger_coolie_model.dart';
 import '../../../repositories/authentication_repo.dart';
@@ -30,12 +32,15 @@ class HomeCtrl extends GetxController {
   var userProfile = Rxn<User>();
   var isLoading = false.obs, isCheckInLoading = false.obs;
   final ImagePicker _imagePicker = ImagePicker();
-  final checkInStatusMessage = ''.obs, countdownTime = '00:20'.obs;
-  Timer? _pickupTimer, _autoTimer;
+  final checkInStatusMessage = ''.obs, countdownTime = '00:00'.obs;
+  Timer? _timer;
+
+  final List<dynamic> _socketSubscriptions = [];
 
   @override
   void onInit({bool? timer, bool? isVerify, String? action}) async {
     super.onInit();
+    await socketService.connect();
     final args = Get.arguments;
     if (args != null && args["bookingId"] != null) {
       bookingId.value = args["bookingId"];
@@ -44,18 +49,86 @@ class HomeCtrl extends GetxController {
       timer = args["timer"];
     }
     await initialize(timer: timer, isVerify: isVerify, action: action);
+    _setupSocketListeners();
   }
 
   @override
   void onClose() {
-    _pickupTimer?.cancel();
-    _autoTimer?.cancel();
+    _timer?.cancel();
     verificationCodeController.dispose();
+    for (var sub in _socketSubscriptions) {
+      sub.cancel();
+    }
+    _socketSubscriptions.clear();
     super.onClose();
+  }
+
+  void _setupSocketListeners() {
+    _socketSubscriptions.add(
+      socketService.onNewBooking.listen((data) async {
+        if (data != null && data.isNotEmpty && data["sessionId"] == sessionId.value) {
+          bookingId.value = data["_id"] ?? data["bookingId"];
+          await startCountdownTimer();
+          await getPassengerData();
+          await checkStatus();
+        }
+      }),
+    );
+    _socketSubscriptions.add(
+      socketService.onBookingTimeout.listen((data) async {
+        if (data != null && (data['_id'] == bookingId.value || data['bookingId'] == bookingId.value)) {
+          stopTimer();
+          await getPassengerData();
+          bookingId.value = '';
+          checkStatuss.value = '';
+        }
+      }),
+    );
+    _socketSubscriptions.add(
+      socketService.onWeightConfirmed.listen((data) async {
+        if (data != null && (data['_id'] == bookingId.value || data['bookingId'] == bookingId.value)) {
+          await getPassengerData();
+          verifyBooking(notificationAction: 'weight_confirmed');
+        }
+      }),
+    );
+    _socketSubscriptions.add(
+      socketService.onWeightDisputed.listen((data) {
+        if (data != null && (data['_id'] == bookingId.value || data['bookingId'] == bookingId.value)) {
+          verifyBooking(notificationAction: 'weight_disputed');
+        }
+      }),
+    );
+    _socketSubscriptions.add(
+      socketService.onPassengerCancelled.listen((data) async {
+        if (data != null && (data['_id'] == bookingId.value || data['bookingId'] == bookingId.value)) {
+          stopTimer();
+          await getPassengerData();
+          bookingId.value = '';
+          checkStatuss.value = '';
+        }
+      }),
+    );
+    _socketSubscriptions.add(
+      socketService.onCancelAllowed.listen((data) async {
+        if (data != null && (data['_id'] == bookingId.value || data['bookingId'] == bookingId.value)) {
+          await getPassengerData();
+        }
+      }),
+    );
+    _socketSubscriptions.add(
+      socketService.isConnected.listen((connected) async {
+        if (connected && isCheckedIn.value) {
+          await getPassengerData();
+          await checkStatus();
+        }
+      }),
+    );
   }
 
   Future<void> initialize({bool? timer, bool? isVerify, String? action}) async {
     isMukadam.value = AppStorage.read("isMukadam") ?? false;
+    await getMyActiveSession();
     await fetchUserProfile();
     await getPassengerData();
     await checkStatus();
@@ -67,47 +140,23 @@ class HomeCtrl extends GetxController {
   AuthService authService = Get.isRegistered<AuthService>() ? Get.find<AuthService>() : Get.put(AuthService());
 
   void stopTimer() {
-    _pickupTimer?.cancel();
-    _autoTimer?.cancel();
-    countdownTime.value = '00:20';
-  }
-
-  void startPickupCountdownTimer() {
-    _pickupTimer?.cancel();
-    _pickupTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      final booking = passengerDetails.value.booking;
-      if (booking?.timestamp?.pickupTime != null && checkStatuss.value == 'pending') {
-        try {
-          final bookedAt = DateTime.parse(booking!.timestamp!.pickupTime.toString());
-          final now = DateTime.now();
-          final elapsed = now.difference(bookedAt).inSeconds;
-          final remaining = 20 - elapsed;
-          if (remaining > 0) {
-            final minutes = (remaining ~/ 60).toString().padLeft(2, '0');
-            final seconds = (remaining % 60).toString().padLeft(2, '0');
-            countdownTime.value = '$minutes:$seconds';
-          } else {
-            countdownTime.value = '00:00';
-            timer.cancel();
-          }
-        } catch (e) {
-          timer.cancel();
-        }
-      } else {
-        timer.cancel();
-      }
-    });
+    _timer?.cancel();
+    countdownTime.value = '00:00';
   }
 
   Future<void> startCountdownTimer() async {
-    _autoTimer?.cancel();
-    int remainingSeconds = 20;
-    _autoTimer = Timer.periodic(const Duration(seconds: 1), (timer) async {
+    countdownTime.value = '00:20';
+    _timer?.cancel();
+    _timer = Timer.periodic(const Duration(seconds: 1), (timer) async {
       if (checkStatuss.value == 'pending') {
-        remainingSeconds--;
-        if (remainingSeconds > 0) {
-          final minutes = (remainingSeconds ~/ 60).toString().padLeft(2, '0');
-          final seconds = (remainingSeconds % 60).toString().padLeft(2, '0');
+        final booking = passengerDetails.value.booking;
+        final bookedAt = DateTime.parse(booking!.updatedAt.toString());
+        final now = DateTime.now();
+        final elapsed = now.difference(bookedAt).inSeconds;
+        final remaining = 20 - elapsed;
+        if (remaining > 0) {
+          final minutes = (remaining ~/ 60).toString().padLeft(2, '0');
+          final seconds = (remaining % 60).toString().padLeft(2, '0');
           countdownTime.value = '$minutes:$seconds';
         } else {
           countdownTime.value = '00:00';
@@ -118,6 +167,19 @@ class HomeCtrl extends GetxController {
         timer.cancel();
       }
     });
+  }
+
+  Future<void> getMyActiveSession() async {
+    try {
+      isLoading.value = true;
+      final session = await authRepo.getMyActiveSession();
+      if (session != null && session["sessionId"] != null && session["sessionId"] != "") {
+        sessionId.value = session["sessionId"];
+      }
+    } catch (_) {
+    } finally {
+      isLoading.value = false;
+    }
   }
 
   Future<void> fetchUserProfile() async {
@@ -241,14 +303,14 @@ class HomeCtrl extends GetxController {
       final response = await authRepo.getPassenger();
       if (response != null) {
         sessionId.value = response["sessionId"].toString().isEmpty ? "" : response["sessionId"].toString();
+        response["booking"]["allowCancel"] = response["allowCancel"] ?? false;
         passengerDetails.value = GetPassengerCoolieModel.fromJson(response);
         if (passengerDetails.value.booking != null) {
           if (checkStatuss.value == 'pending') {
-            startPickupCountdownTimer();
+            startCountdownTimer();
           }
         }
       } else {
-        sessionId.value = "";
         passengerDetails.value = GetPassengerCoolieModel();
       }
     } catch (e) {
@@ -329,7 +391,6 @@ class HomeCtrl extends GetxController {
         await getPassengerData();
         checkStatuss.value = '';
         this.bookingId.value = '';
-        sessionId.value = '';
       }
     } catch (e) {
       errorToast('Failed to verify OTP: ${e.toString()}');
@@ -356,6 +417,28 @@ class HomeCtrl extends GetxController {
     }
   }
 
+  Future<void> cancelBooking(String bookingId, bool isBack) async {
+    final reason = await showCancelBookingDialog(Get.context!);
+    if (reason == null || reason.trim().isEmpty) return;
+    try {
+      isLoading.value = true;
+      final response = await authRepo.cancelBooking(bookingId, reason);
+      if (isBack == true) Get.close(1);
+      if (response != null) {
+        successToast('Booking canceled successfully');
+        stopTimer();
+        await getPassengerData();
+        checkStatuss.value = '';
+        this.bookingId.value = '';
+      }
+    } catch (e) {
+      log("ERROR in Cancel Booking: $e");
+    } finally {
+      isLoading.value = false;
+      update();
+    }
+  }
+
   Future<void> logOut() async {
     try {
       isLoading.value = true;
@@ -377,7 +460,7 @@ class HomeCtrl extends GetxController {
       if (response != null) {
         checkStatuss.value = response["currentStatus"];
         if (checkStatuss.value == 'pending') {
-          startPickupCountdownTimer();
+          startCountdownTimer();
         }
       } else {
         checkStatuss.value = "";

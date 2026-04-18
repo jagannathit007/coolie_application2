@@ -37,7 +37,7 @@ class NotificationService {
     }
   }
 
-  void showRemoteNotificationAndroid(RemoteMessage message) async {
+  void showRemoteNotificationAndroid(RemoteMessage message, bool isPlay) async {
     RemoteNotification? notification = message.notification;
     AndroidNotification? android = message.notification?.android;
     AppleNotification? apple = message.notification?.apple;
@@ -60,7 +60,9 @@ class NotificationService {
             : null,
         iOS: apple != null ? const DarwinNotificationDetails(presentAlert: true, presentBadge: true, presentSound: true) : null,
       );
-      _whistle("slow_spring_board.mp3");
+      if (isPlay == true) {
+        _whistle("slow_spring_board.mp3");
+      }
       await flutterLocalNotificationsPlugin.show(id: notification.hashCode, title: notification.title, body: notification.body, notificationDetails: notificationDetails);
     }
   }

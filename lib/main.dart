@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'package:flutter_offline/flutter_offline.dart';
 import 'package:license_sahayak/firebase_options.dart';
 import 'package:license_sahayak/repositories/authentication_repo.dart';
@@ -14,7 +13,6 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'utils/app_config.dart';
 import 'utils/theme_constants.dart';
 
@@ -28,52 +26,28 @@ void main() async {
     Firebase.app();
   }
   await notificationService.init();
-  _setupFirebaseMessagingHandlers();
+  FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+  FirebaseMessaging.onMessage.listen(_firebaseMessagingBackgroundHandler);
+  terminatedNotification();
   runApp(const MyApp());
 }
 
 String? lastHandledMessageId;
 
-Future<void> _setupFirebaseMessagingHandlers() async {
-  FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
-  FirebaseMessaging.onMessage.listen((RemoteMessage message) async {
-    notificationService.showRemoteNotificationAndroid(message);
-    _handleNotificationClick(message);
-  });
-  FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) async {
-    _handleNotificationClick(message);
-  });
-  final RemoteMessage? initialMessage = await FirebaseMessaging.instance.getInitialMessage();
-  if (initialMessage != null && initialMessage.messageId != lastHandledMessageId) {
-    lastHandledMessageId = initialMessage.messageId;
-    notificationService.showRemoteNotificationAndroid(initialMessage);
-    _handleNotificationClick(initialMessage);
+Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  if (message.messageId != null && message.messageId != lastHandledMessageId) {
+    lastHandledMessageId = message.messageId;
+    await notificationService.init();
+    notificationService.showRemoteNotificationAndroid(message, false);
   }
 }
 
-Map<String, dynamic> serializeMessage(RemoteMessage message) {
-  return {"data": message.data, "messageId": message.messageId, "sentTime": message.sentTime?.millisecondsSinceEpoch, "title": message.notification?.title, "body": message.notification?.body};
-}
-
-@pragma('vm:entry-point')
-Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  final prefs = await SharedPreferences.getInstance();
-  await prefs.setString("pending_notification", jsonEncode(serializeMessage(message)));
-}
-
-RemoteMessage deserializeMessage(Map<String, dynamic> json) {
-  return RemoteMessage(data: Map<String, dynamic>.from(json["data"] ?? {}));
-}
-
-Future<void> checkPendingNotification() async {
-  final prefs = await SharedPreferences.getInstance();
-  final dataString = prefs.getString("pending_notification");
-  if (dataString != null) {
-    final json = jsonDecode(dataString);
-    final message = deserializeMessage(json);
-    _handleNotificationClick(message);
-    await prefs.remove("pending_notification");
+void terminatedNotification() async {
+  RemoteMessage? initialMessage = await FirebaseMessaging.instance.getInitialMessage();
+  if (initialMessage != null && initialMessage.messageId != lastHandledMessageId) {
+    lastHandledMessageId = initialMessage.messageId;
+    notificationService.showRemoteNotificationAndroid(initialMessage, true);
+    _handleNotificationClick(initialMessage);
   }
 }
 
@@ -122,26 +96,7 @@ class MyApp extends StatefulWidget {
   State<MyApp> createState() => _MyAppState();
 }
 
-class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addObserver(this);
-  }
-
-  @override
-  void dispose() {
-    WidgetsBinding.instance.removeObserver(this);
-    super.dispose();
-  }
-
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.resumed) {
-      checkPendingNotification();
-    }
-  }
-
+class _MyAppState extends State<MyApp> {
   @override
   Widget build(BuildContext context) {
     return SafeArea(
