@@ -536,6 +536,7 @@ class HomeCtrl extends GetxController {
           isCheckedIn.value = true;
           await fetchUserProfile();
           await getPassengerData();
+          await getMyActiveSession();
           isCheckInLoading.value = false;
           checkInStatusMessage.value = '';
           successToast(result['message'] ?? "Check-in successful!");
