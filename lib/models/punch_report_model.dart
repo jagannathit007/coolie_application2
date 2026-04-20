@@ -101,6 +101,7 @@ class PunchReport {
 }
 
 class PunchReportCollie {
+  final String workerType;
   final String collieId;
   final String collieName;
   final String collieMobile;
@@ -119,6 +120,7 @@ class PunchReportCollie {
   final List<PunchSession> sessions;
 
   PunchReportCollie({
+    required this.workerType,
     required this.collieId,
     required this.collieName,
     required this.collieMobile,
@@ -139,6 +141,7 @@ class PunchReportCollie {
 
   factory PunchReportCollie.fromJson(Map<String, dynamic> json) {
     return PunchReportCollie(
+      workerType: json['workerType'] ?? 'collie',
       collieId: json['workerId'] ?? '',
       collieName: json['workerName'] ?? 'Unknown',
       collieMobile: json['workerMobile'] ?? '',

@@ -31,11 +31,15 @@ class User {
   final String emailId;
   final String gender;
   final String buckleNumber;
-  final String stationId;
+  final dynamic station;
+  final dynamic stationId;
+  final dynamic mukadamId;
   final String address;
+  final String suspendedUntil;
   final bool isLoggedIn;
   final bool isCheckedIn;
   final bool? isApprovalRequested;
+  final bool? isSuspended;
   final String v;
 
   User({
@@ -52,10 +56,14 @@ class User {
     required this.gender,
     required this.buckleNumber,
     required this.stationId,
+    this.station,
+    this.mukadamId,
     required this.address,
+    required this.suspendedUntil,
     required this.isLoggedIn,
     required this.isCheckedIn,
     this.isApprovalRequested,
+    this.isSuspended,
     required this.v,
   });
 
@@ -73,11 +81,15 @@ class User {
       emailId: json['emailId'] ?? '',
       gender: json['gender'] ?? '',
       buckleNumber: json['buckleNumber'] ?? '',
-      stationId: json['stationId'] ?? '',
+      station: json['stationId'],
+      stationId: json['stationId'],
+      mukadamId: json['mukadamId'],
       address: json['address'] ?? '',
+      suspendedUntil: json['suspendedUntil'] ?? '',
       isLoggedIn: json['isLoggedIn'] ?? false,
       isCheckedIn: json['isCheckedIn'] ?? false,
       isApprovalRequested: json['isApprovalRequested'] ?? false,
+      isSuspended: json['isSuspended'] ?? false,
       v: json['__v'] ?? '0',
     );
   }
@@ -96,11 +108,15 @@ class User {
       'emailId': emailId,
       'gender': gender,
       'buckleNumber': buckleNumber,
+      'station': station,
       'stationId': stationId,
+      'mukadamId': mukadamId,
       'address': address,
+      'suspendedUntil': suspendedUntil,
       'isLoggedIn': isLoggedIn,
       'isCheckedIn': isCheckedIn,
       'isApprovalRequested': isApprovalRequested,
+      'isSuspended': isSuspended,
       '__v': v,
     };
   }

@@ -98,6 +98,19 @@ class Helper {
       return "---";
     }
   }
+
+  String getFormattedTimer(String dtStr) {
+    try {
+      final utcTime = DateTime.parse(dtStr);
+      const kolkataOffset = Duration(hours: 5, minutes: 30);
+      final kolkataTime = utcTime.add(kolkataOffset);
+      String dateFormat = "h:mm a";
+      String formattedDate = DateFormat(dateFormat, 'en_US').format(kolkataTime);
+      return formattedDate;
+    } catch (e) {
+      return "---";
+    }
+  }
 }
 
 Helper helper = Helper();

@@ -36,5 +36,5 @@ class NetworkConstants {
   static const String checkStationRadius = 'api/users/checkStationRadius';
   static const String mukadamAddCollie = '/api/users/mukadamAddCollie';
   static const String mukadamLogout = 'api/users/mukadamLogout';
-  static const String colliePunchReport = '/api/admin/collie-attendance';
+  static const String colliePunchReport = '/api/users/collie-attendance';
 }

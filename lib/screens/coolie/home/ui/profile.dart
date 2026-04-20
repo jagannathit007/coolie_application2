@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:license_sahayak/screens/coolie/home/ui/coolie_reviews.dart';
 import 'package:license_sahayak/screens/coolie/home/ui/feedback_sheet.dart';
+import 'package:license_sahayak/services/helper.dart';
+import 'package:license_sahayak/utils/app_constants.dart';
 import '../home_ctrl.dart';
 
 class _DS {
@@ -42,7 +44,26 @@ class Profile extends StatelessWidget {
                       Obx(() {
                         final profile = controller.userProfile.value;
                         if (profile == null) return const SizedBox.shrink();
-                        return _StationCard(controller: controller);
+                        return _StationCard(controller: controller, stationName: profile.station["name"], stationCode: profile.station["code"]);
+                      }),
+                      Obx(() {
+                        final profile = controller.userProfile.value;
+                        if (profile == null || controller.isMukadam.value) return const SizedBox.shrink();
+                        return Column(
+                          children: [
+                            const SizedBox(height: 24),
+                            const _SectionLabel(label: 'Mukadar Information'),
+                            const SizedBox(height: 12),
+                            Container(
+                              decoration: BoxDecoration(
+                                color: _DS.surface,
+                                borderRadius: BorderRadius.circular(_DS.radius),
+                                border: Border.all(color: _DS.border, width: 1),
+                              ),
+                              child: _buildMukadarSection(profile.mukadamId, context),
+                            ),
+                          ],
+                        );
                       }),
                       const SizedBox(height: 24),
                       const _SectionLabel(label: 'Personal Information'),
@@ -118,16 +139,15 @@ class Profile extends StatelessWidget {
 
 class _StationCard extends StatelessWidget {
   final HomeCtrl controller;
+  final String stationName;
+  final String stationCode;
 
-  const _StationCard({required this.controller});
+  const _StationCard({required this.controller, required this.stationName, required this.stationCode});
 
   @override
   Widget build(BuildContext context) {
     return Obx(() {
       final isOnline = controller.isCheckedIn.value;
-      final completed = controller.completedToday.value;
-      final stationName = toTitleCase(controller.stationName.value);
-      final stationCode = controller.stationCode.value;
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -142,16 +162,13 @@ class _StationCard extends StatelessWidget {
             child: Column(
               children: [
                 _StationHeader(stationName: stationName, stationCode: stationCode, isOnline: isOnline),
-                const Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 16),
-                  child: Divider(height: 1, color: Color(0xFFF1F5F9)),
-                ),
-                _StationStats(controller: controller, completed: completed),
-                const Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 16),
-                  child: Divider(height: 1, color: Color(0xFFF1F5F9)),
-                ),
-                if (isOnline) _SessionRow(controller: controller),
+                if (isOnline) ...[
+                  const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 16),
+                    child: Divider(height: 1, color: Color(0xFFF1F5F9)),
+                  ),
+                  _SessionRow(controller: controller),
+                ],
               ],
             ),
           ),
@@ -185,7 +202,7 @@ class _StationHeader extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(stationName, style: _DS.text(15, FontWeight.w600, _DS.labelPrimary)),
+                Text(stationName.capitalizeFirst.toString(), style: _DS.text(15, FontWeight.w600, _DS.labelPrimary)),
                 const SizedBox(height: 3),
                 Text('Code: $stationCode', style: _DS.text(12, FontWeight.w400, _DS.labelMuted)),
               ],
@@ -196,6 +213,75 @@ class _StationHeader extends StatelessWidget {
       ),
     );
   }
+}
+
+Widget _buildMukadarSection(dynamic mukadar, BuildContext context) {
+  return Container(
+    padding: const EdgeInsets.all(14),
+    child: Row(
+      children: [
+        Container(
+          width: 48,
+          height: 48,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: Colors.white,
+            border: Border.all(color: Colors.white, width: 1.6),
+            boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.15), blurRadius: 20, offset: const Offset(0, 8))],
+          ),
+          child: ClipOval(
+            child: mukadar["image"] != null && mukadar["image"]!["url"] != null && mukadar["image"]!["url"] != ""
+                ? GestureDetector(
+                    onTap: () => helper.imageShow(uri: NetworkConstants.baseUrl + mukadar["image"]["url"], context: context),
+                    child: Image.network(
+                      NetworkConstants.baseUrl + mukadar["image"]["url"].toString(),
+                      fit: BoxFit.cover,
+                      loadingBuilder: (_, child, progress) => progress == null ? child : _AvatarFallback(size: 24),
+                      errorBuilder: (_, _, _) => _AvatarFallback(size: 24),
+                    ),
+                  )
+                : Center(
+                    child: Text(
+                      mukadar["name"] != null && mukadar["name"] != "" ? mukadar["name"][0].toUpperCase() : 'U',
+                      style: GoogleFonts.poppins(fontSize: 32, fontWeight: FontWeight.w700, color: Constants.instance.primary),
+                    ),
+                  ),
+          ),
+        ),
+        const SizedBox(width: 14),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                "Connected Mukadar",
+                style: GoogleFonts.poppins(fontSize: 10, color: const Color(0xFF94A3B8), fontWeight: FontWeight.w500),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                mukadar["name"].toString().capitalizeFirst.toString(),
+                style: GoogleFonts.poppins(fontSize: 15, fontWeight: FontWeight.w700, color: const Color(0xFF1A202C)),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(width: 10),
+        GestureDetector(
+          onTap: () => helper.makePhoneCall(mukadar["mobileNo"]),
+          child: Container(
+            width: 32,
+            height: 32,
+            decoration: BoxDecoration(
+              color: const Color(0xFF16A34A),
+              borderRadius: BorderRadius.circular(10),
+              boxShadow: [BoxShadow(color: const Color(0xFF16A34A).withOpacity(0.3), blurRadius: 4, offset: const Offset(0, 3))],
+            ),
+            child: const Icon(Icons.phone_rounded, color: Colors.white, size: 18),
+          ),
+        ),
+      ],
+    ),
+  );
 }
 
 class _StatusPill extends StatelessWidget {
@@ -226,60 +312,6 @@ class _StatusPill extends StatelessWidget {
           const SizedBox(width: 5),
           Text(label, style: _DS.text(11, FontWeight.w600, color)),
         ],
-      ),
-    );
-  }
-}
-
-class _StationStats extends StatelessWidget {
-  final HomeCtrl controller;
-  final int completed;
-
-  const _StationStats({required this.controller, required this.completed});
-
-  @override
-  Widget build(BuildContext context) {
-    return Obx(() {
-      final passenger = controller.passengerDetails.value;
-      final accepted = passenger.booking != null ? 1 : 0;
-      final earnings = passenger.booking?.fare ?? 0;
-      return IntrinsicHeight(
-        child: Row(
-          children: [
-            _StatCell(value: '$completed', label: 'Completed', icon: Icons.check_circle_outline_rounded, iconColor: const Color(0xFF16A34A)),
-            const VerticalDivider(width: 1, color: Color(0xFFF1F5F9), thickness: 1),
-            _StatCell(value: '$accepted', label: 'Accepted', icon: Icons.handshake_outlined, iconColor: const Color(0xFF2563EB)),
-            const VerticalDivider(width: 1, color: Color(0xFFF1F5F9), thickness: 1),
-            _StatCell(value: '₹$earnings', label: 'Earnings', icon: Icons.currency_rupee_rounded, iconColor: const Color(0xFFD97706)),
-          ],
-        ),
-      );
-    });
-  }
-}
-
-class _StatCell extends StatelessWidget {
-  final String value;
-  final String label;
-  final IconData icon;
-  final Color iconColor;
-
-  const _StatCell({required this.value, required this.label, required this.icon, required this.iconColor});
-
-  @override
-  Widget build(BuildContext context) {
-    return Expanded(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 14),
-        child: Column(
-          children: [
-            Icon(icon, size: 18, color: iconColor),
-            const SizedBox(height: 6),
-            Text(value, style: _DS.text(16, FontWeight.w700, _DS.labelPrimary)),
-            const SizedBox(height: 2),
-            Text(label, style: _DS.text(10.5, FontWeight.w500, _DS.labelMuted)),
-          ],
-        ),
       ),
     );
   }
@@ -553,9 +585,13 @@ String toTitleCase(String text) {
 }
 
 class _AvatarFallback extends StatelessWidget {
+  final double? size;
+
+  const _AvatarFallback({this.size});
+
   @override
   Widget build(BuildContext context) => Container(
     color: _DS.primary,
-    child: const Icon(Icons.person_rounded, color: Colors.white, size: 42),
+    child: Icon(Icons.person_rounded, color: Colors.white, size: size ?? 42),
   );
 }

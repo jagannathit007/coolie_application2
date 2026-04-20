@@ -1,6 +1,7 @@
 import 'package:license_sahayak/api_constants/network_constants.dart';
 import 'package:license_sahayak/routes/route_name.dart';
 import 'package:license_sahayak/screens/coolie/home/home_ctrl.dart';
+import 'package:license_sahayak/services/app_toasting.dart';
 import 'package:license_sahayak/utils/app_config.dart';
 import 'package:license_sahayak/utils/app_constants.dart';
 import 'package:flutter/material.dart';
@@ -20,6 +21,7 @@ class HomeHeaderUI extends StatelessWidget {
       final buckleNumber = controller.userProfile.value?.buckleNumber ?? "---";
       final checkedIn = controller.isCheckedIn.value;
       final status = controller.checkStatuss.value.toLowerCase();
+      final isSuspended = controller.userProfile.value?.isSuspended == true;
       return Container(
         width: double.infinity,
         decoration: BoxDecoration(
@@ -38,8 +40,12 @@ class HomeHeaderUI extends StatelessWidget {
                   children: [
                     GestureDetector(
                       onTap: () async {
-                        await Get.toNamed(RouteName.profile);
-                        await controller.fetchUserProfile();
+                        if (isSuspended) {
+                          warningToast("Your account is temporally suspended...!");
+                        } else {
+                          await Get.toNamed(RouteName.profile);
+                          await controller.fetchUserProfile();
+                        }
                       },
                       child: Stack(
                         children: [
@@ -293,12 +299,13 @@ class _StatsRow extends StatelessWidget {
       final isCheckedIn = controller.isCheckedIn.value;
       final isApprovalRequested = controller.userProfile.value?.isApprovalRequested ?? false;
       final isCheckInLoading = controller.isCheckInLoading.value;
+      final isSuspended = controller.userProfile.value?.isSuspended == true;
       return Row(
         children: [
           Expanded(
             flex: 3,
             child: GestureDetector(
-              onTap: isCheckInLoading || isApprovalRequested
+              onTap: isSuspended || isCheckInLoading || isApprovalRequested
                   ? null
                   : () async {
                       if (isCheckedIn) {
@@ -311,7 +318,7 @@ class _StatsRow extends StatelessWidget {
                 duration: const Duration(milliseconds: 250),
                 height: 48,
                 decoration: BoxDecoration(
-                  color: isApprovalRequested
+                  color: isSuspended || isApprovalRequested
                       ? Colors.grey.shade100
                       : isCheckedIn
                       ? Colors.white.withOpacity(0.12)
@@ -337,7 +344,11 @@ class _StatsRow extends StatelessWidget {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Icon(
-                            isCheckedIn ? Icons.logout_rounded : Icons.fingerprint_rounded,
+                            isSuspended
+                                ? Icons.hourglass_bottom_rounded
+                                : isCheckedIn
+                                ? Icons.logout_rounded
+                                : Icons.fingerprint_rounded,
                             size: 18,
                             color: isApprovalRequested
                                 ? Colors.grey
@@ -347,7 +358,9 @@ class _StatsRow extends StatelessWidget {
                           ),
                           const SizedBox(width: 8),
                           Text(
-                            isApprovalRequested
+                            isSuspended
+                                ? "Are You Suspended"
+                                : isApprovalRequested
                                 ? "Wating for Approval..."
                                 : isCheckedIn
                                 ? 'Check Out'

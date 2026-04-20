@@ -62,7 +62,13 @@ void _handleNotificationClick(RemoteMessage message) async {
   }
   String? bookingId = message.data["_id"] ?? message.data["bookingId"];
   String? action = message.data["action"];
-  if (action == "account_suspended") {}
+  if (action == "account_suspended" || action == "account_unsuspended") {
+    await Future.delayed(const Duration(milliseconds: 500));
+    if (Get.isRegistered<HomeCtrl>()) {
+      final homeCtrl = Get.find<HomeCtrl>();
+      await homeCtrl.fetchUserProfile();
+    }
+  }
   if (action == "cancelled_by_passenger") {
     await Future.delayed(const Duration(milliseconds: 500));
     if (Get.isRegistered<HomeCtrl>()) {

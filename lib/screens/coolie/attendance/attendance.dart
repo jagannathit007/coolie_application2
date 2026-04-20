@@ -39,16 +39,22 @@ class Attendance extends StatelessWidget {
           ),
           actions: [
             Obx(() {
-              if (ctrl.isMukadam.value == true) {
+              if (ctrl.isMukadam.value) {
                 return IconButton(
                   icon: const Icon(Icons.person_add, color: Colors.white, size: 24),
                   onPressed: () => Get.to(() => CollieCreation()),
                 );
               }
-              return SizedBox.shrink();
+              return const SizedBox.shrink();
             }),
-            SizedBox(width: 10),
+            const SizedBox(width: 10),
           ],
+          bottom: ctrl.isMukadam.value
+              ? PreferredSize(
+                  preferredSize: const Size.fromHeight(48),
+                  child: _MukadamTabBar(ctrl: ctrl),
+                )
+              : null,
         ),
         body: Column(
           children: [
@@ -58,6 +64,69 @@ class Attendance extends StatelessWidget {
             ),
             Expanded(child: _PunchReportTab(ctrl: ctrl)),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+class _MukadamTabBar extends StatelessWidget {
+  final AttendanceCtrl ctrl;
+
+  const _MukadamTabBar({required this.ctrl});
+
+  @override
+  Widget build(BuildContext context) {
+    return Obx(() {
+      final current = ctrl.selectedTab.value;
+      return Container(
+        height: 44,
+        margin: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+        decoration: BoxDecoration(color: Colors.white.withOpacity(0.15), borderRadius: BorderRadius.circular(10)),
+        child: Row(
+          children: [
+            _TabBtn(label: 'All Collies', icon: Icons.people_outline_rounded, isActive: current == AttendanceTab.allCollies, onTap: () => ctrl.switchTab(AttendanceTab.allCollies)),
+            _TabBtn(label: 'My Attendance', icon: Icons.person_outline_rounded, isActive: current == AttendanceTab.myAttendance, onTap: () => ctrl.switchTab(AttendanceTab.myAttendance)),
+          ],
+        ),
+      );
+    });
+  }
+}
+
+class _TabBtn extends StatelessWidget {
+  final String label;
+  final IconData icon;
+  final bool isActive;
+  final VoidCallback onTap;
+
+  const _TabBtn({required this.label, required this.icon, required this.isActive, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return Expanded(
+      child: GestureDetector(
+        onTap: onTap,
+        child: AnimatedContainer(
+          height: 44,
+          duration: const Duration(milliseconds: 200),
+          margin: const EdgeInsets.all(4),
+          decoration: BoxDecoration(
+            color: isActive ? Colors.white : Colors.transparent,
+            borderRadius: BorderRadius.circular(7),
+            boxShadow: isActive ? [BoxShadow(color: Colors.black.withOpacity(0.08), blurRadius: 6, offset: const Offset(0, 2))] : [],
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(icon, size: 14, color: isActive ? Constants.instance.primary : Colors.white70),
+              const SizedBox(width: 5),
+              Text(
+                label,
+                style: GoogleFonts.poppins(fontSize: 12, fontWeight: isActive ? FontWeight.w600 : FontWeight.w400, color: isActive ? Constants.instance.primary : Colors.white70),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -198,7 +267,11 @@ class _PunchRecordsHeader extends StatelessWidget {
         child: Row(
           children: [
             Text(
-              ctrl.isMukadam.value ? 'Collie Reports' : 'My Reports',
+              !ctrl.isMukadam.value
+                  ? 'My Reports'
+                  : ctrl.selectedTab.value == AttendanceTab.allCollies
+                  ? 'Collie Reports'
+                  : 'My Attendance',
               style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w600, color: _kText1),
             ),
             const Spacer(),
@@ -573,9 +646,9 @@ class _SessionDetailCard extends StatelessWidget {
             padding: const EdgeInsets.fromLTRB(14, 12, 14, 8),
             child: Row(
               children: [
-                _DetailTile(icon: Icons.login_rounded, label: 'Punch In', value: helper.getFormattedDateTimer(session.punchIn ?? "---"), color: _kGreen),
+                _DetailTile(icon: Icons.login_rounded, label: 'Punch In', value: helper.getFormattedTimer(session.punchIn ?? "---"), color: _kGreen),
                 _vLine(),
-                _DetailTile(icon: Icons.logout_rounded, label: 'Punch Out', value: helper.getFormattedDateTimer(session.punchOut ?? "---"), color: _kRed),
+                _DetailTile(icon: Icons.logout_rounded, label: 'Punch Out', value: helper.getFormattedTimer(session.punchOut ?? "---"), color: _kRed),
                 _vLine(),
                 _DetailTile(icon: Icons.timer_outlined, label: 'Duration', value: session.durationFormatted, color: _kAmber),
               ],
@@ -586,7 +659,9 @@ class _SessionDetailCard extends StatelessWidget {
             padding: const EdgeInsets.all(14),
             child: Row(
               children: [
-                _DetailTile(icon: Icons.work_outline_rounded, label: 'Completed Jobs', value: '${session.completedJobs}', color: _kGreen),
+                _DetailTile(icon: Icons.work_outline_rounded, label: 'Completed', value: '${session.completedJobs}', color: _kGreen),
+                _vLine(),
+                _DetailTile(icon: Icons.work_outline_rounded, label: 'Rejected', value: '${session.rejectedJobs}', color: _kRed),
                 _vLine(),
                 _DetailTile(icon: Icons.currency_rupee_rounded, label: 'Earnings', value: '₹${session.earnings}', color: _kBlue),
               ],
@@ -613,11 +688,11 @@ class _DetailTile extends StatelessWidget {
       child: Row(
         children: [
           Container(
-            padding: const EdgeInsets.all(7),
-            decoration: BoxDecoration(color: color.withOpacity(0.08), borderRadius: BorderRadius.circular(8)),
+            padding: const EdgeInsets.all(4),
+            decoration: BoxDecoration(color: color.withOpacity(0.08), borderRadius: BorderRadius.circular(4)),
             child: Icon(icon, size: 14, color: color),
           ),
-          const SizedBox(width: 10),
+          const SizedBox(width: 8),
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [

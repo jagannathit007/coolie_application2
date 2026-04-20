@@ -56,12 +56,15 @@ class AuthService extends GetxService {
           emailId: data['email'],
           gender: data['gender'],
           buckleNumber: '',
+          station: data['station'],
           stationId: data['stationId']?['_id'] ?? '',
           address: data['stationId']?['address'] ?? '',
+          suspendedUntil: data['suspendedUntil'] ?? '',
           image: ImageData(url: data['image']?['url']),
           isLoggedIn: data['isLoggedIn'] ?? false,
           isCheckedIn: data['isCheckedIn'] ?? false,
           isApprovalRequested: data['isApprovalRequested'] ?? false,
+          isSuspended: data['isSuspended'] ?? false,
           v: '',
         );
         userModel = UserModel(user: user, token: responseData['token']);

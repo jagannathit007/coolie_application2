@@ -13,12 +13,14 @@ class SocketService extends GetxController {
   final reconnectAttempts = 0.obs;
   final connectionError = Rxn<String>();
 
+  final onCoolieSuspended = Rxn<Map<String, dynamic>>();
   final onNewBooking = Rxn<Map<String, dynamic>>();
   final onBookingTimeout = Rxn<Map<String, dynamic>>();
   final onWeightConfirmed = Rxn<Map<String, dynamic>>();
   final onWeightDisputed = Rxn<Map<String, dynamic>>();
   final onPassengerCancelled = Rxn<Map<String, dynamic>>();
   final onCancelAllowed = Rxn<Map<String, dynamic>>();
+  final onShiftEnded = Rxn<Map<String, dynamic>>();
 
   final Map<String, Completer> _pendingRequests = {};
 
@@ -84,6 +86,24 @@ class SocketService extends GetxController {
     _socket!.onReconnect((attempt) {
       log('Socket: Reconnected after $attempt attempts');
       isConnected.value = true;
+    });
+
+    _socket!.on('collie:suspended', (data) {
+      log('Socket: Coolie Suspended - $data');
+      _whistle("slow_spring_board.mp3");
+      onCoolieSuspended.value = data;
+    });
+
+    _socket!.on('collie:unsuspended', (data) {
+      log('Socket: Coolie Suspended - $data');
+      _whistle("slow_spring_board.mp3");
+      onCoolieSuspended.value = data;
+    });
+
+    _socket!.on('worker:shift_ended', (data) {
+      log('Socket: Worker Shift_ended - $data');
+      _whistle("slow_spring_board.mp3");
+      onShiftEnded.value = data;
     });
 
     _socket!.on('booking:new', (data) {
