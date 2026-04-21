@@ -22,7 +22,7 @@ class AuthenticationRepo {
             deviceType: 'mobile',
             emailId: responseData['mukadam']?['email'] ?? "No mention",
             gender: responseData['mukadam']?['gender'] ?? "No mention",
-            buckleNumber: '---',
+            buckleNumber: responseData['mukadam']?['buckleNumber'] ?? "---",
             station: responseData['mukadam']['stationId'],
             stationId: responseData['mukadam']['stationId']?['_id'] ?? '',
             address: responseData['mukadam']?['stationId']?['address'] ?? 'No mention',

@@ -7,6 +7,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:license_sahayak/models/user_model.dart';
 import 'package:license_sahayak/routes/route_name.dart';
 import 'package:license_sahayak/screens/auth/auth_service.dart';
+import 'package:license_sahayak/screens/coolie/home/ui/passenger_cancelled_dialog.dart';
 import 'package:license_sahayak/screens/coolie/home/ui/show_cancel_dialog.dart';
 import 'package:license_sahayak/screens/coolie/home/ui/verify_booking.dart';
 import 'package:license_sahayak/services/app_storage.dart';
@@ -31,12 +32,13 @@ class HomeCtrl extends GetxController {
   Rx<GetPassengerCoolieModel> passengerDetails = GetPassengerCoolieModel().obs;
   final verificationCodeController = TextEditingController();
   var userProfile = Rxn<User>();
-  var isLoading = false.obs, isCheckInLoading = false.obs;
+  var isLoading = false.obs, isCheckInLoading = false.obs, isRecetBookingLoading = false.obs;
   final ImagePicker _imagePicker = ImagePicker();
   final checkInStatusMessage = ''.obs, countdownTime = '00:00'.obs;
   Timer? _timer;
 
   final List<dynamic> _socketSubscriptions = [];
+  List<Booking> recent = [];
 
   @override
   void onInit({bool? timer, bool? isVerify, String? action}) async {
@@ -113,6 +115,10 @@ class HomeCtrl extends GetxController {
           passengerDetails.value = GetPassengerCoolieModel();
           bookingId.value = '';
           checkStatuss.value = '';
+          await loadRecent();
+          if (Get.context != null) {
+            PassengerCancelledDialog.show(Get.context!);
+          }
         }
       }),
     );
@@ -156,6 +162,22 @@ class HomeCtrl extends GetxController {
     }
     if (isVerify == true) verifyBooking(notificationAction: action);
     if (timer == true) startCountdownTimer();
+  }
+
+  Future<void> loadRecent() async {
+    try {
+      isRecetBookingLoading.value = true;
+      final res = await authRepo.getHistory(page: 1, limit: 5);
+      if (res != null) {
+        final Map<String, dynamic> bookingsData = res['bookings'];
+        final List<dynamic> docs = bookingsData['docs'];
+        recent = docs.map((e) => Booking.fromJson(e)).toList();
+      }
+    } catch (_) {
+    } finally {
+      isRecetBookingLoading.value = false;
+      update();
+    }
   }
 
   AuthService authService = Get.isRegistered<AuthService>() ? Get.find<AuthService>() : Get.put(AuthService());

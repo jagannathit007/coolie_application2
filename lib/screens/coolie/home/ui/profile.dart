@@ -84,7 +84,7 @@ class Profile extends StatelessWidget {
                             _ProfileItem(icon: Icons.alternate_email_rounded, label: 'Email Address', value: profile.emailId),
                             _ProfileItem(icon: Icons.phone_outlined, label: 'Mobile Number', value: profile.mobileNo),
                             _ProfileItem(icon: Icons.cake_outlined, label: 'Age', value: profile.age),
-                            _ProfileItem(icon: Icons.badge_outlined, label: 'Buckle Number', value: profile.buckleNumber, isLast: true),
+                            _ProfileItem(asset: "assets/buckle.png", label: 'Buckle Number', value: profile.buckleNumber, isLast: true),
                           ],
                         );
                       }),
@@ -540,12 +540,30 @@ class _ProfileCard extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 13),
           child: Row(
             children: [
-              Container(
-                width: 38,
-                height: 38,
-                decoration: BoxDecoration(color: _DS.primaryMuted, borderRadius: BorderRadius.circular(10)),
-                child: Icon(item.icon, color: _DS.primary, size: 18),
-              ),
+              item.asset != null
+                  ? Container(
+                      width: 38,
+                      height: 38,
+                      padding: EdgeInsets.only(left: 5, right: 5),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(color: _DS.border, width: 1),
+                        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.07), blurRadius: 32, offset: const Offset(0, 8))],
+                      ),
+                      child: Image.asset(item.asset!, width: 20, height: 20, fit: BoxFit.contain),
+                    )
+                  : Container(
+                      width: 38,
+                      height: 38,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(color: _DS.border, width: 1),
+                        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.07), blurRadius: 32, offset: const Offset(0, 8))],
+                      ),
+                      child: Icon(item.icon, color: _DS.primary, size: 18),
+                    ),
               const SizedBox(width: 14),
               Expanded(
                 child: Column(
@@ -571,12 +589,13 @@ class _ProfileCard extends StatelessWidget {
 }
 
 class _ProfileItem {
-  final IconData icon;
+  final IconData? icon;
+  final String? asset;
   final String label;
   final String value;
   final bool isLast;
 
-  const _ProfileItem({required this.icon, required this.label, required this.value, this.isLast = false});
+  const _ProfileItem({this.icon, required this.label, required this.value, this.asset, this.isLast = false});
 }
 
 String toTitleCase(String text) {

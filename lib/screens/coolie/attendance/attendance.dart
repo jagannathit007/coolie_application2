@@ -365,7 +365,7 @@ class _PunchCard extends StatelessWidget {
                             const SizedBox(width: 4),
                             Text(collie.collieMobile, style: GoogleFonts.poppins(fontSize: 11, color: _kText2)),
                             const SizedBox(width: 10),
-                            Icon(Icons.badge_outlined, size: 11, color: _kText3),
+                            Image.asset("assets/buckle.png", width: 18, height: 18, fit: BoxFit.contain),
                             const SizedBox(width: 4),
                             Text(collie.buckleNumber, style: GoogleFonts.poppins(fontSize: 11, color: _kText2)),
                           ],

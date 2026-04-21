@@ -18,33 +18,10 @@ class RecentBookingHistory extends StatefulWidget {
 }
 
 class _RecentBookingHistoryState extends State<RecentBookingHistory> {
-  bool _isLoading = false;
-  List<Booking> _recent = [];
-
   @override
   void initState() {
     super.initState();
-    Future.delayed(Duration.zero, () async => await _loadRecent());
-  }
-
-  Future<void> _loadRecent() async {
-    try {
-      if (mounted) {
-        setState(() => _isLoading = true);
-      }
-      final res = await widget.controller.authRepo.getHistory(page: 1, limit: 5);
-      if (res != null) {
-        final Map<String, dynamic> bookingsData = res['bookings'];
-        final List<dynamic> docs = bookingsData['docs'];
-        final newBookings = docs.map((e) => Booking.fromJson(e)).toList();
-        setState(() => _recent = newBookings);
-      }
-    } catch (_) {
-    } finally {
-      if (mounted) {
-        setState(() => _isLoading = false);
-      }
-    }
+    Future.delayed(Duration.zero, () async => await widget.controller.loadRecent());
   }
 
   @override
@@ -57,7 +34,17 @@ class _RecentBookingHistoryState extends State<RecentBookingHistory> {
           style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w600, color: const Color(0xFF64748B), letterSpacing: 0.6),
         ),
         const SizedBox(height: 10),
-        if (_isLoading) const _HistoryShimmer() else if (_recent.isEmpty) const _EmptyHistory() else ..._recent.asMap().entries.map((e) => _RecentHistoryTile(booking: e.value, index: e.key)),
+        Obx(() {
+          if (widget.controller.isRecetBookingLoading.value) {
+            return const _HistoryShimmer();
+          } else if (widget.controller.recent.isEmpty) {
+            return const _EmptyHistory();
+          } else {
+            return Column(
+              children: [...widget.controller.recent.asMap().entries.map((e) => _RecentHistoryTile(booking: e.value, index: e.key))],
+            );
+          }
+        }),
         _buildViewAllButton(context),
       ],
     );
@@ -79,7 +66,7 @@ class _RecentBookingHistoryState extends State<RecentBookingHistory> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text(
-              'View All Bookings',
+              'Booking History',
               style: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.w600, color: Constants.instance.primary),
             ),
             const SizedBox(width: 6),

@@ -109,7 +109,7 @@ class HomeHeaderUI extends StatelessWidget {
                       ),
                       child: Row(
                         children: [
-                          const Icon(Icons.confirmation_number, size: 16, color: Colors.white),
+                          Image.asset("assets/buckle.png", width: 20, height: 20, fit: BoxFit.contain),
                           const SizedBox(width: 8),
                           Text(
                             buckleNumber.toUpperCase(),
@@ -348,7 +348,7 @@ class _StatsRow extends StatelessWidget {
                                 ? Icons.hourglass_bottom_rounded
                                 : isCheckedIn
                                 ? Icons.logout_rounded
-                                : Icons.fingerprint_rounded,
+                                : Icons.face_retouching_natural,
                             size: 18,
                             color: isApprovalRequested
                                 ? Colors.grey

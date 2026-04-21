@@ -55,7 +55,7 @@ class AuthService extends GetxService {
           deviceType: 'mobile',
           emailId: data['email'],
           gender: data['gender'],
-          buckleNumber: '',
+          buckleNumber: data['buckleNumber'],
           station: data['station'],
           stationId: data['stationId']?['_id'] ?? '',
           address: data['stationId']?['address'] ?? '',
