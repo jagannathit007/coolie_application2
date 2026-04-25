@@ -85,6 +85,12 @@ class NotificationService {
       return null;
     }
   }
+
+  Future<void> deleteToken() async {
+    try {
+      await FirebaseMessaging.instance.deleteToken();
+    } catch (_) {}
+  }
 }
 
 NotificationService notificationService = NotificationService();

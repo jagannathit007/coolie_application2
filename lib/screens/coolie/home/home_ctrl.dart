@@ -17,6 +17,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:license_sahayak/services/background_location_service.dart';
+import 'package:license_sahayak/services/notification_service.dart';
 import 'package:license_sahayak/services/socket_service.dart';
 import 'package:license_sahayak/utils/app_constants.dart';
 import '../../../models/get_passenger_coolie_model.dart';
@@ -491,6 +492,8 @@ class HomeCtrl extends GetxController {
       await authRepo.logOut(isMukadam: isMukadam.value);
       stopTimer();
       await AppStorage.clearAll();
+      await notificationService.deleteToken();
+      socketService.disconnect();
       await Get.offAllNamed(RouteName.signIn);
     } catch (e) {
       errorToast('Failed to load LogOut: ${e.toString()}');
