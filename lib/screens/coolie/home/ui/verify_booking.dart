@@ -105,11 +105,26 @@ class _OtpStep extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'Enter Passenger OTP',
-            style: GoogleFonts.poppins(fontSize: 17, fontWeight: FontWeight.w700, color: _kSlate900),
+          Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Enter Passenger OTP',
+                      style: GoogleFonts.poppins(fontSize: 17, fontWeight: FontWeight.w700, color: _kSlate900),
+                    ),
+                    Text('Ask passenger for the 4-digit code', style: GoogleFonts.poppins(fontSize: 11, color: _kSlate400)),
+                  ],
+                ),
+              ),
+              CloseButton(
+                color: Colors.black,
+                style: ButtonStyle(iconSize: WidgetStatePropertyAll(22), backgroundColor: WidgetStatePropertyAll(Colors.grey.shade100)),
+              ),
+            ],
           ),
-          Text('Ask passenger for the 4-digit code', style: GoogleFonts.poppins(fontSize: 11, color: _kSlate400)),
           const SizedBox(height: 28),
           Center(
             child: Container(

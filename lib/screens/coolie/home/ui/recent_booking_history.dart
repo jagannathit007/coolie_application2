@@ -228,7 +228,7 @@ class _RecentHistoryTile extends StatelessWidget {
                         _FooterChip(icon: Icons.confirmation_number_rounded, label: '${ticketType == 'reserved' ? 'PNR' : 'UTS'}: ${ticketType == 'reserved' ? pnrNumber : utsNumber}'),
                         const SizedBox(width: 12),
                         _FooterChip(icon: Icons.directions_railway_rounded, label: 'Train: $trainNumber'),
-                        if (totalPackages != 0) ...[const SizedBox(width: 12), _FooterChip(icon: Icons.monitor_weight_outlined, label: '$totalPackages PKG')],
+                        if (totalPackages != 0) ...[const SizedBox(width: 12), _FooterChip(icon: Icons.inventory_2_outlined, label: '$totalPackages PKG')],
                       ],
                     ),
                     SizedBox(height: 4),
