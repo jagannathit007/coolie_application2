@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:license_sahayak/models/get_passenger_coolie_model.dart';
+import 'package:license_sahayak/screens/coolie/home/ui/booking_req_ui.dart';
 import 'package:license_sahayak/utils/app_constants.dart';
 
 class BookingDetailsSheet extends StatelessWidget {
@@ -28,10 +29,6 @@ class BookingDetailsSheet extends StatelessWidget {
   String get _coach => booking?.pickupDetails?.coachNumber?.toString() ?? rawBooking?['pickupDetails']?['coachNumber']?.toString() ?? 'N/A';
 
   String get _dest => booking?.destination?.toString() ?? rawBooking?['destination']?.toString() ?? 'N/A';
-
-  String get _weight => booking?.pickupDetails?.weight?.toString() ?? rawBooking?['pickupDetails']?['weight']?.toString() ?? 'N/A';
-
-  String get _fare => booking?.fare?.baseFare?.toString() ?? rawBooking?['fare']?['baseFare']?.toString() ?? '—';
 
   String? get _bookedAtRaw => booking?.timestamp?.bookedAt?.toString() ?? rawBooking?['timestamp']?['bookedAt']?.toString();
 
@@ -161,48 +158,13 @@ class BookingDetailsSheet extends StatelessWidget {
                       _InfoRow(icon: Icons.confirmation_number_rounded, label: '${_ticketType == 'reserved' ? 'PNR' : 'UTS'} number', value: _ticketType == 'reserved' ? _pnr : _uts, primary: primary),
                       _InfoRow(icon: Icons.confirmation_number_rounded, label: 'Ticket type', value: _ticketType.capitalizeFirst.toString(), primary: primary),
                       _InfoRow(icon: Icons.directions_railway_rounded, label: 'Train number', value: _trainNumber, primary: primary),
-                      _InfoRow(icon: Icons.monitor_weight_outlined, label: 'Luggage weight', value: '$_weight kg', primary: primary),
                     ],
                   ),
                   const SizedBox(height: 20),
                   _SectionLabel(label: 'Payment', primary: primary),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: Container(
-                      padding: const EdgeInsets.all(14),
-                      decoration: BoxDecoration(color: const Color(0xFFF8FAFC), borderRadius: BorderRadius.circular(12)),
-                      child: Row(
-                        children: [
-                          Container(
-                            width: 42,
-                            height: 42,
-                            decoration: BoxDecoration(color: primary.withOpacity(0.10), borderRadius: BorderRadius.circular(10)),
-                            child: Icon(Icons.account_balance_wallet_rounded, color: primary, size: 20),
-                          ),
-                          const SizedBox(width: 14),
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text('Total fare', style: GoogleFonts.poppins(fontSize: 11, color: const Color(0xFF94A3B8))),
-                              RichText(
-                                text: TextSpan(
-                                  children: [
-                                    TextSpan(
-                                      text: '₹',
-                                      style: GoogleFonts.poppins(fontSize: 28, fontWeight: FontWeight.w700, color: const Color(0xFF1E293B)),
-                                    ),
-                                    TextSpan(
-                                      text: _fare,
-                                      style: GoogleFonts.poppins(fontSize: 28, fontWeight: FontWeight.w700, color: const Color(0xFF1E293B), height: 1.1),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
+                    child: PackageSelection(packages: booking?.pickupDetails?.packages ?? []),
                   ),
                   const SizedBox(height: 20),
                   _SectionLabel(label: 'Timeline', primary: primary),

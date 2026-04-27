@@ -1,5 +1,4 @@
 import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -261,9 +260,7 @@ class _TripRouteSection extends StatelessWidget {
     final station = booking.pickupDetails?.station?.toString() ?? 'N/A';
     final coach = booking.pickupDetails?.coachNumber?.toString();
     final dest = booking.destination?.toString() ?? 'N/A';
-    final weight = booking.pickupDetails?.weightStatus == "verified" ? booking.pickupDetails?.weight?.toString() : booking.pickupDetails?.originalWeight?.toString();
     final desc = booking.pickupDetails?.description?.toString() ?? '';
-    final fare = booking.fare?.baseFare?.toString() ?? '—';
     final pnrNumber = booking.pickupDetails?.pnrNumber?.toString() ?? 'N/A';
     final utsNumber = booking.pickupDetails?.utsNumber?.toString() ?? 'N/A';
     final trainNumber = booking.pickupDetails?.trainNumber?.toString() ?? 'N/A';
@@ -311,18 +308,7 @@ class _TripRouteSection extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 10),
-          Row(
-            children: [
-              if (weight != null)
-                Expanded(
-                  child: _MetaChip(icon: Icons.monitor_weight_outlined, label: 'WEIGHT', value: '$weight kg'),
-                ),
-              if (weight != null) const SizedBox(width: 8),
-              Expanded(
-                child: _MetaChip(icon: Icons.currency_rupee_rounded, label: 'FARE', value: fare),
-              ),
-            ],
-          ),
+          PackageSelection(packages: booking.pickupDetails?.packages ?? []),
           if (desc.isNotEmpty && desc != 'N/A') ...[const SizedBox(height: 10), _NoteRow(note: desc, primary: primary)],
         ],
       ),
@@ -341,13 +327,11 @@ class _ActiveRouteSection extends StatelessWidget {
     final station = booking.pickupDetails?.station?.toString() ?? 'N/A';
     final coach = booking.pickupDetails?.coachNumber?.toString();
     final dest = booking.destination?.toString() ?? 'N/A';
-    final weight = booking.pickupDetails?.weightStatus == "verified" ? booking.pickupDetails?.weight?.toString() : booking.pickupDetails?.originalWeight?.toString();
     final desc = booking.pickupDetails?.description?.toString() ?? '';
     final pnrNumber = booking.pickupDetails?.pnrNumber?.toString() ?? 'N/A';
     final utsNumber = booking.pickupDetails?.utsNumber?.toString() ?? 'N/A';
     final trainNumber = booking.pickupDetails?.trainNumber?.toString() ?? 'N/A';
     final ticketType = booking.pickupDetails?.ticketType?.toString() ?? 'N/A';
-    final fare = booking.fare?.baseFare?.toString() ?? '—';
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
       child: Column(
@@ -391,18 +375,7 @@ class _ActiveRouteSection extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 10),
-          Row(
-            children: [
-              if (weight != null)
-                Expanded(
-                  child: _MetaChip(icon: Icons.monitor_weight_outlined, label: 'WEIGHT', value: '$weight kg'),
-                ),
-              if (weight != null) const SizedBox(width: 8),
-              Expanded(
-                child: _MetaChip(icon: Icons.currency_rupee_rounded, label: 'FARE', value: fare),
-              ),
-            ],
-          ),
+          PackageSelection(packages: booking.pickupDetails?.packages ?? []),
           if (desc.isNotEmpty && desc != 'N/A') ...[const SizedBox(height: 10), _NoteRow(note: desc, primary: primary)],
           if (booking.passengerId != null) ...[_buildDivider(), _buildCoolieSection(booking.passengerId!, context)],
         ],
@@ -491,6 +464,181 @@ class _ActiveRouteSection extends StatelessWidget {
         ],
       ),
     );
+  }
+}
+
+class PackageSelection extends StatelessWidget {
+  final List<BookingPackage> packages;
+
+  const PackageSelection({super.key, required this.packages});
+
+  @override
+  Widget build(BuildContext context) {
+    return _buildPackagesSection(packages);
+  }
+
+  Widget _buildPackagesSection(List<BookingPackage> packages) {
+    if (packages.isEmpty) return const SizedBox.shrink();
+    final primary = Constants.instance.primary;
+    final totalPackages = packages.fold(0, (sum, p) => sum + p.count);
+    final totalAmount = packages.fold(0, (sum, p) => sum + (p.count * p.rate));
+    return Container(
+      decoration: BoxDecoration(
+        color: const Color(0xFFF8FAFC),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: const Color(0xFFEDF2F7)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(14, 14, 14, 12),
+            child: Row(
+              children: [
+                Container(
+                  width: 34,
+                  height: 34,
+                  decoration: BoxDecoration(color: primary.withOpacity(0.1), borderRadius: BorderRadius.circular(10)),
+                  child: Icon(Icons.inventory_2_outlined, size: 18, color: primary),
+                ),
+                const SizedBox(width: 10),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      "Package Details",
+                      style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w700, color: const Color(0xFF1A202C)),
+                    ),
+                    Text("Luggage breakdown", style: GoogleFonts.poppins(fontSize: 10, color: const Color(0xFF94A3B8))),
+                  ],
+                ),
+                const Spacer(),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                  decoration: BoxDecoration(color: primary.withOpacity(0.1), borderRadius: BorderRadius.circular(20)),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.shopping_bag_outlined, size: 12, color: primary),
+                      const SizedBox(width: 4),
+                      Text(
+                        "$totalPackages Item${totalPackages == 1 ? '' : 's'}",
+                        style: GoogleFonts.poppins(fontSize: 11, fontWeight: FontWeight.w600, color: primary),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(14, 4, 14, 6),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.only(left: 10),
+                    child: Text(
+                      "KG",
+                      style: GoogleFonts.poppins(fontSize: 9, color: const Color(0xFF94A3B8), fontWeight: FontWeight.w600, letterSpacing: 0.6),
+                    ),
+                  ),
+                ),
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.only(left: 10),
+                    child: Text(
+                      "PKG * RATE",
+                      style: GoogleFonts.poppins(fontSize: 9, color: const Color(0xFF94A3B8), fontWeight: FontWeight.w600, letterSpacing: 0.6),
+                    ),
+                  ),
+                ),
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.only(left: 10),
+                    child: Text(
+                      "SUBTOTAL",
+                      style: GoogleFonts.poppins(fontSize: 9, color: const Color(0xFF94A3B8), fontWeight: FontWeight.w600, letterSpacing: 0.6),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          ...packages.map((pkg) {
+            return Container(
+              margin: const EdgeInsets.fromLTRB(14, 0, 14, 8),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: const Color(0xFFEDF2F7)),
+              ),
+              child: IntrinsicHeight(
+                child: Row(
+                  children: [
+                    _pkgCell(pkg.label, primary, leftRounded: true),
+                    _pkgDivider(),
+                    _pkgCell("${pkg.count} * ${pkg.rate}", const Color(0xFF1A202C)),
+                    _pkgDivider(),
+                    _pkgCell("${pkg.count * pkg.rate}", const Color(0xFF1A202C), rightRounded: true),
+                  ],
+                ),
+              ),
+            );
+          }),
+          Container(
+            margin: const EdgeInsets.fromLTRB(14, 0, 14, 8),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: const Color(0xFFEDF2F7)),
+            ),
+            child: IntrinsicHeight(
+              child: Row(
+                children: [
+                  Expanded(
+                    flex: 2,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
+                      child: Text(
+                        "Total Amount",
+                        style: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.w700, color: primary),
+                      ),
+                    ),
+                  ),
+                  _pkgDivider(),
+                  Expanded(
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
+                      child: Text(
+                        "₹$totalAmount",
+                        style: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.w700, color: const Color(0xFF1A202C)),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _pkgCell(String value, Color color, {bool leftRounded = false, bool rightRounded = false}) {
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
+        child: Text(
+          value,
+          style: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.w700, color: color),
+        ),
+      ),
+    );
+  }
+
+  Widget _pkgDivider() {
+    return Container(width: 0.5, color: const Color(0xFFEDF2F7));
   }
 }
 

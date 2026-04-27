@@ -252,20 +252,6 @@ class AuthenticationRepo {
     }
   }
 
-  Future<dynamic> updateWeight(dynamic data) async {
-    try {
-      final response = await apiManager.post(NetworkConstants.updateWeight, data: data);
-      if (response.status != 200) {
-        warningToast(response.message);
-        return null;
-      }
-      return true;
-    } catch (err) {
-      errorToast('Error fetching LogOut: ${err.toString()}');
-      return null;
-    }
-  }
-
   Future<dynamic> cancelBooking(String bookingId, String reason) async {
     try {
       final response = await apiManager.post(NetworkConstants.cancelBooking, data: {"bookingId": bookingId, "reason": reason});

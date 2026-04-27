@@ -409,19 +409,7 @@ class HomeCtrl extends GetxController {
     verificationCodeController.clear();
     verificationCodeController.clear();
     String bookingID = passengerDetails.value.booking?.id ?? "";
-    double originalWeight = passengerDetails.value.booking?.pickupDetails?.weightStatus == "verified"
-        ? double.tryParse(passengerDetails.value.booking?.pickupDetails?.weight.toString() ?? "0.0") ?? 0.0
-        : double.tryParse(passengerDetails.value.booking?.pickupDetails?.originalWeight.toString() ?? "0.0") ?? 0.0;
-    bool allowWeightUpdate = passengerDetails.value.booking?.pickupDetails?.weightStatus != "verified" && notificationAction == "weight_disputed";
-    bool isWeightConfirmed = notificationAction == "weight_confirmed";
-    otpDialog(
-      verificationCodeController: verificationCodeController,
-      bookedWeight: originalWeight,
-      onVerify: () async => await bookingOPTVerify(bookingID),
-      onRequestWeightUpdate: (newWeight) async => await requestWeightUpdate(newWeight, bookingID),
-      allowWeightUpdate: allowWeightUpdate,
-      isWeightConfirmed: isWeightConfirmed,
-    );
+    otpDialog(verificationCodeController: verificationCodeController, onVerify: () async => await bookingOPTVerify(bookingID));
   }
 
   Future<void> completeService(String? bookingId) async {
@@ -441,24 +429,6 @@ class HomeCtrl extends GetxController {
       }
     } catch (e) {
       errorToast('Failed to verify OTP: ${e.toString()}');
-    } finally {
-      isLoading.value = false;
-    }
-  }
-
-  Future<bool> requestWeightUpdate(double newWeight, String? bookingId) async {
-    if (bookingId == null) {
-      errorToast("Booking ID not found!");
-      return false;
-    }
-    try {
-      isLoading.value = true;
-      await authRepo.updateWeight({"bookingId": bookingId, "weight": newWeight});
-      Get.close(1);
-      return true;
-    } catch (e) {
-      errorToast('Failed to verify OTP: ${e.toString()}');
-      return false;
     } finally {
       isLoading.value = false;
     }

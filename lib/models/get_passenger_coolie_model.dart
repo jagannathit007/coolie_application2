@@ -99,16 +99,25 @@ class Booking {
 }
 
 class Fare {
-  String? baseFare;
-  String? waitingTime;
-  String? waitingCharges;
-  String? totalFare;
+  final int baseFare;
+  final int waitingTime;
+  final int waitingCharges;
+  final int totalFare;
+  final int extraSlots;
+  final int totalSeconds;
 
-  Fare({this.baseFare, this.waitingTime, this.waitingCharges, this.totalFare});
+  Fare({required this.baseFare, required this.waitingTime, required this.waitingCharges, required this.totalFare, this.extraSlots = 0, this.totalSeconds = 0});
 
-  factory Fare.fromJson(Map<String, dynamic> json) => Fare(baseFare: json["baseFare"], waitingTime: json["waitingTime"], waitingCharges: json["waitingCharges"], totalFare: json["totalFare"]);
+  factory Fare.fromJson(Map<String, dynamic> json) => Fare(
+    baseFare: int.tryParse(json['baseFare']?.toString() ?? '0') ?? 0,
+    waitingTime: int.tryParse((json['waitingTime'] ?? json['totalMinutes'])?.toString() ?? '0') ?? 0,
+    waitingCharges: int.tryParse(json['waitingCharges']?.toString() ?? '0') ?? 0,
+    totalFare: int.tryParse(json['totalFare']?.toString() ?? '0') ?? 0,
+    extraSlots: int.tryParse(json['extraSlots']?.toString() ?? '0') ?? 0,
+    totalSeconds: int.tryParse(json['totalSeconds']?.toString() ?? '0') ?? 0,
+  );
 
-  Map<String, dynamic> toJson() => {"baseFare": baseFare, "waitingTime": waitingTime, "waitingCharges": waitingCharges, "totalFare": totalFare};
+  Map<String, dynamic> toJson() => {'baseFare': baseFare, 'waitingTime': waitingTime, 'waitingCharges': waitingCharges, 'totalFare': totalFare, 'extraSlots': extraSlots, 'totalSeconds': totalSeconds};
 }
 
 class PassengerId {
@@ -125,45 +134,65 @@ class PassengerId {
   Map<String, dynamic> toJson() => {'name': name, 'mobileNo': mobileNo, 'image': image};
 }
 
-class PickupDetails {
-  String? station;
-  String? weight;
-  String? originalWeight;
-  String? pnrNumber;
-  String? utsNumber;
-  String? ticketType;
-  String? trainNumber;
-  String? coachNumber;
-  String? description;
-  String? weightStatus;
+class BookingPackage {
+  final String rangeId;
+  final int minKg;
+  final int? maxKg;
+  final int rate;
+  final int count;
 
-  PickupDetails({this.station, this.weight, this.originalWeight, this.pnrNumber, this.utsNumber, this.trainNumber, this.ticketType, this.coachNumber, this.description, this.weightStatus});
+  BookingPackage({required this.rangeId, required this.minKg, this.maxKg, required this.rate, required this.count});
+
+  factory BookingPackage.fromJson(Map<String, dynamic> json) => BookingPackage(
+    rangeId: json['rangeId']?.toString() ?? '',
+    minKg: int.tryParse(json['minKg']?.toString() ?? '0') ?? 0,
+    maxKg: json['maxKg'] != null ? int.tryParse(json['maxKg'].toString()) : null,
+    rate: int.tryParse(json['rate']?.toString() ?? '0') ?? 0,
+    count: int.tryParse(json['count']?.toString() ?? '0') ?? 0,
+  );
+
+  Map<String, dynamic> toJson() => {'rangeId': rangeId, 'minKg': minKg, if (maxKg != null) 'maxKg': maxKg, 'rate': rate, 'count': count};
+
+  String get label => maxKg != null ? '$minKg–$maxKg kg' : '$minKg kg+';
+
+  int get subtotal => rate * count;
+}
+
+class PickupDetails {
+  final String? station;
+  final String? pnrNumber;
+  final String? utsNumber;
+  final String? ticketType;
+  final String? trainNumber;
+  final String? coachNumber;
+  final String? description;
+  final List<BookingPackage> packages;
+
+  PickupDetails({this.station, this.pnrNumber, this.utsNumber, this.trainNumber, this.ticketType, this.coachNumber, this.description, this.packages = const []});
 
   factory PickupDetails.fromJson(Map<String, dynamic> json) => PickupDetails(
     station: json["station"],
-    weight: json['weight'],
-    originalWeight: json['originalWeight'],
     pnrNumber: json["pnrNumber"],
     utsNumber: json["utsNumber"],
     trainNumber: json["trainNumber"],
     ticketType: json["ticketType"],
     coachNumber: json["coachNumber"],
     description: json["description"],
-    weightStatus: json['weightStatus'],
+    packages: (json['packages'] as List<dynamic>?)?.map((e) => BookingPackage.fromJson(e as Map<String, dynamic>)).where((p) => p.count > 0).toList() ?? [],
   );
 
   Map<String, dynamic> toJson() => {
     "station": station,
-    "weight": weight,
-    "originalWeight": originalWeight,
     "pnrNumber": pnrNumber,
     "utsNumber": utsNumber,
     "trainNumber": trainNumber,
     "ticketType": ticketType,
     "coachNumber": coachNumber,
     "description": description,
-    "weightStatus": weightStatus,
+    "packages": packages.map((p) => p.toJson()).toList(),
   };
+
+  int get totalPackages => packages.fold(0, (sum, p) => sum + p.count);
 }
 
 class Timestamp {

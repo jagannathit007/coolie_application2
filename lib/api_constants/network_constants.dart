@@ -18,7 +18,6 @@ class NetworkConstants {
   static const String bookingAction = 'api/users/bookingAction';
   static const String startService = 'api/users/startService';
   static const String completeService = 'api/users/completeService';
-  static const String updateWeight = 'api/users/updateWeight';
   static const String cancelBooking = 'api/users/cancelBookingByWorker';
   static const String currentBookingStatus = 'api/users/currentBookingStatus';
   static const String todayCompletedJobs = 'api/users/todayCompletedJobs';
