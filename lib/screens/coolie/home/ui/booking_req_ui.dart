@@ -250,6 +250,16 @@ class _PassengerHighlight extends StatelessWidget {
   }
 }
 
+String _formatCarryType(String? carryType) {
+  switch (carryType) {
+    case 'wheeled_barrow':
+      return 'Wheeled Barrow';
+    case 'head_load':
+    default:
+      return 'Head Load';
+  }
+}
+
 class _TripRouteSection extends StatelessWidget {
   final Booking booking;
   final Color primary;
@@ -261,13 +271,13 @@ class _TripRouteSection extends StatelessWidget {
     final station = booking.pickupDetails?.station?.toString() ?? 'N/A';
     final coach = booking.pickupDetails?.coachNumber?.toString();
     final dest = booking.destination?.toString() ?? 'N/A';
-    // final weight = booking.pickupDetails?.weightStatus == "verified" ? booking.pickupDetails?.weight?.toString() : booking.pickupDetails?.originalWeight?.toString();
     final desc = booking.pickupDetails?.description?.toString() ?? '';
     final fare = booking.fare?.baseFare?.toString() ?? '—';
     final pnrNumber = booking.pickupDetails?.pnrNumber?.toString() ?? 'N/A';
     final utsNumber = booking.pickupDetails?.utsNumber?.toString() ?? 'N/A';
     final trainNumber = booking.pickupDetails?.trainNumber?.toString() ?? 'N/A';
     final ticketType = booking.pickupDetails?.ticketType?.toString() ?? 'N/A';
+    final carryType = _formatCarryType(booking.pickupDetails?.carryType);
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 14, 16, 0),
       child: Column(
@@ -313,11 +323,10 @@ class _TripRouteSection extends StatelessWidget {
           const SizedBox(height: 10),
           Row(
             children: [
-              // if (weight != null)
-              //   Expanded(
-              //     child: _MetaChip(icon: Icons.monitor_weight_outlined, label: 'WEIGHT', value: '$weight kg'),
-              //   ),
-              // if (weight != null) const SizedBox(width: 8),
+              Expanded(
+                child: _MetaChip(icon: Icons.monitor_weight_outlined, label: 'CARRY TYPE', value: carryType),
+              ),
+              const SizedBox(width: 8),
               Expanded(
                 child: _MetaChip(icon: Icons.currency_rupee_rounded, label: 'FARE', value: fare),
               ),
@@ -341,13 +350,13 @@ class _ActiveRouteSection extends StatelessWidget {
     final station = booking.pickupDetails?.station?.toString() ?? 'N/A';
     final coach = booking.pickupDetails?.coachNumber?.toString();
     final dest = booking.destination?.toString() ?? 'N/A';
-    // final weight = booking.pickupDetails?.weightStatus == "verified" ? booking.pickupDetails?.weight?.toString() : booking.pickupDetails?.originalWeight?.toString();
     final desc = booking.pickupDetails?.description?.toString() ?? '';
     final pnrNumber = booking.pickupDetails?.pnrNumber?.toString() ?? 'N/A';
     final utsNumber = booking.pickupDetails?.utsNumber?.toString() ?? 'N/A';
     final trainNumber = booking.pickupDetails?.trainNumber?.toString() ?? 'N/A';
     final ticketType = booking.pickupDetails?.ticketType?.toString() ?? 'N/A';
     final fare = booking.fare?.baseFare?.toString() ?? '—';
+    final carryType = _formatCarryType(booking.pickupDetails?.carryType);
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
       child: Column(
@@ -393,11 +402,10 @@ class _ActiveRouteSection extends StatelessWidget {
           const SizedBox(height: 10),
           Row(
             children: [
-              // if (weight != null)
-              //   Expanded(
-              //     child: _MetaChip(icon: Icons.monitor_weight_outlined, label: 'WEIGHT', value: '$weight kg'),
-              //   ),
-              // if (weight != null) const SizedBox(width: 8),
+              Expanded(
+                child: _MetaChip(icon: Icons.monitor_weight_outlined, label: 'CARRY TYPE', value: carryType),
+              ),
+              const SizedBox(width: 8),
               Expanded(
                 child: _MetaChip(icon: Icons.currency_rupee_rounded, label: 'FARE', value: fare),
               ),

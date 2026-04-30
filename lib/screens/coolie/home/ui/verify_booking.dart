@@ -125,7 +125,7 @@ class _OtpFlowDialogState extends State<_OtpFlowDialog> with SingleTickerProvide
     if (_selectedCarryType == 'headLoad' && count > 0) {
       final threshold = int.tryParse(widget.rateCard['carryTypeThresholdKg']?.toString() ?? '') ?? 40;
       final estimatedKg = count * 20;
-      if (estimatedKg > threshold) {
+      if (estimatedKg >= threshold) {
         _weightError = 'Est. weight (${estimatedKg}kg) exceeds ${threshold}kg. Switch to Wheeled Barrow.';
       } else {
         _weightError = null;
@@ -393,7 +393,7 @@ class _DetailsConfirmStep extends StatelessWidget {
     final luggageCount = pickupDetails.luggageCount ?? 0;
     final hasChanges = _hasChanges;
     final threshold = int.tryParse(rateCard['carryTypeThresholdKg']?.toString() ?? '') ?? 40;
-    final exceedsThreshold = luggageCount > 0 && (luggageCount * 20) > threshold;
+    final exceedsThreshold = luggageCount > 0 && (luggageCount * 20) >= threshold;
     return Padding(
       padding: const EdgeInsets.fromLTRB(24, 8, 24, 24),
       child: Column(
@@ -856,7 +856,12 @@ class _DetailsUpdateStep extends StatelessWidget {
               ),
               child: Row(
                 children: [
-                  Text('♿', style: const TextStyle(fontSize: 20)),
+                  Container(
+                    width: 28,
+                    height: 28,
+                    decoration: BoxDecoration(color: primary.withOpacity(0.1), borderRadius: BorderRadius.circular(8)),
+                    child: Icon(Icons.wheelchair_pickup_rounded, size: 18, color: primary),
+                  ),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Column(

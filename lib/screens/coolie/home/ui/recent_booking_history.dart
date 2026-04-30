@@ -108,13 +108,23 @@ class _RecentHistoryTile extends StatelessWidget {
     }
   }
 
+  String _formatCarryType(String? carryType) {
+    switch (carryType) {
+      case 'wheeled_barrow':
+        return 'Wheeled Barrow';
+      case 'head_load':
+      default:
+        return 'Head Load';
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final status = booking.status?.toString() ?? '';
     final s = _style(status);
     final station = booking.pickupDetails?.station?.toString() ?? 'N/A';
     final coachNo = booking.pickupDetails?.coachNumber?.toString() ?? 'N/A';
-    // final weight = booking.pickupDetails?.weight?.toString();
+    final carryType = _formatCarryType(booking.pickupDetails?.carryType);
     final dest = booking.destination?.toString() ?? 'N/A';
     final fare = booking.fare?.baseFare?.toString() ?? '—';
     final bookedAt = _formatDate(booking.timestamp?.bookedAt?.toString());
@@ -223,12 +233,12 @@ class _RecentHistoryTile extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Row(
+                      spacing: 12.0,
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         _FooterChip(icon: Icons.confirmation_number_rounded, label: '${ticketType == 'reserved' ? 'PNR' : 'UTS'}: ${ticketType == 'reserved' ? pnrNumber : utsNumber}'),
-                        const SizedBox(width: 12),
                         _FooterChip(icon: Icons.directions_railway_rounded, label: 'Train: $trainNumber'),
-                        // if (weight != null) ...[const SizedBox(width: 12), _FooterChip(icon: Icons.monitor_weight_outlined, label: '$weight kg')],
+                        _FooterChip(icon: Icons.monitor_weight_outlined, label: carryType),
                       ],
                     ),
                     SizedBox(height: 4),
