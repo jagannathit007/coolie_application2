@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:license_sahayak/models/get_passenger_coolie_model.dart';
+import 'package:license_sahayak/services/app_toasting.dart';
 import 'package:license_sahayak/utils/app_constants.dart';
 import 'package:pin_code_fields/pin_code_fields.dart';
 
@@ -78,6 +79,9 @@ class _OtpFlowDialogState extends State<_OtpFlowDialog> with SingleTickerProvide
 
   late AnimationController _anim;
   late Animation<double> _fadeAnim;
+  late String _originalCarryType;
+  late bool _originalIsWheeledChair;
+  late int _originalLuggageCount;
 
   @override
   void initState() {
@@ -85,6 +89,10 @@ class _OtpFlowDialogState extends State<_OtpFlowDialog> with SingleTickerProvide
     _selectedCarryType = _getCarryTypeValue(widget.pickupDetails.carryType?.toString() ?? 'head_load');
     _isWheeledChair = widget.pickupDetails.isWheeledChair == true;
     _luggageCount = widget.pickupDetails.luggageCount ?? 0;
+    _originalCarryType = _selectedCarryType!;
+    _originalIsWheeledChair = _isWheeledChair;
+    _originalLuggageCount = _luggageCount;
+
     _anim = AnimationController(vsync: this, duration: const Duration(milliseconds: 280));
     _fadeAnim = CurvedAnimation(parent: _anim, curve: Curves.easeOut);
     _anim.forward();
@@ -127,6 +135,13 @@ class _OtpFlowDialogState extends State<_OtpFlowDialog> with SingleTickerProvide
     }
   }
 
+  bool get _hasChanges {
+    final carryTypeChanged = _selectedCarryType != _originalCarryType;
+    final wheeledChairChanged = _isWheeledChair != _originalIsWheeledChair;
+    final luggageCountChanged = _luggageCount != _originalLuggageCount;
+    return carryTypeChanged || wheeledChairChanged || luggageCountChanged;
+  }
+
   Future<void> _handleVerify() async {
     if (widget.verificationCodeController.text.length < 4) return;
     try {
@@ -141,6 +156,10 @@ class _OtpFlowDialogState extends State<_OtpFlowDialog> with SingleTickerProvide
   }
 
   Future<void> _handleUpdateRequest() async {
+    if (!_hasChanges) {
+      warningToast('No changes detected. Please modify something before requesting update.');
+      return;
+    }
     _validateWeight(_luggageCount);
     if (_weightError != null) {
       return;
@@ -157,6 +176,11 @@ class _OtpFlowDialogState extends State<_OtpFlowDialog> with SingleTickerProvide
     try {
       setState(() => _isLoading = true);
       final success = await widget.onRequestUpdate(updateData);
+      if (success) {
+        _originalCarryType = _selectedCarryType!;
+        _originalIsWheeledChair = _isWheeledChair;
+        _originalLuggageCount = _luggageCount;
+      }
       if (!success) {
         setState(() => _isLoading = false);
       }
@@ -263,6 +287,7 @@ class _OtpFlowDialogState extends State<_OtpFlowDialog> with SingleTickerProvide
           luggageCount: _luggageCount,
           isLoading: _isLoading,
           weightError: _weightError,
+          hasChanges: _hasChanges,
           onCarryTypeChanged: (val) {
             setState(() {
               _selectedCarryType = val;
@@ -559,7 +584,7 @@ class _DetailsConfirmStep extends StatelessWidget {
                   isPrimary: true,
                   onTap: () {
                     if (exceedsThreshold && !isConfirmed) {
-                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Please request update to fix weight issue'), backgroundColor: _kRed));
+                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please request update to fix weight issue'), backgroundColor: _kRed));
                     } else {
                       onConfirm();
                     }
@@ -738,6 +763,7 @@ class _DetailsUpdateStep extends StatelessWidget {
   final int luggageCount;
   final bool isLoading;
   final String? weightError;
+  final bool hasChanges;
   final ValueChanged<String> onCarryTypeChanged;
   final ValueChanged<bool> onWheeledChairChanged;
   final ValueChanged<int> onLuggageCountChanged;
@@ -752,6 +778,7 @@ class _DetailsUpdateStep extends StatelessWidget {
     required this.luggageCount,
     required this.isLoading,
     this.weightError,
+    required this.hasChanges,
     required this.onCarryTypeChanged,
     required this.onWheeledChairChanged,
     required this.onLuggageCountChanged,
@@ -765,6 +792,8 @@ class _DetailsUpdateStep extends StatelessWidget {
   Widget build(BuildContext context) {
     final primary = Constants.instance.primary;
     final exceedsThreshold = luggageCount > 0 && _estimatedKg > threshold;
+    final bool canSubmit = hasChanges && weightError == null && !exceedsThreshold;
+
     return Padding(
       padding: const EdgeInsets.fromLTRB(24, 8, 24, 24),
       child: Column(
@@ -927,7 +956,7 @@ class _DetailsUpdateStep extends StatelessWidget {
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
-                        'Estimated weight ($_estimatedKg kg) exceeds 40kg limit for Head Load. Please switch to Wheeled Barrow.',
+                        'Estimated weight ($_estimatedKg kg) exceeds $threshold kg limit for Head Load. Please switch to Wheeled Barrow.',
                         style: GoogleFonts.inter(fontSize: 11, color: _kRed, height: 1.4),
                       ),
                     ),
@@ -966,14 +995,14 @@ class _DetailsUpdateStep extends StatelessWidget {
           ),
           const SizedBox(height: 24),
           GestureDetector(
-            onTap: (isLoading || weightError != null) ? null : onSubmit,
+            onTap: (isLoading || !canSubmit) ? null : onSubmit,
             child: Container(
               height: 52,
               width: double.infinity,
               decoration: BoxDecoration(
-                color: (isLoading || weightError != null) ? primary.withOpacity(0.5) : primary,
+                color: !canSubmit ? primary.withOpacity(0.5) : primary,
                 borderRadius: BorderRadius.circular(14),
-                boxShadow: (isLoading || weightError != null) ? [] : [BoxShadow(color: primary.withOpacity(0.3), blurRadius: 12, offset: const Offset(0, 4))],
+                boxShadow: !canSubmit ? [] : [BoxShadow(color: primary.withOpacity(0.3), blurRadius: 12, offset: const Offset(0, 4))],
               ),
               child: isLoading
                   ? const Center(
@@ -985,7 +1014,11 @@ class _DetailsUpdateStep extends StatelessWidget {
                         Icon(Icons.send_rounded, size: 18, color: Colors.white),
                         const SizedBox(width: 8),
                         Text(
-                          weightError != null ? 'Fix Weight Issue First' : 'Send Update Request',
+                          !hasChanges
+                              ? 'No Changes to Send'
+                              : (weightError != null || exceedsThreshold)
+                              ? 'Fix Issues First'
+                              : 'Send Update Request',
                           style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w600, color: Colors.white),
                         ),
                       ],
