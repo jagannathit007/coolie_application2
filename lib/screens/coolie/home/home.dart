@@ -86,7 +86,7 @@ class HomeScreen extends StatelessWidget {
                           ? Center(child: CircularProgressIndicator(color: Constants.instance.primary))
                           : SingleChildScrollView(
                               physics: const AlwaysScrollableScrollPhysics(),
-                              padding: const EdgeInsets.fromLTRB(20, 20, 20, 100),
+                              padding: const EdgeInsets.fromLTRB(16, 20, 16, 100),
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [

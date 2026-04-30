@@ -304,7 +304,6 @@ class _TripRouteSection extends StatelessWidget {
                     ],
                   ),
                 ),
-                if (ticketType.isNotEmpty) ...[SizedBox(width: 10), _CoachTag(coach: ticketType.capitalizeFirst.toString())],
               ],
             ),
           ),
@@ -312,11 +311,23 @@ class _TripRouteSection extends StatelessWidget {
           Row(
             children: [
               Expanded(
-                child: _MetaChip(icon: Icons.confirmation_number_rounded, label: ticketType == 'reserved' ? 'PNR' : 'UTS', value: ticketType == 'reserved' ? pnrNumber : utsNumber),
+                child: _MetaChip(icon: Icons.confirmation_number_rounded, label: 'TICKET TYPE', value: ticketType.toString().toUpperCase()),
               ),
               const SizedBox(width: 8),
               Expanded(
-                child: _MetaChip(icon: Icons.directions_railway_rounded, label: 'TRAIN', value: "${coach.toString().toUpperCase()} • $trainNumber"),
+                child: _MetaChip(icon: Icons.confirmation_number_rounded, label: ticketType == 'reserved' ? 'PNR' : 'UTS', value: ticketType == 'reserved' ? pnrNumber : utsNumber),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Row(
+            children: [
+              Expanded(
+                child: _MetaChip(icon: Icons.train_rounded, label: 'COACH NO', value: coach.toString().toUpperCase()),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: _MetaChip(icon: Icons.directions_railway_rounded, label: 'TRAIN', value: trainNumber),
               ),
             ],
           ),
@@ -383,7 +394,6 @@ class _ActiveRouteSection extends StatelessWidget {
                     ],
                   ),
                 ),
-                if (ticketType.isNotEmpty) ...[const SizedBox(width: 10), _CoachTag(coach: ticketType.capitalizeFirst.toString())],
               ],
             ),
           ),
@@ -391,11 +401,23 @@ class _ActiveRouteSection extends StatelessWidget {
           Row(
             children: [
               Expanded(
-                child: _MetaChip(icon: Icons.confirmation_number_rounded, label: ticketType == 'reserved' ? 'PNR' : 'UTS', value: ticketType == 'reserved' ? pnrNumber : utsNumber),
+                child: _MetaChip(icon: Icons.confirmation_number_rounded, label: 'TICKET TYPE', value: ticketType.toString().toUpperCase()),
               ),
               const SizedBox(width: 8),
               Expanded(
-                child: _MetaChip(icon: Icons.directions_railway_rounded, label: 'TRAIN', value: "${coach.toString().toUpperCase()} • $trainNumber"),
+                child: _MetaChip(icon: Icons.confirmation_number_rounded, label: ticketType == 'reserved' ? 'PNR' : 'UTS', value: ticketType == 'reserved' ? pnrNumber : utsNumber),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Row(
+            children: [
+              Expanded(
+                child: _MetaChip(icon: Icons.train_rounded, label: 'COACH NO', value: coach.toString().toUpperCase()),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: _MetaChip(icon: Icons.directions_railway_rounded, label: 'TRAIN', value: trainNumber),
               ),
             ],
           ),
@@ -561,35 +583,6 @@ class _RouteStop extends StatelessWidget {
   }
 }
 
-class _CoachTag extends StatelessWidget {
-  final String coach;
-
-  const _CoachTag({required this.coach});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 6),
-      decoration: BoxDecoration(
-        color: _kWhite,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: _kSlate200, width: 0.8),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const Icon(Icons.train_rounded, size: 13, color: _kSlate400),
-          const SizedBox(width: 4),
-          Text(
-            coach,
-            style: GoogleFonts.poppins(fontSize: 11, fontWeight: FontWeight.w600, color: _kSlate600),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
 class _MetaChip extends StatelessWidget {
   final IconData icon;
   final String label;
@@ -619,7 +612,7 @@ class _MetaChip extends StatelessWidget {
                   value,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w600, color: const Color(0xFF1E293B)),
+                  style: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.w600, color: const Color(0xFF1E293B)),
                 ),
               ],
             ),

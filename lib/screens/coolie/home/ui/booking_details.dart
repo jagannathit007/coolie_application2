@@ -166,7 +166,7 @@ class BookingDetailsSheet extends StatelessWidget {
                     rows: [
                       _InfoRow(icon: Icons.trip_origin_rounded, label: 'Pickup station', value: _station, primary: primary),
                       _InfoRow(icon: Icons.location_on_rounded, label: 'Destination', value: _dest, primary: primary),
-                      _InfoRow(icon: Icons.train_rounded, label: 'Coach number', value: _coach, primary: primary),
+                      _InfoRow(icon: Icons.train_rounded, label: 'Coach number', value: _coach.toString().toUpperCase(), primary: primary),
                       _InfoRow(icon: Icons.confirmation_number_rounded, label: '${_ticketType == 'reserved' ? 'PNR' : 'UTS'} number', value: _ticketType == 'reserved' ? _pnr : _uts, primary: primary),
                       _InfoRow(icon: Icons.confirmation_number_rounded, label: 'Ticket type', value: _ticketType.capitalizeFirst.toString(), primary: primary),
                       _InfoRow(icon: Icons.directions_railway_rounded, label: 'Train number', value: _trainNumber, primary: primary),

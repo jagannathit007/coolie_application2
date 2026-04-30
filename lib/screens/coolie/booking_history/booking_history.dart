@@ -334,11 +334,23 @@ class _BookingCard extends StatelessWidget {
                     Row(
                       children: [
                         Expanded(
-                          child: _MetaChip(icon: Icons.confirmation_number_rounded, label: ticketType == 'reserved' ? 'PNR' : 'UTS', value: ticketType == 'reserved' ? pnrNumber : utsNumber),
+                          child: _MetaChip(icon: Icons.confirmation_number_rounded, label: 'TICKET TYPE', value: ticketType.toString().toUpperCase()),
                         ),
                         const SizedBox(width: 8),
                         Expanded(
-                          child: _MetaChip(icon: Icons.directions_railway_rounded, label: 'TRAIN', value: "${coach.toString().toUpperCase()} • $trainNumber"),
+                          child: _MetaChip(icon: Icons.confirmation_number_rounded, label: ticketType == 'reserved' ? 'PNR' : 'UTS', value: ticketType == 'reserved' ? pnrNumber : utsNumber),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 10),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _MetaChip(icon: Icons.train_rounded, label: 'COACH NO', value: coach.toString().toUpperCase()),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: _MetaChip(icon: Icons.directions_railway_rounded, label: 'TRAIN', value: trainNumber),
                         ),
                       ],
                     ),

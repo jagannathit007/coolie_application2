@@ -245,10 +245,19 @@ class _RecentHistoryTile extends StatelessWidget {
                     Container(height: 1, width: double.infinity, color: Color(0xFFF1F5F9)),
                     SizedBox(height: 4),
                     Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        _FooterChip(icon: Icons.train_rounded, label: 'Coach $coachNo'),
-                        _FooterChip(icon: Icons.directions_railway_rounded, label: 'Ticket Type: ${ticketType.capitalizeFirst}'),
+                        Expanded(
+                          child: Align(
+                            alignment: Alignment.centerLeft,
+                            child: _FooterChip(icon: Icons.train_rounded, label: 'Coach No: ${coachNo.toString().toUpperCase()}'),
+                          ),
+                        ),
+                        Expanded(
+                          child: Align(
+                            alignment: Alignment.centerRight,
+                            child: _FooterChip(icon: Icons.directions_railway_rounded, label: 'Ticket Type: ${ticketType.capitalizeFirst}'),
+                          ),
+                        ),
                       ],
                     ),
                   ],
@@ -275,7 +284,14 @@ class _FooterChip extends StatelessWidget {
       children: [
         Icon(icon, size: 12, color: const Color(0xFFCBD5E1)),
         const SizedBox(width: 5),
-        Text(label, style: GoogleFonts.poppins(fontSize: 11, color: const Color(0xFF94A3B8))),
+        Flexible(
+          child: Text(
+            label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: GoogleFonts.poppins(fontSize: 11, color: const Color(0xFF94A3B8)),
+          ),
+        ),
       ],
     );
   }
