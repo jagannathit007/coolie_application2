@@ -127,42 +127,69 @@ class PassengerId {
 
 class PickupDetails {
   String? station;
-  String? weight;
-  String? originalWeight;
   String? pnrNumber;
   String? utsNumber;
   String? ticketType;
   String? trainNumber;
   String? coachNumber;
   String? description;
-  String? weightStatus;
+  String? carryType;
+  int? luggageCount;
+  String? originalCarryType;
+  int? originalLuggageCount;
+  String? luggageStatus;
+  bool? isWheeledChair;
+  bool? originalIsWheeledChair;
 
-  PickupDetails({this.station, this.weight, this.originalWeight, this.pnrNumber, this.utsNumber, this.trainNumber, this.ticketType, this.coachNumber, this.description, this.weightStatus});
+  PickupDetails({
+    this.station,
+    this.pnrNumber,
+    this.utsNumber,
+    this.trainNumber,
+    this.ticketType,
+    this.coachNumber,
+    this.description,
+    this.carryType,
+    this.luggageCount,
+    this.originalCarryType,
+    this.originalLuggageCount,
+    this.luggageStatus,
+    this.isWheeledChair,
+    this.originalIsWheeledChair,
+  });
 
   factory PickupDetails.fromJson(Map<String, dynamic> json) => PickupDetails(
     station: json["station"],
-    weight: json['weight'],
-    originalWeight: json['originalWeight'],
     pnrNumber: json["pnrNumber"],
     utsNumber: json["utsNumber"],
     trainNumber: json["trainNumber"],
     ticketType: json["ticketType"],
     coachNumber: json["coachNumber"],
     description: json["description"],
-    weightStatus: json['weightStatus'],
+    carryType: json['carryType'],
+    luggageCount: int.tryParse(json['luggageCount'].toString()) ?? 0,
+    originalCarryType: json['originalCarryType'],
+    originalLuggageCount: int.tryParse(json['originalLuggageCount'].toString()) ?? 0,
+    luggageStatus: json['luggageStatus'],
+    isWheeledChair: json['isWheeledChair'],
+    originalIsWheeledChair: json['originalIsWheeledChair'],
   );
 
   Map<String, dynamic> toJson() => {
     "station": station,
-    "weight": weight,
-    "originalWeight": originalWeight,
     "pnrNumber": pnrNumber,
     "utsNumber": utsNumber,
     "trainNumber": trainNumber,
     "ticketType": ticketType,
     "coachNumber": coachNumber,
     "description": description,
-    "weightStatus": weightStatus,
+    "carryType": carryType,
+    "luggageCount": luggageCount,
+    "originalCarryType": originalCarryType,
+    "originalLuggageCount": originalLuggageCount,
+    "luggageStatus": luggageStatus,
+    "isWheeledChair": isWheeledChair,
+    "originalIsWheeledChair": originalIsWheeledChair,
   };
 }
 

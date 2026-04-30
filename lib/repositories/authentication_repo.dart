@@ -179,6 +179,20 @@ class AuthenticationRepo {
     }
   }
 
+  Future<dynamic> getRateCard() async {
+    try {
+      final response = await apiManager.post(NetworkConstants.getRateCard, data: {});
+      if (response.status != 200) {
+        warningToast(response.data ?? 'Failed to rate card');
+        return null;
+      }
+      return response.data;
+    } catch (err) {
+      errorToast('Error Rate card: $err');
+      return null;
+    }
+  }
+
   Future<dynamic> logOut({required bool isMukadam}) async {
     try {
       String url = isMukadam ? NetworkConstants.mukadamLogout : NetworkConstants.logoutCollie;

@@ -29,7 +29,7 @@ class BookingDetailsSheet extends StatelessWidget {
 
   String get _dest => booking?.destination?.toString() ?? rawBooking?['destination']?.toString() ?? 'N/A';
 
-  String get _weight => booking?.pickupDetails?.weight?.toString() ?? rawBooking?['pickupDetails']?['weight']?.toString() ?? 'N/A';
+  // String get _weight => booking?.pickupDetails?.weight?.toString() ?? rawBooking?['pickupDetails']?['weight']?.toString() ?? 'N/A';
 
   String get _fare => booking?.fare?.baseFare?.toString() ?? rawBooking?['fare']?['baseFare']?.toString() ?? '—';
 
@@ -161,7 +161,7 @@ class BookingDetailsSheet extends StatelessWidget {
                       _InfoRow(icon: Icons.confirmation_number_rounded, label: '${_ticketType == 'reserved' ? 'PNR' : 'UTS'} number', value: _ticketType == 'reserved' ? _pnr : _uts, primary: primary),
                       _InfoRow(icon: Icons.confirmation_number_rounded, label: 'Ticket type', value: _ticketType.capitalizeFirst.toString(), primary: primary),
                       _InfoRow(icon: Icons.directions_railway_rounded, label: 'Train number', value: _trainNumber, primary: primary),
-                      _InfoRow(icon: Icons.monitor_weight_outlined, label: 'Luggage weight', value: '$_weight kg', primary: primary),
+                      // _InfoRow(icon: Icons.monitor_weight_outlined, label: 'Luggage weight', value: '$_weight kg', primary: primary),
                     ],
                   ),
                   const SizedBox(height: 20),

@@ -239,7 +239,7 @@ class _BookingCard extends StatelessWidget {
     final station = booking.pickupDetails?.station?.toString() ?? 'N/A';
     final coach = booking.pickupDetails?.coachNumber?.toString();
     final dest = booking.destination?.toString() ?? 'N/A';
-    final weight = booking.pickupDetails?.weight?.toString();
+    // final weight = booking.pickupDetails?.weight?.toString();
     final fare = booking.fare?.baseFare?.toString() ?? '—';
     final bookedAt = controller.formatDate(booking.timestamp?.bookedAt?.toString() ?? '');
     final pnrNumber = booking.pickupDetails?.pnrNumber?.toString() ?? 'N/A';
@@ -335,11 +335,11 @@ class _BookingCard extends StatelessWidget {
                     const SizedBox(height: 12),
                     Row(
                       children: [
-                        if (weight != null)
-                          Expanded(
-                            child: _MetaChip(icon: Icons.monitor_weight_outlined, label: 'WEIGHT', value: '$weight kg'),
-                          ),
-                        if (weight != null) const SizedBox(width: 8),
+                        // if (weight != null)
+                        //   Expanded(
+                        //     child: _MetaChip(icon: Icons.monitor_weight_outlined, label: 'WEIGHT', value: '$weight kg'),
+                        //   ),
+                        // if (weight != null) const SizedBox(width: 8),
                         Expanded(
                           child: _MetaChip(icon: Icons.access_time_rounded, label: 'BOOKED AT', value: _timeOnly(booking.timestamp?.bookedAt?.toString())),
                         ),

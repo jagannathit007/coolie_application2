@@ -261,7 +261,7 @@ class _TripRouteSection extends StatelessWidget {
     final station = booking.pickupDetails?.station?.toString() ?? 'N/A';
     final coach = booking.pickupDetails?.coachNumber?.toString();
     final dest = booking.destination?.toString() ?? 'N/A';
-    final weight = booking.pickupDetails?.weightStatus == "verified" ? booking.pickupDetails?.weight?.toString() : booking.pickupDetails?.originalWeight?.toString();
+    // final weight = booking.pickupDetails?.weightStatus == "verified" ? booking.pickupDetails?.weight?.toString() : booking.pickupDetails?.originalWeight?.toString();
     final desc = booking.pickupDetails?.description?.toString() ?? '';
     final fare = booking.fare?.baseFare?.toString() ?? '—';
     final pnrNumber = booking.pickupDetails?.pnrNumber?.toString() ?? 'N/A';
@@ -313,11 +313,11 @@ class _TripRouteSection extends StatelessWidget {
           const SizedBox(height: 10),
           Row(
             children: [
-              if (weight != null)
-                Expanded(
-                  child: _MetaChip(icon: Icons.monitor_weight_outlined, label: 'WEIGHT', value: '$weight kg'),
-                ),
-              if (weight != null) const SizedBox(width: 8),
+              // if (weight != null)
+              //   Expanded(
+              //     child: _MetaChip(icon: Icons.monitor_weight_outlined, label: 'WEIGHT', value: '$weight kg'),
+              //   ),
+              // if (weight != null) const SizedBox(width: 8),
               Expanded(
                 child: _MetaChip(icon: Icons.currency_rupee_rounded, label: 'FARE', value: fare),
               ),
@@ -341,7 +341,7 @@ class _ActiveRouteSection extends StatelessWidget {
     final station = booking.pickupDetails?.station?.toString() ?? 'N/A';
     final coach = booking.pickupDetails?.coachNumber?.toString();
     final dest = booking.destination?.toString() ?? 'N/A';
-    final weight = booking.pickupDetails?.weightStatus == "verified" ? booking.pickupDetails?.weight?.toString() : booking.pickupDetails?.originalWeight?.toString();
+    // final weight = booking.pickupDetails?.weightStatus == "verified" ? booking.pickupDetails?.weight?.toString() : booking.pickupDetails?.originalWeight?.toString();
     final desc = booking.pickupDetails?.description?.toString() ?? '';
     final pnrNumber = booking.pickupDetails?.pnrNumber?.toString() ?? 'N/A';
     final utsNumber = booking.pickupDetails?.utsNumber?.toString() ?? 'N/A';
@@ -393,11 +393,11 @@ class _ActiveRouteSection extends StatelessWidget {
           const SizedBox(height: 10),
           Row(
             children: [
-              if (weight != null)
-                Expanded(
-                  child: _MetaChip(icon: Icons.monitor_weight_outlined, label: 'WEIGHT', value: '$weight kg'),
-                ),
-              if (weight != null) const SizedBox(width: 8),
+              // if (weight != null)
+              //   Expanded(
+              //     child: _MetaChip(icon: Icons.monitor_weight_outlined, label: 'WEIGHT', value: '$weight kg'),
+              //   ),
+              // if (weight != null) const SizedBox(width: 8),
               Expanded(
                 child: _MetaChip(icon: Icons.currency_rupee_rounded, label: 'FARE', value: fare),
               ),

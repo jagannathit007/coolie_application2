@@ -114,7 +114,7 @@ class _RecentHistoryTile extends StatelessWidget {
     final s = _style(status);
     final station = booking.pickupDetails?.station?.toString() ?? 'N/A';
     final coachNo = booking.pickupDetails?.coachNumber?.toString() ?? 'N/A';
-    final weight = booking.pickupDetails?.weight?.toString();
+    // final weight = booking.pickupDetails?.weight?.toString();
     final dest = booking.destination?.toString() ?? 'N/A';
     final fare = booking.fare?.baseFare?.toString() ?? '—';
     final bookedAt = _formatDate(booking.timestamp?.bookedAt?.toString());
@@ -228,7 +228,7 @@ class _RecentHistoryTile extends StatelessWidget {
                         _FooterChip(icon: Icons.confirmation_number_rounded, label: '${ticketType == 'reserved' ? 'PNR' : 'UTS'}: ${ticketType == 'reserved' ? pnrNumber : utsNumber}'),
                         const SizedBox(width: 12),
                         _FooterChip(icon: Icons.directions_railway_rounded, label: 'Train: $trainNumber'),
-                        if (weight != null) ...[const SizedBox(width: 12), _FooterChip(icon: Icons.monitor_weight_outlined, label: '$weight kg')],
+                        // if (weight != null) ...[const SizedBox(width: 12), _FooterChip(icon: Icons.monitor_weight_outlined, label: '$weight kg')],
                       ],
                     ),
                     SizedBox(height: 4),

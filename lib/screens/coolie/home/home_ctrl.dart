@@ -38,6 +38,8 @@ class HomeCtrl extends GetxController {
   final checkInStatusMessage = ''.obs, countdownTime = '00:00'.obs;
   Timer? _timer;
 
+  RxMap<String, dynamic> rateCard = RxMap();
+
   final List<dynamic> _socketSubscriptions = [];
   List<Booking> recent = [];
 
@@ -163,6 +165,19 @@ class HomeCtrl extends GetxController {
     }
     if (isVerify == true) verifyBooking(notificationAction: action);
     if (timer == true) startCountdownTimer();
+  }
+
+  Future<void> getRateCard() async {
+    isLoading.value = true;
+    try {
+      final response = await authRepo.getRateCard();
+      if (response != null) {
+        rateCard.value = response;
+      }
+    } catch (_) {
+    } finally {
+      isLoading.value = false;
+    }
   }
 
   Future<void> loadRecent() async {
@@ -409,18 +424,16 @@ class HomeCtrl extends GetxController {
     verificationCodeController.clear();
     verificationCodeController.clear();
     String bookingID = passengerDetails.value.booking?.id ?? "";
-    double originalWeight = passengerDetails.value.booking?.pickupDetails?.weightStatus == "verified"
-        ? double.tryParse(passengerDetails.value.booking?.pickupDetails?.weight.toString() ?? "0.0") ?? 0.0
-        : double.tryParse(passengerDetails.value.booking?.pickupDetails?.originalWeight.toString() ?? "0.0") ?? 0.0;
-    bool allowWeightUpdate = passengerDetails.value.booking?.pickupDetails?.weightStatus != "verified" && notificationAction == "weight_disputed";
+    bool allowWeightUpdate = passengerDetails.value.booking?.pickupDetails?.luggageStatus != "verified" && notificationAction == "weight_disputed";
     bool isWeightConfirmed = notificationAction == "weight_confirmed";
     otpDialog(
+      rateCard: rateCard,
+      pickupDetails: passengerDetails.value.booking!.pickupDetails!,
       verificationCodeController: verificationCodeController,
-      bookedWeight: originalWeight,
       onVerify: () async => await bookingOPTVerify(bookingID),
-      onRequestWeightUpdate: (newWeight) async => await requestWeightUpdate(newWeight, bookingID),
-      allowWeightUpdate: allowWeightUpdate,
-      isWeightConfirmed: isWeightConfirmed,
+      onRequestUpdate: (req) async => await requestWeightUpdate(req, bookingID),
+      allowUpdate: allowWeightUpdate,
+      isConfirmed: isWeightConfirmed,
     );
   }
 
@@ -446,14 +459,11 @@ class HomeCtrl extends GetxController {
     }
   }
 
-  Future<bool> requestWeightUpdate(double newWeight, String? bookingId) async {
-    if (bookingId == null) {
-      errorToast("Booking ID not found!");
-      return false;
-    }
+  Future<bool> requestWeightUpdate(Map<String, dynamic> req, String bookingID) async {
     try {
       isLoading.value = true;
-      await authRepo.updateWeight({"bookingId": bookingId, "weight": newWeight});
+      req["bookingId"] = bookingID;
+      await authRepo.updateWeight(req);
       Get.close(1);
       return true;
     } catch (e) {
